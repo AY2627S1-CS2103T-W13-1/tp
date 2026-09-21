@@ -159,6 +159,21 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Remark command
+
+`AddressBookParser` routes `remark` to `RemarkCommandParser`, which parses the displayed index
+and the optional `r/` prefix. An absent or empty remark clears the note; duplicate prefixes
+and invalid indexes are rejected.
+
+`RemarkCommand` selects the person from the filtered list and creates a replacement `Person`
+with the new immutable `Remark`, preserving all other fields. It calls `Model#setPerson`
+and resets the filter to show all persons. `PersonCard` displays non-empty remarks beneath
+the email address and hides empty remarks without reserving layout space.
+
+`JsonAdaptedPerson` saves the remark with the other person fields. Missing or null remarks
+in older JSON files become empty remarks, so existing data files need not be deleted.
+The `edit` command preserves remarks, while the `add` command creates an empty remark.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -382,6 +397,23 @@ testers are expected to do more *exploratory* testing.
       Expected: Similar to previous.
 
 1. _{ more test cases … }_
+
+### Adding and clearing remarks
+
+1. Run `list` with at least two persons present, then enter `remark 1 r/Likes swimming`.<br>
+   Expected: The first person's card displays the note below their email address.
+1. Enter `remark 1 r/Prefers running`.<br>
+   Expected: The note is replaced; the person's other fields remain unchanged.
+1. Restart the app.<br>
+   Expected: The replacement remark is retained.
+1. Use `find` to show a person who was not first in the full list, then enter `remark 1 r/Morning sessions`.<br>
+   Expected: The first search result is updated and the full list is shown again.
+1. Enter `remark 0 r/Note`, `remark 999999 r/Note`, and `remark 1 r/One r/Two`.<br>
+   Expected: Each command shows an error and leaves all persons unchanged.
+1. Run `remark 1 r/`, then restart the app.<br>
+   Expected: The first person's remark is removed, with no blank remark row, and stays removed.
+1. Add a remark again and run `remark 1`.<br>
+   Expected: Omitting the prefix also clears the remark.
 
 ### Saving data
 
