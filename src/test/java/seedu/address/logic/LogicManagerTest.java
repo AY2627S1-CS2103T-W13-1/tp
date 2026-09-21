@@ -65,6 +65,24 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_remarkThenEditThenClear_persistsChanges() throws Exception {
+        model.addPerson(AMY);
+        JsonAddressBookStorage storage =
+                new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        logic.execute("remark 1 r/Likes swimming");
+        Person withRemark = new PersonBuilder(AMY).withRemark("Likes swimming").build();
+        assertEquals(withRemark, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+
+        logic.execute("edit 1 p/91234567");
+        Person edited = new PersonBuilder(withRemark).withPhone("91234567").build();
+        assertEquals(edited, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+
+        logic.execute("remark 1 r/");
+        Person cleared = new PersonBuilder(edited).withRemark("").build();
+        assertEquals(cleared, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+    }
+
+    @Test
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
