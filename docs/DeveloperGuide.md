@@ -283,8 +283,9 @@ _{Explain here how the data archiving feature will be implemented}_
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: 
 
+Sports coaches find it troublesome to **keep track** of their players and their specific details, especially when they are ranking or cutting the team. Our product will provide a clear overview of all players, with fast lookup, custom categorisations, amend and remark functionality, and a system to evaluate player performance.
 
 ### User stories
 
