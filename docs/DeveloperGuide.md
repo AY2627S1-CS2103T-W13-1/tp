@@ -6,6 +6,10 @@
 
 # AB-3 Developer Guide
 
+## **Value proposition**
+
+Sports coaches find it troublesome to **keep track** of their players and their specific details, especially when they are ranking or cutting the team. Our product will provide a clear overview of all players, with fast lookup, custom categorisations, amend and remark functionality, and a system to evaluate player performance.
+
 <!-- * Table of Contents -->
 <page-nav-print />
 
