@@ -290,16 +290,20 @@ _{Explain here how the data archiving feature will be implemented}_
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-| Priority | As a …                                    | I want to …                 | So that I can…                                                        |
-|----------|--------------------------------------------|------------------------------|------------------------------------------------------------------------|
-| `* * *`  | new user                                   | see usage instructions       | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person             |                                                                        |
-| `* * *`  | user                                       | delete a person              | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name        | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name         | locate a person easily                                                 |
+These 10 stories consolidate the key needs in the team's project notes and describe the intended product, including features beyond the MVP.
 
-*{More to be added}*
+| Priority | As a … | I want to … | So that I can … |
+|----------|--------|-------------|----------------|
+| `* * *` | coach | record each player's name, contact number, and jersey number | keep an identifiable record of each player and match them to my trial notes and videos |
+| `* * *` | coach | list all players | see everyone in the team at a glance |
+| `* * *` | coach | edit a player's details or delete their record | keep my records accurate when details change, mistakes are found, or players withdraw |
+| `* * *` | coach | find players by name | retrieve their details during a session without scanning the entire list |
+| `* * *` | coach | view a summary of command formats within the app | recall the syntax I need without leaving the app |
+| `* * *` | coach | have changes to player data saved automatically | resume work in a later session without re-entering changes or remembering to save manually |
+| `* * *` | coach | organise players using custom tags and filter the list by tag | focus on players in a particular position, role, or trial group |
+| `* * *` | coach | mark players as kept or cut and view the kept players | track my selection decisions and see the resulting squad |
+| `* *` | coach | give players numeric ratings, see who remains unrated, and sort players by rating | compare assessed players on a common scale while identifying those who still need evaluation |
+| `*` | coach | add free-text remarks to a player's record | retain qualitative observations that a numeric rating cannot express when making selection decisions |
 
 ### Use cases
 
