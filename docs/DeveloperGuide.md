@@ -614,15 +614,30 @@ The following rules apply throughout:
 ### Non-Functional Requirements
 
 1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
+2.  Should respond to any command within 2 seconds when storing up to 1000 players, on a computer that meets the minimum requirements of its mainstream OS.
 3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+4.  Should be usable by a single user on one computer; concurrent use of the same data by multiple users is not required.
+5.  Should work without an internet connection, and should not send player data to any remote server.
+6.  Should store player data locally in a _human-editable_ text file, without using a database management system.
+7.  Should save each successful change to player data to the data file before the result of that command is displayed, so that no confirmed change is lost if the app is closed afterwards.
+8.  Should be distributed as a single JAR file of at most 100MB that runs without an installer.
+9.  The GUI should display all content without clipping for standard screen resolutions of 1920x1080 and higher at screen scales of 100% and 125%, and all functions should remain usable for resolutions of 1280x720 and higher at a screen scale of 150%.
 
 ### Glossary
 
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **CLI (Command Line Interface)**: A text-based interface in which the user types commands to interact with the app
+* **GUI (Graphical User Interface)**: The visual interface of the app, which displays the player list and command results
+* **Coach**: The user of CouchCoach, who manages the players of a sports team
+* **Player**: A member or prospective member of the Coach's team whose details are recorded in CouchCoach
+* **Displayed list**: The list of players currently shown in the GUI, which contains either all players or only the players matching the most recent search or filter
+* **Index**: The position number of a player in the displayed list, starting from 1, used to identify that player in a command
+* **Duplicate name**: A player name that matches an existing player's name after trimming leading and trailing spaces, collapsing repeated internal spaces, and ignoring letter case
+* **Tag**: A custom label that the Coach assigns to a player to categorise them, such as by position, role, or trial group
+* **Rating**: A numeric score that the Coach assigns to a player to compare assessed players on a common scale; a player without a rating is _unrated_
+* **Selection status**: The Coach's selection decision for a player, which is either _kept_ (selected for the team) or _cut_ (not selected)
+* **Remark**: A free-text note that the Coach records about a player to retain qualitative observations
+* **Human-editable**: Stored in a plain-text format that can be read and modified using a common text editor
 
 --------------------------------------------------------------------------------------------------------------------
 
