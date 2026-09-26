@@ -307,32 +307,309 @@ These 10 stories consolidate the key needs in the team's project notes and descr
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+For all use cases below, the **System** is **CouchCoach** and the
+**Actor** is the **Coach**, unless specified otherwise.
 
-**Use case: Delete a person**
+These use cases describe the intended product behaviour. UC01 is part of
+the MVP. UC02–UC06 describe planned features beyond the MVP and do not
+indicate that those features have already been implemented.
+
+The following rules apply throughout:
+
+* A player selected from a displayed list refers to a player in that list,
+  which may contain all players or only search results. For deletion,
+  selection uses the player's current index in the displayed list.
+* Duplicate-name detection is part of the MVP. Names are compared after
+  trimming leading and trailing spaces, collapsing repeated internal spaces,
+  and ignoring letter case. Players may share a contact number.
+* The proposed edit behaviour preserves the same name-uniqueness rule:
+  changing a player's name must not duplicate another player's name.
+* Rejected requests leave player data unchanged and do not trigger a save.
+* Successful data changes are saved automatically. The planned modifying
+  features below follow the same saving behaviour as MVP deletion. If saving
+  fails, the change remains applied in the current session, and CouchCoach
+  warns that the change has not been saved and may be lost after closing.
+
+#### UC01: Delete a player
+
+**Related user stories:** US02, US03, US04
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. Coach requests to list all players.
+2. CouchCoach displays the player list.
+3. Coach requests to delete a player using their index in the displayed list.
+4. CouchCoach removes the player, saves the updated data, and displays the
+   deleted player's details and updated list. The remaining displayed players
+   are renumbered.
 
-    Use case ends.
+   Use case ends.
 
 **Extensions**
 
-* 2a. The list is empty.
+* 1a. Coach requests to find players by name instead of listing all players.
+
+    * 1a1. CouchCoach processes the search request.
+
+      Use case resumes at step 2, displaying only the matching players.
+      The search filter remains active after deletion.
+
+    * 1a1a. The search request has no keywords.
+
+        * 1a1a1. CouchCoach displays an error and leaves the displayed list unchanged.
+
+          Use case resumes at step 1.
+
+* 2a. The displayed list is empty.
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The deletion request is malformed or the index does not identify a
+  player in the displayed list.
 
-    * 3a1. AddressBook shows an error message.
+    * 3a1. CouchCoach displays an error and leaves the data unchanged.
 
-      Use case resumes at step 2.
+      Use case resumes at step 3.
 
-*{More to be added}*
+* 4a. CouchCoach cannot save the updated data.
+
+    * 4a1. CouchCoach informs the Coach that the deletion was applied in the
+      current session but could not be saved and may be lost after closing.
+
+      Use case ends.
+
+#### UC02: Edit player details
+
+**Related user story:** US07
+
+**MSS**
+
+1. Coach requests to find a player by name.
+2. CouchCoach displays the matching players.
+3. Coach identifies a player from the displayed list and submits the details
+   to change.
+4. CouchCoach updates the selected player's details, saves the updated data,
+   and displays the updated details.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The search request has no keywords.
+
+    * 1a1. CouchCoach displays an error and leaves the displayed list unchanged.
+
+      Use case resumes at step 1.
+
+* 2a. No players match the search.
+
+  Use case ends.
+
+* 3a. The request does not identify a player in the displayed list.
+
+    * 3a1. CouchCoach displays an error and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 3b. The edit request contains invalid details or does not specify any
+  details to change.
+
+    * 3b1. CouchCoach explains the input error and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 3c. The requested name duplicates another player's name under the
+  duplicate-name rule.
+
+    * 3c1. CouchCoach reports the duplicate name and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 4a. CouchCoach cannot save the updated data.
+
+    * 4a1. CouchCoach informs the Coach that the edits were applied in the
+      current session but could not be saved and may be lost after closing.
+
+      Use case ends.
+
+#### UC03: Categorise a player
+
+**Related user story:** US08
+
+**MSS**
+
+1. Coach requests to find a player by name.
+2. CouchCoach displays the matching players.
+3. Coach identifies a player from the displayed list and supplies the custom
+   labels to assign to that player.
+4. CouchCoach applies the requested labels, saves the updated data, and
+   displays the player's updated categories.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The search request has no keywords.
+
+    * 1a1. CouchCoach displays an error and leaves the displayed list unchanged.
+
+      Use case resumes at step 1.
+
+* 2a. No players match the search.
+
+  Use case ends.
+
+* 3a. The request does not identify a player in the displayed list.
+
+    * 3a1. CouchCoach displays an error and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 3b. The label-assignment request is incomplete or malformed.
+
+    * 3b1. CouchCoach explains the input error and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 4a. CouchCoach cannot save the updated data.
+
+    * 4a1. CouchCoach informs the Coach that the category changes were applied
+      in the current session but could not be saved and may be lost after closing.
+
+      Use case ends.
+
+#### UC04: Rate a player
+
+**Related user story:** US12
+
+**MSS**
+
+1. Coach requests to find a player by name.
+2. CouchCoach displays the matching players.
+3. Coach identifies a player from the displayed list and provides a numeric
+   rating for that player.
+4. CouchCoach records the rating, saves the updated data, and displays the
+   player's recorded rating.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The search request has no keywords.
+
+    * 1a1. CouchCoach displays an error and leaves the displayed list unchanged.
+
+      Use case resumes at step 1.
+
+* 2a. No players match the search.
+
+  Use case ends.
+
+* 3a. The request does not identify a player in the displayed list.
+
+    * 3a1. CouchCoach displays an error and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 3b. The rating is missing, is not numeric, or violates the agreed rating rules.
+
+    * 3b1. CouchCoach explains the rating requirements and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 4a. CouchCoach cannot save the updated data.
+
+    * 4a1. CouchCoach informs the Coach that the rating was recorded in the
+      current session but could not be saved and may be lost after closing.
+
+      Use case ends.
+
+#### UC05: Record a selection decision
+
+**Related user story:** US10
+
+**MSS**
+
+1. Coach requests to list all players.
+2. CouchCoach displays the player list for the Coach to review.
+3. Coach identifies a player from the displayed list and requests to mark
+   that player as kept or cut.
+4. CouchCoach records the selection decision, saves the updated data, and
+   displays the player's updated selection status.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The player list is empty.
+
+  Use case ends.
+
+* 3a. The request does not identify a player in the displayed list.
+
+    * 3a1. CouchCoach displays an error and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 3b. The selection status is missing or is neither kept nor cut.
+
+    * 3b1. CouchCoach explains the permitted selection statuses and leaves the
+      data unchanged.
+
+      Use case resumes at step 3.
+
+* 4a. CouchCoach cannot save the updated data.
+
+    * 4a1. CouchCoach informs the Coach that the selection decision was recorded
+      in the current session but could not be saved and may be lost after closing.
+
+      Use case ends.
+
+#### UC06: Add a player remark
+
+**Related user story:** US21
+
+**MSS**
+
+1. Coach requests to find a player by name.
+2. CouchCoach displays the matching players.
+3. Coach identifies a player from the displayed list and submits a free-text
+   remark about that player.
+4. CouchCoach records the remark for the selected player, saves the updated
+   data, and displays the recorded remark.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The search request has no keywords.
+
+    * 1a1. CouchCoach displays an error and leaves the displayed list unchanged.
+
+      Use case resumes at step 1.
+
+* 2a. No players match the search.
+
+  Use case ends.
+
+* 3a. The request does not identify a player in the displayed list.
+
+    * 3a1. CouchCoach displays an error and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 3b. The remark request is incomplete or malformed.
+
+    * 3b1. CouchCoach explains the input error and leaves the data unchanged.
+
+      Use case resumes at step 3.
+
+* 4a. CouchCoach cannot save the updated data.
+
+    * 4a1. CouchCoach informs the Coach that the remark was recorded in the
+      current session but could not be saved and may be lost after closing.
+
+      Use case ends.
 
 ### Non-Functional Requirements
 
