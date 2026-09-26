@@ -274,7 +274,10 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
+* is a coach of a sports team, at any level (e.g. school, club or community team)
+* has a significant number of players to keep track of, especially during trials or team selection
+* needs to record details and observations about each player
+* needs to rank players and decide who to keep or cut from the team
 * prefers desktop apps over other types of applications
 * can type fast
 * prefers typing to mouse interactions
