@@ -144,6 +144,21 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd person in the address book.
 * `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
 
+### Adding a remark: `remark`
+
+Adds a remark to the specified person, or removes it.
+
+Format: `remark INDEX r/[REMARK]`
+
+* Sets the remark of the person at the specified `INDEX`, overwriting any existing remark.
+* The index refers to the index number shown in the displayed person list.
+* The index **must be a positive integer** 1, 2, 3, ...
+* Leaving `REMARK` empty (i.e. `r/` with nothing after it) removes the person's remark.
+
+Examples:
+* `remark 1 r/Likes to swim.` sets the remark of the 1st person to `Likes to swim.`
+* `remark 1 r/` removes the remark of the 1st person.
+
 ### Clearing all entries: `clear`
 
 Clears all entries from the address book.
@@ -201,4 +216,5 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List**   | `list`
+**Remark** | `remark INDEX r/[REMARK]`<br> e.g., `remark 1 r/Likes to swim.`
 **Help**   | `help`
