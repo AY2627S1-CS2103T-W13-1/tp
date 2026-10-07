@@ -11,6 +11,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,15 +22,18 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.TypicalPersons;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -69,6 +73,38 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_listAfterFind_restoresInsertionOrderWithoutSaving() throws Exception {
+        List<Person> players = TypicalPersons.getTypicalPersons();
+        players.forEach(model::addPerson);
+        logic.execute("find Alice");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("list.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) {
+                throw new AssertionError("Listing players must not save player data");
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(storage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("listPrefs.json"))));
+        AddressBook original = new AddressBook(model.getAddressBook());
+
+        assertEquals(1, logic.getFilteredPersonList().size());
+        assertEquals("Listed all players", logic.execute("list").getFeedbackToUser());
+        assertEquals(players, logic.getFilteredPersonList());
+
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("NobodyMatchesThisName")));
+        assertEquals(0, logic.getFilteredPersonList().size());
+        assertEquals("Listed all players", logic.execute("  list all  ").getFeedbackToUser());
+        assertEquals(players, logic.getFilteredPersonList());
+        assertEquals(original, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_listEmptyTeam_success() throws Exception {
+        assertEquals("Listed all players", logic.execute("list").getFeedbackToUser());
+        assertEquals(List.of(), logic.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
@@ -78,6 +114,78 @@ public class LogicManagerTest {
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
                 LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+    }
+
+    @Test
+    public void execute_find_doesNotSaveOrChangePlayerData() throws Exception {
+        Person tan = new PersonBuilder().withName("Tan Wei Ming").build();
+        Person lim = new PersonBuilder().withName("Lim Wei Jie").build();
+        Person nur = new PersonBuilder().withName("Nur'ain Binte Hassan").build();
+        Person muthu = new PersonBuilder().withName("Muthu s/o Ramasamy").build();
+        model.addPerson(tan);
+        model.addPerson(lim);
+        model.addPerson(nur);
+        model.addPerson(muthu);
+        logic = createLogicWithFailingSave();
+
+        assertFindSuccess("find wei", "2 players listed!", List.of(tan, lim));
+        assertFindSuccess("find TAN", "1 player listed!", List.of(tan));
+        assertFindSuccess("find wei nur'ain", "3 players listed!", List.of(tan, lim, nur));
+        assertFindSuccess("find ming tan ming", "1 player listed!", List.of(tan));
+        assertFindSuccess("find We", "0 players listed!", List.of());
+        assertFindSuccess("find " + tan.getPhone(), "0 players listed!", List.of());
+        assertFindSuccess("find S/O", "1 player listed!", List.of(muthu));
+        assertFindSuccess("  find  wei \t ming  ", "2 players listed!", List.of(tan, lim));
+    }
+
+    @Test
+    public void execute_findWithoutKeywords_preservesFilteredListAndDoesNotSave() throws Exception {
+        model.addPerson(new PersonBuilder().withName("Tan Wei Ming").build());
+        model.addPerson(new PersonBuilder().withName("Lim Wei Jie").build());
+        logic = createLogicWithFailingSave();
+        logic.execute("find tan");
+        List<Person> previousList = List.copyOf(model.getFilteredPersonList());
+        AddressBook previousData = new AddressBook(model.getAddressBook());
+        String expectedMessage = "Invalid command format!\n"
+                + "find: Finds players whose names contain any of the given keywords.\n"
+                + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
+                + "Example: find wei ming";
+
+        assertThrows(ParseException.class, expectedMessage, () -> logic.execute("find"));
+        assertThrows(ParseException.class, expectedMessage, () -> logic.execute("find \t "));
+        assertEquals(previousList, model.getFilteredPersonList());
+        assertEquals(previousData, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_findWithCapitalizedCommandWord_throwsParseException() {
+        assertParseException("Find wei", MESSAGE_UNKNOWN_COMMAND);
+    }
+
+    /**
+     * Verifies a search's feedback, displayed players, and unchanged team data.
+     */
+    private void assertFindSuccess(String input, String expectedFeedback, List<Person> expectedPlayers)
+            throws Exception {
+        AddressBook previousData = new AddressBook(model.getAddressBook());
+        assertEquals(expectedFeedback, logic.execute(input).getFeedbackToUser());
+        assertEquals(expectedPlayers, model.getFilteredPersonList());
+        assertEquals(previousData, model.getAddressBook());
+    }
+
+    /**
+     * Creates logic whose storage fails if a command attempts to save player data.
+     */
+    private Logic createLogicWithFailingSave() {
+        JsonAddressBookStorage addressBookStorage =
+                new JsonAddressBookStorage(temporaryFolder.resolve("noSave.json")) {
+                    @Override
+                    public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                        throw DUMMY_IO_EXCEPTION;
+                    }
+                };
+        JsonUserPrefsStorage prefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("noSavePrefs.json"));
+        return new LogicManager(model, new StorageManager(addressBookStorage, prefsStorage));
     }
 
     @Test

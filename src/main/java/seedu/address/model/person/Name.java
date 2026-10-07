@@ -9,19 +9,23 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Name {
 
+    /** The maximum number of characters allowed in a player's name. */
     public static final int MAX_LENGTH = 100;
 
+    /** Explains the allowed characters in a player's name. */
     public static final String MESSAGE_CONSTRAINTS =
             "Names should contain only letters, digits, spaces, and the characters - ' / . and should not be blank.";
+    /** Explains the maximum length of a player's name. */
     public static final String MESSAGE_LENGTH_CONSTRAINTS =
             "Names should not exceed " + MAX_LENGTH + " characters.";
 
-    /*
+    /**
      * The first character of the name must not be a whitespace,
      * otherwise " " (a blank string) becomes a valid input.
      */
     public static final String VALIDATION_REGEX = "[\\p{Alnum}'/.-][\\p{Alnum} '/.-]*";
 
+    /** The player's full name, preserving the supplied capitalization. */
     public final String fullName;
 
     /**
@@ -38,6 +42,10 @@ public class Name {
 
     /**
      * Returns true if a given string is a valid name.
+     *
+     * @param test The name to validate.
+     * @return Whether the name contains only allowed characters, is not blank, and does not exceed
+     *         {@link #MAX_LENGTH} characters.
      */
     public static boolean isValidName(String test) {
         return hasValidCharacters(test) && hasValidLength(test);

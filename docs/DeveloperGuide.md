@@ -708,6 +708,54 @@ testers are expected to do more *exploratory* testing.
    1. Other incorrect add commands to try: `add`, `add n/ p/91234567`, `add n/Amy p/9123ABCD`, `add n/Amy p/91234567 e/amy@x.com`, a name longer than 100 characters<br>
       Expected: No player is added, and an error message is shown.
 
+### Finding players by name (F3 / US04)
+
+Run these checks in a separate folder using disposable data. Prepare the team in this order:
+
+```text
+clear
+add n/Tan Wei Ming p/91234567
+add n/Lim Wei Jie p/92345678
+add n/Nur Aisyah p/93456789
+add n/Muthu s/o Ramasamy p/94567890
+```
+
+The name character set permits the slash-containing record needed by F3,
+as well as apostrophes, hyphens, and periods.
+
+| Test case | Expected result |
+| --- | --- |
+| `find wei` | Tan and Lim displayed in that order, numbered 1 and 2; `2 players listed!`. |
+| `find TAN` | Tan only, numbered 1; `1 player listed!`. |
+| `find wei nur` | Tan, Lim, and Nur once each; `3 players listed!`. |
+| `find ming tan ming` | Tan once; `1 player listed!`. |
+| `find We` | Empty panel; `0 players listed!` (no partial matching). |
+| `find 91234567` | Empty panel; phone numbers are not searched. |
+| `find S/O` | Muthu only; `1 player listed!`. |
+| `find n/Wei` | Empty panel; the slash keyword is literal, not a name prefix. |
+| `find` or `find` followed only by spaces | Exact four-line format error documented in the UG; previous displayed list unchanged. |
+| `Find wei` | Unknown-command error; previous displayed list unchanged. |
+| `find   wei   ming` | Same matches as the equivalent command with single spaces. |
+| `find tan` followed by `find nur` | Nur appears despite being hidden by the first search. |
+| `list` after a search | All four players displayed in original order. |
+| `find wei`, then `delete 1` | Tan removed; Lim remains numbered 1; Nur and Muthu stay hidden. |
+| `delete 1` again | Lim removed; filtered panel empty even though Nur and Muthu remain in the team. |
+| `list`, `clear`, then `find wei` | Empty panel; `0 players listed!`; no failure on an empty team. |
+
+Before running successful and invalid searches, record the data file's contents and
+modification time. Both must remain unchanged after every search. To check searches
+with unavailable storage, rename the data directory after the team is loaded and
+create a regular file named `data` in its place, blocking directory creation. Execute `find wei` and verify that
+the normal search feedback still appears. Remove the temporary file and restore the
+directory before adding or deleting players. Relaunch after preparing Muthu's record
+and confirm that `find s/o` still finds it, checking that the slash survives storage.
+
+Implementation: `FindCommandParser` splits plain keywords on whitespace;
+`NameContainsKeywordsPredicate` uses case-insensitive whole-word OR matching over
+names. Updating the model's filtered list replaces the previous predicate, so each
+search considers the full team. The existing JavaFX list cells supply displayed
+indices. `LogicManager` returns a successful find result without saving player data.
+
 ### Deleting a person
 
 1. Deleting a person while all persons are being shown

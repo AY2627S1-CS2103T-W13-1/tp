@@ -38,19 +38,18 @@ public class NameTest {
         assertFalse(Name.isValidName("^")); // only disallowed characters
         assertFalse(Name.isValidName("peter*")); // contains disallowed characters
         assertFalse(Name.isValidName("Tan @ Ming")); // contains '@'
-        assertFalse(Name.isValidName("Tan Wei Ming (GK)")); // parentheses are not allowed
+        assertFalse(Name.isValidName("Tan (GK)")); // parentheses are not allowed
         assertFalse(Name.isValidName("a".repeat(Name.MAX_LENGTH + 1))); // exceeds maximum length
 
         // valid name
+        assertTrue(Name.isValidName("Muthu s/o Ramasamy")); // slash
+        assertTrue(Name.isValidName("Nur'ain Binte Hassan")); // apostrophe
+        assertTrue(Name.isValidName("Anne-Marie Tan Jr.")); // hyphen and full stop
         assertTrue(Name.isValidName("peter jack")); // alphabets only
         assertTrue(Name.isValidName("12345")); // numbers only
         assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
-        assertTrue(Name.isValidName("Nur'ain Binte Hassan")); // apostrophe
-        assertTrue(Name.isValidName("Muthu s/o Ramasamy")); // slash
-        assertTrue(Name.isValidName("Mary-Jane Lee")); // hyphen
-        assertTrue(Name.isValidName("St. John")); // full stop
         assertTrue(Name.isValidName("a".repeat(Name.MAX_LENGTH))); // exactly maximum length
     }
 

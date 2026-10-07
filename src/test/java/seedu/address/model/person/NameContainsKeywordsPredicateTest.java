@@ -72,6 +72,27 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_partialName_returnsFalse() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("We"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Tan Wei Ming").build()));
+    }
+
+    @Test
+    public void test_slashKeyword_matchesWholeWordOnly() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("S/O"));
+        assertTrue(predicate.test(new PersonBuilder().withName("Muthu s/o Ramasamy").build()));
+        assertFalse(predicate.test(new PersonBuilder().withName("Muthu Ramasamy").build()));
+        assertFalse(predicate.test(new PersonBuilder().withName("Muthu xs/o Ramasamy").build()));
+    }
+
+    @Test
+    public void test_keywordOrder_doesNotAffectMatching() {
+        Person player = new PersonBuilder().withName("Tan Wei Ming").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of("ming", "tan")).test(player));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("tan", "ming")).test(player));
+    }
+
+    @Test
     public void toStringMethod() {
         List<String> keywords = List.of("keyword1", "keyword2");
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(keywords);
