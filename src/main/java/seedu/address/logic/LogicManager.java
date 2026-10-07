@@ -9,6 +9,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -21,8 +22,10 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
+    /** Feedback format for data-write failures. */
     public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
 
+    /** Feedback format for data-write permission failures. */
     public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
             "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
 
@@ -34,6 +37,9 @@ public class LogicManager implements Logic {
 
     /**
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
+     *
+     * @param model The model used to execute commands.
+     * @param storage The storage used to save player changes.
      */
     public LogicManager(Model model, Storage storage) {
         this.model = model;
@@ -49,8 +55,8 @@ public class LogicManager implements Logic {
         Command command = addressBookParser.parseCommand(commandText);
         commandResult = command.execute(model);
 
-        // Listing only changes the displayed filter and must succeed even if saving is unavailable.
-        if (command instanceof ListCommand) {
+        // Finding and listing players only change the displayed list and must not trigger a data write.
+        if (command instanceof FindCommand || command instanceof ListCommand) {
             return commandResult;
         }
 

@@ -120,22 +120,48 @@ Examples:
 *  `edit 1 p/91234567 e/johndoe@example.com` Edits the phone number and email address of the 1st person to be `91234567` and `johndoe@example.com` respectively.
 *  `edit 2 n/Betsy Crower t/` Edits the name of the 2nd person to be `Betsy Crower` and clears all existing tags.
 
-### Locating persons by name: `find`
+### Finding players by name: `find`
 
-Finds persons whose names contain any of the given keywords.
+Filters the displayed list to players whose names match any of the given keywords.
 
-Format: `find KEYWORD [MORE_KEYWORDS]`
+Format: `find KEYWORD [MORE_KEYWORDS]...`
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Persons matching at least one keyword are returned (an `OR` search); for example, `Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Supply at least one keyword. Separate keywords with spaces; repeated spaces are accepted.
+* The search is case-insensitive: `find wei` matches `Tan Wei Ming`.
+* Only whole words match: `find Wei` matches `Tan Wei Ming`, while `find We` does not.
+* Only names are searched. A phone number matches only if it is also a whole word in a player's name.
+* A player matching **any** keyword is shown (an `OR` search). Keyword order does not matter.
+* Each matching player appears once, even when several keywords match or a keyword is repeated.
+* Slashes and other allowed name punctuation are part of a word: `find s/o` matches
+  `Muthu s/o Ramasamy`. No tagged parameters are used; `find n/Wei` searches for the literal word `n/Wei`.
+* Each search searches the whole team, including players hidden by an earlier search.
+* Results keep their order in the full list and are numbered from 1. After `find`, `delete 1`
+  deletes the first displayed match. The search filter remains active after deletion.
+* Use `list` to restore the full team list.
+* Searching changes neither player records nor the saved data file.
 
-Examples:
-* `find John` returns `john` and `John Doe`
-* `find alex david` returns `Alex Yeoh`, `David Li`<br>
-  ![result for 'find alex david'](images/findAlexDavidResult.png)
+For a team containing `Tan Wei Ming`, `Lim Wei Jie`, `Nur Aisyah`, and `Muthu s/o Ramasamy`:
+
+| Command | Displayed players | Result message |
+| --- | --- | --- |
+| `find wei` | Tan Wei Ming, Lim Wei Jie | `2 players listed!` |
+| `find TAN` | Tan Wei Ming | `1 player listed!` |
+| `find wei nur` | Tan Wei Ming, Lim Wei Jie, Nur Aisyah | `3 players listed!` |
+| `find ming tan ming` | Tan Wei Ming, once | `1 player listed!` |
+| `find We` | Empty list | `0 players listed!` |
+| `find s/o` | Muthu s/o Ramasamy | `1 player listed!` |
+
+Entering `find` without keywords, including `find` followed only by spaces, shows:
+
+```text
+Invalid command format!
+find: Finds players whose names contain any of the given keywords.
+Parameters: KEYWORD [MORE_KEYWORDS]...
+Example: find wei ming
+```
+
+The displayed list and player data remain unchanged after this error. Command words are
+case-sensitive: use `find`, as `Find` is unrecognized.
 
 ### Deleting a player: `delete`
 
@@ -207,6 +233,6 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [t/TAG]... `<br> e.g.,`edit 2 n/James Lee e/jameslee@example.com`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find James Jake`
 **List**   | `list`
 **Help**   | `help`

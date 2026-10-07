@@ -28,9 +28,14 @@ public class NameTest {
         assertFalse(Name.isValidName("")); // empty string
         assertFalse(Name.isValidName(" ")); // spaces only
         assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
-        assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
+        assertFalse(Name.isValidName("peter*")); // contains disallowed characters
+        assertFalse(Name.isValidName("Tan @ Ming"));
+        assertFalse(Name.isValidName("Tan (GK)"));
 
         // valid name
+        assertTrue(Name.isValidName("Muthu s/o Ramasamy"));
+        assertTrue(Name.isValidName("Nur'ain Binte Hassan"));
+        assertTrue(Name.isValidName("Anne-Marie Tan Jr."));
         assertTrue(Name.isValidName("peter jack")); // alphabets only
         assertTrue(Name.isValidName("12345")); // numbers only
         assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters

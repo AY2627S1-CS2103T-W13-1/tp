@@ -9,15 +9,17 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Name {
 
+    /** Explains the allowed characters in a player's name. */
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
+            "Names should contain only letters, digits, spaces, and the characters - ' / . and should not be blank.";
 
-    /*
+    /**
      * The first character of the name must not be a whitespace,
      * otherwise " " (a blank string) becomes a valid input.
      */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    public static final String VALIDATION_REGEX = "[\\p{Alnum}'/.-][\\p{Alnum} '/.-]*";
 
+    /** The player's full name, preserving the supplied capitalization. */
     public final String fullName;
 
     /**
@@ -33,6 +35,9 @@ public class Name {
 
     /**
      * Returns true if a given string is a valid name.
+     *
+     * @param test The name to validate.
+     * @return Whether the name contains only allowed characters and is not blank.
      */
     public static boolean isValidName(String test) {
         return test.matches(VALIDATION_REGEX);
