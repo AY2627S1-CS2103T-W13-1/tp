@@ -37,14 +37,14 @@ public class ParserUtil {
      */
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
-        String normalisedName = name.trim().replaceAll("\\s+", " ");
-        if (!Name.hasValidCharacters(normalisedName)) {
+        String normalizedName = Name.normalize(name);
+        if (!Name.hasValidCharacters(normalizedName)) {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
         }
-        if (!Name.hasValidLength(normalisedName)) {
+        if (!Name.hasValidLength(normalizedName)) {
             throw new ParseException(Name.MESSAGE_LENGTH_CONSTRAINTS);
         }
-        return new Name(normalisedName);
+        return new Name(normalizedName);
     }
 
     /**
@@ -55,10 +55,10 @@ public class ParserUtil {
      */
     public static Phone parsePhone(String phone) throws ParseException {
         requireNonNull(phone);
-        String normalisedPhone = phone.trim().replaceAll("[ -]", "");
-        if (!Phone.isValidPhone(normalisedPhone)) {
+        String normalizedPhone = Phone.normalize(phone);
+        if (!Phone.isValidPhone(normalizedPhone)) {
             throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
         }
-        return new Phone(normalisedPhone);
+        return new Phone(normalizedPhone);
     }
 }

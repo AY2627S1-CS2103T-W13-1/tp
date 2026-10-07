@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -51,6 +52,24 @@ public class NameTest {
         assertTrue(Name.isValidName("Mary-Jane Lee")); // hyphen
         assertTrue(Name.isValidName("St. John")); // full stop
         assertTrue(Name.isValidName("a".repeat(Name.MAX_LENGTH))); // exactly maximum length
+    }
+
+    @Test
+    public void normalize() {
+        // null name
+        assertThrows(NullPointerException.class, () -> Name.normalize(null));
+
+        // already normalized -> unchanged
+        assertEquals("Tan Wei Ming", Name.normalize("Tan Wei Ming"));
+
+        // leading and trailing whitespace -> removed
+        assertEquals("Tan Wei Ming", Name.normalize(" \t Tan Wei Ming \n"));
+
+        // repeated internal whitespace -> collapsed into a single space
+        assertEquals("Tan Wei Ming", Name.normalize("Tan   Wei \t Ming"));
+
+        // capitalization -> preserved
+        assertEquals("tAn WEI ming", Name.normalize("tAn WEI ming"));
     }
 
     @Test

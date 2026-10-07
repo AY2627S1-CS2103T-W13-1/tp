@@ -58,6 +58,14 @@ public class Name {
     }
 
     /**
+     * Returns {@code name} with leading and trailing whitespace removed and
+     * repeated internal whitespace collapsed into a single space.
+     */
+    public static String normalize(String name) {
+        return name.trim().replaceAll("\\s+", " ");
+    }
+
+    /**
      * Returns true if both names refer to the same player, ignoring case and repeated internal spaces.
      * This defines a weaker notion of equality between two names, used for duplicate detection.
      */
@@ -67,11 +75,7 @@ public class Name {
         }
 
         return otherName != null
-                && normalise(otherName.fullName).equalsIgnoreCase(normalise(fullName));
-    }
-
-    private static String normalise(String name) {
-        return name.trim().replaceAll("\\s+", " ");
+                && normalize(otherName.fullName).equalsIgnoreCase(normalize(fullName));
     }
 
     @Override
