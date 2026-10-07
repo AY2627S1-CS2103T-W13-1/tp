@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.net.URL?>
+<?import javafx.scene.control.TextArea?>
+
+<TextArea fx:id="helpText" editable="false" wrapText="true"
+          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <stylesheets>
+    <URL value="@HelpPanel.css" />
+  </stylesheets>
+</TextArea>

@@ -1,6 +1,8 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -102,6 +105,47 @@ public class LogicManagerTest {
     public void execute_listEmptyTeam_success() throws Exception {
         assertEquals("Listed all players", logic.execute("list").getFeedbackToUser());
         assertEquals(List.of(), logic.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_help_preservesPlayersAndFilterWithoutSaving() throws Exception {
+        TypicalPersons.getTypicalPersons().forEach(model::addPerson);
+        logic = createLogicWithFailingSave();
+        logic.execute("find Alice");
+        List<Person> previousList = List.copyOf(logic.getFilteredPersonList());
+        AddressBook previousData = new AddressBook(model.getAddressBook());
+
+        for (String input : List.of("help", "  help  ", "help extra")) {
+            CommandResult result = logic.execute(input);
+            assertEquals(HelpCommand.SHOWING_HELP_MESSAGE, result.getFeedbackToUser());
+            assertTrue(result.isShowHelp());
+            assertFalse(result.isExit());
+            assertEquals(previousList, logic.getFilteredPersonList());
+            assertEquals(previousData, model.getAddressBook());
+        }
+    }
+
+    @Test
+    public void execute_helpEmptyTeam_successWithoutSaving() throws Exception {
+        logic = createLogicWithFailingSave();
+        assertTrue(logic.execute("help").isShowHelp());
+        assertEquals(List.of(), logic.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_unrecognisedInput_preservesPlayersAndFilter() throws Exception {
+        TypicalPersons.getTypicalPersons().forEach(model::addPerson);
+        logic = createLogicWithFailingSave();
+        logic.execute("find Alice");
+        List<Person> previousList = List.copyOf(logic.getFilteredPersonList());
+        AddressBook previousData = new AddressBook(model.getAddressBook());
+        String expectedMessage = "Unknown command. Type 'help' to see the list of commands.";
+
+        for (String input : List.of("", " \t ", "addd", "Add", "remove 2")) {
+            assertThrows(ParseException.class, expectedMessage, () -> logic.execute(input));
+            assertEquals(previousList, logic.getFilteredPersonList());
+            assertEquals(previousData, model.getAddressBook());
+        }
     }
 
     @Test

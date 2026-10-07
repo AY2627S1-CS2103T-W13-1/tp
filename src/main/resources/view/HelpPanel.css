@@ -1,0 +1,10 @@
+#helpText {
+    -fx-background-color: derive(#1d1d1d, 20%);
+    -fx-font-family: monospace;
+    -fx-font-size: 13px;
+    -fx-text-fill: white;
+}
+
+#helpText .content {
+    -fx-background-color: derive(#1d1d1d, 20%);
+}
