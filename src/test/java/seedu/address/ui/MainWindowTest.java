@@ -19,7 +19,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.event.ActionEvent;
+import javafx.scene.control.Label;
 import javafx.scene.control.MenuBar;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextInputControl;
@@ -90,7 +92,7 @@ public class MainWindowTest {
             AddressBook originalData = new AddressBook(model.getAddressBook());
             enterCommand("help");
 
-            assertEquals(HelpPanel.HELP_MESSAGE, getDisplayedHelp().getText());
+            assertHelpSummaryShown();
             assertEquals(HelpCommand.SHOWING_HELP_MESSAGE, resultDisplay.getText());
             assertEquals(List.of(ALICE), model.getFilteredPersonList());
             assertEquals(originalData, model.getAddressBook());
@@ -104,7 +106,7 @@ public class MainWindowTest {
         runOnFxThread(() -> {
             MenuBar menuBar = (MenuBar) window.getRoot().getScene().lookup("#menuBar");
             menuBar.getMenus().get(1).getItems().get(0).fire();
-            TextArea help = getDisplayedHelp();
+            ScrollPane help = getDisplayedHelp();
             menuBar.getMenus().get(1).getItems().get(0).fire();
 
             assertSame(help, getDisplayedHelp());
@@ -119,7 +121,7 @@ public class MainWindowTest {
                 enterCommand("list");
                 target.fireEvent(new KeyEvent(KeyEvent.KEY_PRESSED, "", "", KeyCode.F1,
                         false, false, false, false));
-                assertEquals(HelpPanel.HELP_MESSAGE, getDisplayedHelp().getText());
+                assertHelpSummaryShown();
             }
         });
     }
@@ -153,7 +155,7 @@ public class MainWindowTest {
         runOnFxThread(() -> {
             enterCommand("find Alice");
             enterCommand("help");
-            TextArea help = getDisplayedHelp();
+            ScrollPane help = getDisplayedHelp();
             AddressBook originalData = new AddressBook(model.getAddressBook());
             List<Person> originalList = List.copyOf(model.getFilteredPersonList());
 
@@ -180,11 +182,19 @@ public class MainWindowTest {
     }
 
     /**
+     * Verifies that the CouchCoach help summary is displayed.
+     */
+    private void assertHelpSummaryShown() {
+        Label heading = (Label) getDisplayedHelp().getContent().lookup("#helpHeading");
+        assertEquals("CouchCoach commands:", heading.getText());
+    }
+
+    /**
      * Returns the help control displayed in the player-list area.
      */
-    private TextArea getDisplayedHelp() {
+    private ScrollPane getDisplayedHelp() {
         assertEquals(1, playerArea.getChildren().size());
-        return (TextArea) playerArea.getChildren().getFirst();
+        return (ScrollPane) playerArea.getChildren().getFirst();
     }
 
     /**

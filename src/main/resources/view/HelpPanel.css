@@ -1,19 +1,18 @@
-#helpText {
+#helpPanel, #helpPanel .viewport {
     -fx-background-color: transparent;
     -fx-background-insets: 0;
     -fx-background-radius: 0;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+}
+
+#helpContent {
+    -fx-background-color: derive(#1d1d1d, 20%);
+}
+
+#helpPanel .label {
     -fx-font-family: "Segoe UI Light";
     -fx-font-size: 13pt;
     -fx-text-fill: white;
-}
-
-#helpText .scroll-pane, #helpText .viewport {
-    -fx-background-color: transparent;
-    -fx-background-insets: 0;
-    -fx-background-radius: 0;
-}
-
-#helpText .content {
-    -fx-background-color: derive(#1d1d1d, 20%);
-    -fx-background-radius: 0;
+    -fx-opacity: 1;
 }

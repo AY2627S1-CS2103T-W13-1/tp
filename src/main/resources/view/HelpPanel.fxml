@@ -1,11 +1,61 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
-<?import javafx.scene.control.TextArea?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
 
-<TextArea fx:id="helpText" editable="false" wrapText="true"
-          xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+<ScrollPane fx:id="helpPanel" fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED"
+            minWidth="0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <stylesheets>
     <URL value="@HelpPanel.css" />
   </stylesheets>
-</TextArea>
+  <content>
+    <VBox fx:id="helpContent" spacing="18" minWidth="0">
+      <padding>
+        <Insets top="10" right="10" bottom="10" left="10" />
+      </padding>
+      <Label fx:id="helpHeading" text="CouchCoach commands:" />
+      <GridPane fx:id="helpCommands" hgap="20" minWidth="0">
+        <columnConstraints>
+          <ColumnConstraints minWidth="180" prefWidth="180" maxWidth="180" />
+          <ColumnConstraints hgrow="ALWAYS" minWidth="0" />
+        </columnConstraints>
+        <Label fx:id="addSyntax" text="add n/NAME p/PHONE"
+               GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.valignment="TOP" />
+        <Label fx:id="addDescription" text="Add a player&#10;e.g. add n/Tan Wei Ming p/91234567"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.valignment="TOP" />
+        <Label fx:id="listSyntax" text="list"
+               GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+        <Label fx:id="listDescription" text="Show all players" wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="TOP" />
+        <Label fx:id="findSyntax" text="find KEYWORD..."
+               GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+        <Label fx:id="findDescription"
+               text="Show players whose names contain a keyword&#10;Matches whole words only, ignores capitalisation&#10;e.g. find wei ming"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+        <Label fx:id="deleteSyntax" text="delete INDEX"
+               GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+        <Label fx:id="deleteDescription"
+               text="Delete the player at that position in the list&#10;shown right now. Positions change after a delete.&#10;e.g. delete 3"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+        <Label fx:id="helpSyntax" text="help"
+               GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.valignment="TOP" />
+        <Label fx:id="helpDescription" text="Show this summary" wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.valignment="TOP" />
+        <Label fx:id="exitSyntax" text="exit"
+               GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
+        <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.valignment="TOP" />
+      </GridPane>
+      <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
+             wrapText="true" minWidth="0" />
+    </VBox>
+  </content>
+</ScrollPane>
