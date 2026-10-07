@@ -13,6 +13,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,15 +24,18 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 import seedu.address.testutil.PersonBuilder;
+import seedu.address.testutil.TypicalPersons;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -68,6 +72,38 @@ public class LogicManagerTest {
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
+    }
+
+    @Test
+    public void execute_listAfterFind_restoresInsertionOrderWithoutSaving() throws Exception {
+        List<Person> players = TypicalPersons.getTypicalPersons();
+        players.forEach(model::addPerson);
+        logic.execute("find Alice");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(temporaryFolder.resolve("list.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) {
+                throw new AssertionError("Listing players must not save player data");
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(storage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("listPrefs.json"))));
+        AddressBook original = new AddressBook(model.getAddressBook());
+
+        assertEquals(1, logic.getFilteredPersonList().size());
+        assertEquals("Listed all players", logic.execute("list").getFeedbackToUser());
+        assertEquals(players, logic.getFilteredPersonList());
+
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("NobodyMatchesThisName")));
+        assertEquals(0, logic.getFilteredPersonList().size());
+        assertEquals("Listed all players", logic.execute("  list all  ").getFeedbackToUser());
+        assertEquals(players, logic.getFilteredPersonList());
+        assertEquals(original, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_listEmptyTeam_success() throws Exception {
+        assertEquals("Listed all players", logic.execute("list").getFeedbackToUser());
+        assertEquals(List.of(), logic.getFilteredPersonList());
     }
 
     @Test
