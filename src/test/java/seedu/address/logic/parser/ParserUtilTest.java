@@ -95,7 +95,7 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parseName_preservesCase() throws Exception {
+    public void parseName_mixedCase_preservesCase() throws Exception {
         assertEquals("tAn WEI ming", ParserUtil.parseName("tAn WEI ming").fullName);
     }
 
@@ -129,7 +129,7 @@ public class ParserUtilTest {
     }
 
     @Test
-    public void parsePhone_spacesAndHyphens_removed() throws Exception {
+    public void parsePhone_spacesAndHyphens_returnsPhoneWithoutSeparators() throws Exception {
         assertEquals(new Phone("81234567"), ParserUtil.parsePhone("8123 4567"));
         assertEquals(new Phone("81234567"), ParserUtil.parsePhone("8123-4567"));
         assertEquals(new Phone("+6598765432"), ParserUtil.parsePhone("+65 9876-5432"));

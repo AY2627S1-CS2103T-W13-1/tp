@@ -56,7 +56,7 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_valuesNormalised_success() {
+    public void parse_valuesNormalized_success() {
         Person expectedPerson = new PersonBuilder().withName("John Doe").withPhone("91234567").build();
 
         // leading, trailing and repeated internal spaces in name
