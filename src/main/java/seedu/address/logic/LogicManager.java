@@ -10,6 +10,7 @@ import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -54,8 +55,8 @@ public class LogicManager implements Logic {
         Command command = addressBookParser.parseCommand(commandText);
         commandResult = command.execute(model);
 
-        // Finding players only changes the displayed list and must not trigger a data write.
-        if (command instanceof FindCommand) {
+        // Finding and listing players only change the displayed list and must not trigger a data write.
+        if (command instanceof FindCommand || command instanceof ListCommand) {
             return commandResult;
         }
 

@@ -29,7 +29,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all players.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
 
@@ -91,11 +91,18 @@ Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
-### Listing all persons: `list`
+### Listing all players: `list`
 
-Shows a list of all persons in the address book.
+Shows every player and clears any filter from a previous `find` command.
 
 Format: `list`
+
+Players appear in the order they were added, numbered from 1. The result box shows
+`Listed all players`, even when the team is empty. This command does not change player data.
+Any text after `list` is ignored, so `list all` has the same effect as `list`.
+
+Indices refer to positions in the currently displayed list and can change after deletion.
+Run `list` again before using an index if you need to see the full team.
 
 ### Editing a person: `edit`
 
@@ -156,19 +163,20 @@ Example: find wei ming
 The displayed list and player data remain unchanged after this error. Command words are
 case-sensitive: use `find`, as `Find` is unrecognized.
 
-### Deleting a person: `delete`
+### Deleting a player: `delete`
 
-Deletes the specified person from the address book.
+Deletes the specified player from the team.
 
 Format: `delete INDEX`
 
-* Deletes the person at the specified `INDEX`.
-* The index refers to the index number shown in the displayed person list.
-* The index **must be a positive integer** 1, 2, 3, ...
+* Deletes the player at the specified `INDEX`.
+* The index refers to the index number shown in the displayed player list, which may be filtered by `find`.
+* The index **must be a positive whole number** 1, 2, 3, ...
+* The remaining players are renumbered after a deletion, so check the list again before deleting another player.
 
 Examples:
-* `list` followed by `delete 2` deletes the 2nd person in the address book.
-* `find Betsy` followed by `delete 1` deletes the 1st person in the results of the `find` command.
+* `list` followed by `delete 2` deletes the 2nd player in the team.
+* `find Tan` followed by `delete 1` deletes the 1st player in the results of the `find` command.
 
 ### Clearing all entries: `clear`
 
