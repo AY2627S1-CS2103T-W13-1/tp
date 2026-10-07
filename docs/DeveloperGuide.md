@@ -670,21 +670,6 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases … }_
 
-### Listing all players (F2)
-
-1. Launch the app with `./gradlew run` from the project root using Java 25 or above.
-1. Enter `list`. Expected: `Listed all players`; every player appears in insertion order,
-   numbered from 1.
-1. Enter `find Alex` (the sample data includes Alex Yeoh), then `list`.
-   Expected: the full team returns in its original order, with indices starting at 1.
-1. Enter `find NobodyMatchesThisName`, then `list all`.
-   Expected: the empty search results are replaced by the full team; trailing text is ignored.
-1. Enter `List`, then `lst`. Expected: each reports an unknown command and leaves the list unchanged.
-1. To check an empty team without changing existing data, build with `./gradlew shadowJar`,
-   copy `build/libs/addressbook.jar` to a new temporary folder, and run
-   `java -jar addressbook.jar` there. In this disposable copy, enter `clear`, then `list`.
-   Expected: an empty panel and `Listed all players`.
-
 ### Deleting a person
 
 1. Deleting a person while all persons are being shown
