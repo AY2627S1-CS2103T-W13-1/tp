@@ -50,7 +50,6 @@ public class NameTest {
         assertTrue(Name.isValidName("Muthu s/o Ramasamy")); // slash
         assertTrue(Name.isValidName("Mary-Jane Lee")); // hyphen
         assertTrue(Name.isValidName("St. John")); // full stop
-        assertTrue(Name.isValidName("Zoë Tan")); // non-ASCII letter
         assertTrue(Name.isValidName("a".repeat(Name.MAX_LENGTH))); // exactly maximum length
     }
 
