@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -31,11 +32,39 @@ public class PhoneTest {
         assertFalse(Phone.isValidPhone("phone")); // non-numeric
         assertFalse(Phone.isValidPhone("9011p041")); // alphabets within digits
         assertFalse(Phone.isValidPhone("9312 1534")); // spaces within digits
+        assertFalse(Phone.isValidPhone("9312-1534")); // hyphens within digits
+        assertFalse(Phone.isValidPhone("1234567890123456")); // more than 15 numbers
+        assertFalse(Phone.isValidPhone("+")); // plus sign only
+        assertFalse(Phone.isValidPhone("+91")); // less than 3 numbers after plus sign
+        assertFalse(Phone.isValidPhone("++6591234567")); // more than one plus sign
+        assertFalse(Phone.isValidPhone("9123+4567")); // plus sign not at the start
 
         // valid phone numbers
         assertTrue(Phone.isValidPhone("911")); // exactly 3 numbers
         assertTrue(Phone.isValidPhone("93121534"));
-        assertTrue(Phone.isValidPhone("124293842033123")); // long phone numbers
+        assertTrue(Phone.isValidPhone("124293842033123")); // exactly 15 numbers
+        assertTrue(Phone.isValidPhone("+6598765432")); // with leading plus sign
+        assertTrue(Phone.isValidPhone("+124293842033123")); // plus sign followed by 15 numbers
+    }
+
+    @Test
+    public void normalize() {
+        // null phone number
+        assertThrows(NullPointerException.class, () -> Phone.normalize(null));
+
+        // already normalized -> unchanged
+        assertEquals("91234567", Phone.normalize("91234567"));
+
+        // leading and trailing whitespace -> removed
+        assertEquals("91234567", Phone.normalize(" \t91234567\n "));
+
+        // spaces and hyphens -> removed
+        assertEquals("81234567", Phone.normalize("8123 4567"));
+        assertEquals("81234567", Phone.normalize("8123-4567"));
+        assertEquals("+6598765432", Phone.normalize("+65 9876-5432"));
+
+        // other characters -> kept, so that validation can reject them
+        assertEquals("9123ABCD", Phone.normalize("9123ABCD"));
     }
 
     @Test

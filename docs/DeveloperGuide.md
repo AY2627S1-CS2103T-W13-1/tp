@@ -133,13 +133,7 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-
-<box type="info" seamless>
-
-**Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
-
-<puml src="diagrams/BetterModelClassDiagram.puml" width="450" />
-</box>
+Each `Person` (a player) holds only a `Name` and a `Phone`. `UniquePersonList` uses `Person#isSamePerson` to reject duplicates: two players are the same if their names match after ignoring case and repeated spaces. The phone number is not compared, because players such as siblings may share a parent's contact number.
 
 
 ### Storage component
@@ -670,21 +664,64 @@ testers are expected to do more *exploratory* testing.
 
 1. _{ more test cases … }_
 
+### Adding a player
+
+1. Adding a player with valid details
+
+   1. Test case: `add n/Tan Wei Ming p/91234567`<br>
+      Expected: `Tan Wei Ming` appears at the bottom of the list. The status message shows `New player added: Tan Wei Ming; Phone: 91234567`.
+
+   1. Test case: `add p/+65 9876-5432 n/Nur'ain   Binte Hassan`<br>
+      Expected: The player is added as `Nur'ain Binte Hassan` with phone `+6598765432`. Parameter order does not matter, repeated spaces in the name are collapsed, and spaces and hyphens in the phone are removed.
+
+   1. Test case: `add n/Muthu s/o Ramasamy p/8123 4567`<br>
+      Expected: The player is added. The `/` in the name is accepted and the phone is stored as `81234567`.
+
+1. Adding a player while the list is filtered
+
+   1. Prerequisites: Filter the list using `find`, e.g. `find Tan`.
+
+   1. Test case: `add n/Lim Wei Jie p/98765432`<br>
+      Expected: The full list is shown again, with `Lim Wei Jie` at the bottom.
+
+1. Adding a duplicate player
+
+   1. Prerequisites: `Tan Wei Ming` is in the list.
+
+   1. Test case: `add n/tan  WEI ming p/81112222`<br>
+      Expected: No player is added. The status message shows `This player already exists in the team.`
+
+   1. Test case: `add n/Tan Wei Ming 2 p/91234567`<br>
+      Expected: The player is added, because only the name is checked for duplicates.
+
+1. Adding a player with invalid details
+
+   1. Test case: `add n/Tan Wei Ming`<br>
+      Expected: No player is added. The status message shows the invalid command format error with the `add` usage.
+
+   1. Test case: `add n/Tan @ Ming p/91234567`<br>
+      Expected: No player is added. The status message shows the name constraints.
+
+   1. Test case: `add n/Amy p/12`<br>
+      Expected: No player is added. The status message shows the phone constraints.
+
+   1. Other incorrect add commands to try: `add`, `add n/ p/91234567`, `add n/Amy p/9123ABCD`, `add n/Amy p/91234567 e/amy@x.com`, a name longer than 100 characters<br>
+      Expected: No player is added, and an error message is shown.
+
 ### Finding players by name (F3 / US04)
 
-Run these checks in a separate folder using disposable data. In the current version,
-`add` still requires the inherited email and address fields. Prepare the team in this order:
+Run these checks in a separate folder using disposable data. Prepare the team in this order:
 
 ```text
 clear
-add n/Tan Wei Ming p/91234567 e/tan@example.com a/Team
-add n/Lim Wei Jie p/92345678 e/lim@example.com a/Team
-add n/Nur Aisyah p/93456789 e/nur@example.com a/Team
-add n/Muthu s/o Ramasamy p/94567890 e/muthu@example.com a/Team
+add n/Tan Wei Ming p/91234567
+add n/Lim Wei Jie p/92345678
+add n/Nur Aisyah p/93456789
+add n/Muthu s/o Ramasamy p/94567890
 ```
 
-The expanded name character set permits the slash-containing record needed by F3,
-as well as apostrophes, hyphens, and periods. Other F1 changes are outside this task.
+The name character set permits the slash-containing record needed by F3,
+as well as apostrophes, hyphens, and periods.
 
 | Test case | Expected result |
 | --- | --- |
