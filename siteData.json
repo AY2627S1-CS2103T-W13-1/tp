@@ -63,6 +63,7 @@
         "glossary": "Glossary",
         "appendix-instructions-for-manual-testing": "Appendix: Instructions for manual testing",
         "launch-and-shutdown": "Launch and shutdown",
+        "adding-a-player": "Adding a player",
         "finding-players-by-name-f3-us04": "Finding players by name (F3 / US04)",
         "deleting-a-person": "Deleting a person",
         "saving-data": "Saving data"
@@ -113,7 +114,7 @@
         "quick-start": "Quick start",
         "features": "Features",
         "viewing-help-help": "Viewing help: help",
-        "adding-a-person-add": "Adding a person: add",
+        "adding-a-player-add": "Adding a player: add",
         "listing-all-players-list": "Listing all players: list",
         "editing-a-person-edit": "Editing a person: edit",
         "finding-players-by-name-find": "Finding players by name: find",
