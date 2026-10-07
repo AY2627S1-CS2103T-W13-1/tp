@@ -20,6 +20,12 @@ public class NameTest {
     }
 
     @Test
+    public void constructor_tooLongName_throwsIllegalArgumentException() {
+        String tooLongName = "a".repeat(Name.MAX_LENGTH + 1);
+        assertThrows(IllegalArgumentException.class, Name.MESSAGE_LENGTH_CONSTRAINTS, () -> new Name(tooLongName));
+    }
+
+    @Test
     public void isValidName() {
         // null name
         assertThrows(NullPointerException.class, () -> Name.isValidName(null));
@@ -27,8 +33,12 @@ public class NameTest {
         // invalid name
         assertFalse(Name.isValidName("")); // empty string
         assertFalse(Name.isValidName(" ")); // spaces only
-        assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
-        assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
+        assertFalse(Name.isValidName(" peter")); // leading space
+        assertFalse(Name.isValidName("^")); // only disallowed characters
+        assertFalse(Name.isValidName("peter*")); // contains disallowed characters
+        assertFalse(Name.isValidName("Tan @ Ming")); // contains '@'
+        assertFalse(Name.isValidName("Tan Wei Ming (GK)")); // parentheses are not allowed
+        assertFalse(Name.isValidName("a".repeat(Name.MAX_LENGTH + 1))); // exceeds maximum length
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
@@ -36,6 +46,35 @@ public class NameTest {
         assertTrue(Name.isValidName("peter the 2nd")); // alphanumeric characters
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
+        assertTrue(Name.isValidName("Nur'ain Binte Hassan")); // apostrophe
+        assertTrue(Name.isValidName("Muthu s/o Ramasamy")); // slash
+        assertTrue(Name.isValidName("Mary-Jane Lee")); // hyphen
+        assertTrue(Name.isValidName("St. John")); // full stop
+        assertTrue(Name.isValidName("Zoë Tan")); // non-ASCII letter
+        assertTrue(Name.isValidName("a".repeat(Name.MAX_LENGTH))); // exactly maximum length
+    }
+
+    @Test
+    public void isSameName() {
+        Name name = new Name("Tan Wei Ming");
+
+        // same object -> returns true
+        assertTrue(name.isSameName(name));
+
+        // null -> returns false
+        assertFalse(name.isSameName(null));
+
+        // different case -> returns true
+        assertTrue(name.isSameName(new Name("tan wei ming")));
+        assertTrue(name.isSameName(new Name("TAN WEI MING")));
+
+        // repeated internal or trailing spaces -> returns true
+        assertTrue(name.isSameName(new Name("Tan  Wei   Ming")));
+        assertTrue(name.isSameName(new Name("Tan Wei Ming ")));
+
+        // different name -> returns false
+        assertFalse(name.isSameName(new Name("Tan Wei Ming 2")));
+        assertFalse(name.isSameName(new Name("TanWei Ming")));
     }
 
     @Test
@@ -56,5 +95,8 @@ public class NameTest {
 
         // different values -> returns false
         assertFalse(name.equals(new Name("Other Valid Name")));
+
+        // different case -> returns false, as the capitalisation typed is preserved
+        assertFalse(name.equals(new Name("valid name")));
     }
 }

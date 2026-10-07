@@ -9,14 +9,18 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class Name {
 
+    public static final int MAX_LENGTH = 100;
+
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should only contain alphanumeric characters and spaces, and should not be blank";
+            "Names should contain only letters, digits, spaces, and the characters - ' / . and should not be blank.";
+    public static final String MESSAGE_LENGTH_CONSTRAINTS =
+            "Names should not exceed " + MAX_LENGTH + " characters.";
 
     /*
      * The first character of the name must not be a whitespace,
      * otherwise " " (a blank string) becomes a valid input.
      */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} ]*";
+    public static final String VALIDATION_REGEX = "[\\p{L}\\p{Nd}\\-'/.][\\p{L}\\p{Nd}\\-'/. ]*";
 
     public final String fullName;
 
@@ -27,7 +31,8 @@ public class Name {
      */
     public Name(String name) {
         requireNonNull(name);
-        checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
+        checkArgument(hasValidCharacters(name), MESSAGE_CONSTRAINTS);
+        checkArgument(hasValidLength(name), MESSAGE_LENGTH_CONSTRAINTS);
         fullName = name;
     }
 
@@ -35,9 +40,39 @@ public class Name {
      * Returns true if a given string is a valid name.
      */
     public static boolean isValidName(String test) {
+        return hasValidCharacters(test) && hasValidLength(test);
+    }
+
+    /**
+     * Returns true if a given string is non-blank and uses only the characters allowed in a name.
+     */
+    public static boolean hasValidCharacters(String test) {
         return test.matches(VALIDATION_REGEX);
     }
 
+    /**
+     * Returns true if a given string does not exceed {@link #MAX_LENGTH} characters.
+     */
+    public static boolean hasValidLength(String test) {
+        return test.length() <= MAX_LENGTH;
+    }
+
+    /**
+     * Returns true if both names refer to the same player, ignoring case and repeated internal spaces.
+     * This defines a weaker notion of equality between two names, used for duplicate detection.
+     */
+    public boolean isSameName(Name otherName) {
+        if (otherName == this) {
+            return true;
+        }
+
+        return otherName != null
+                && normalise(otherName.fullName).equalsIgnoreCase(normalise(fullName));
+    }
+
+    private static String normalise(String name) {
+        return name.trim().replaceAll("\\s+", " ");
+    }
 
     @Override
     public String toString() {

@@ -44,6 +44,16 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_personAcceptedByModel_showsNameAndPhone() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded();
+        Person validPerson = new PersonBuilder().withName("Tan Wei Ming").withPhone("91234567").build();
+
+        CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
+
+        assertEquals("New player added: Tan Wei Ming; Phone: 91234567", commandResult.getFeedbackToUser());
+    }
+
+    @Test
     public void execute_duplicatePerson_throwsCommandException() {
         Person validPerson = new PersonBuilder().build();
         AddCommand addCommand = new AddCommand(validPerson);
