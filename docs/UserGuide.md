@@ -29,7 +29,7 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
    Some example commands you can try:
 
-   * `list` : Lists all contacts.
+   * `list` : Lists all players.
 
    * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01` : Adds a contact named `John Doe` to the Address Book.
 
@@ -91,11 +91,18 @@ Examples:
 * `add n/John Doe p/98765432 e/johnd@example.com a/John street, block 123, #01-01`
 * `add n/Betsy Crowe t/friend e/betsycrowe@example.com a/Newgate Prison p/1234567 t/criminal`
 
-### Listing all persons: `list`
+### Listing all players: `list`
 
-Shows a list of all persons in the address book.
+Shows every player and clears any filter from a previous `find` command.
 
 Format: `list`
+
+Players appear in the order they were added, numbered from 1. The result box shows
+`Listed all players`, even when the team is empty. This command does not change player data.
+Any text after `list` is ignored, so `list all` has the same effect as `list`.
+
+Indices refer to positions in the currently displayed list and can change after deletion.
+Run `list` again before using an index if you need to see the full team.
 
 ### Editing a person: `edit`
 
