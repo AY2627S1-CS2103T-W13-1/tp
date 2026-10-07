@@ -30,8 +30,8 @@ public class HelpPanelTest {
         runOnFxThread(() -> {
             String summary = ((TextArea) new HelpPanel().getRoot()).getText();
             List<String> expectedContent = List.of("CouchCoach commands:", "add n/NAME p/PHONE",
-                    "list                 Show all players", "find KEYWORD...", "delete INDEX",
-                    "help                 Show this summary", "exit                 Close CouchCoach",
+                    "list - Show all players", "find KEYWORD...", "delete INDEX",
+                    "help - Show this summary", "exit - Close CouchCoach",
                     "e.g. add n/Tan Wei Ming p/91234567", "e.g. find wei ming", "e.g. delete 3",
                     "Matches whole words only, ignores capitalisation", "Positions change after a delete.",
                     "Your data is saved automatically after every change.");
