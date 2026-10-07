@@ -12,18 +12,18 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
- * Deletes a person identified using its displayed index from the address book.
+ * Deletes a player identified using its displayed index from the team.
  */
 public class DeleteCommand extends Command {
 
     public static final String COMMAND_WORD = "delete";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Deletes the person identified by the index number used in the displayed person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
+            + ": Deletes the player at the given index in the displayed list.\n"
+            + "Parameters: INDEX (must be a positive whole number)\n"
+            + "Example: " + COMMAND_WORD + " 3";
 
-    public static final String MESSAGE_DELETE_PERSON_SUCCESS = "Deleted person: %1$s";
+    public static final String MESSAGE_DELETE_PLAYER_SUCCESS = "Deleted player: %1$s";
 
     private final Index targetIndex;
 
@@ -42,7 +42,7 @@ public class DeleteCommand extends Command {
 
         Person personToDelete = lastShownList.get(targetIndex.getZeroBased());
         model.deletePerson(personToDelete);
-        return new CommandResult(String.format(MESSAGE_DELETE_PERSON_SUCCESS, Messages.format(personToDelete)));
+        return new CommandResult(String.format(MESSAGE_DELETE_PLAYER_SUCCESS, Messages.format(personToDelete)));
     }
 
     @Override

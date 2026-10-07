@@ -33,6 +33,9 @@ public class StringUtilTest {
         assertFalse(StringUtil.isNonZeroUnsignedInteger("-1"));
         assertFalse(StringUtil.isNonZeroUnsignedInteger("+1"));
 
+        // EP: decimal numbers
+        assertFalse(StringUtil.isNonZeroUnsignedInteger("2.5"));
+
         // EP: numbers with white space
         assertFalse(StringUtil.isNonZeroUnsignedInteger(" 10 ")); // Leading/trailing spaces
         assertFalse(StringUtil.isNonZeroUnsignedInteger("1 0")); // Spaces in the middle
