@@ -18,7 +18,11 @@
       <padding>
         <Insets top="10" right="10" bottom="10" left="10" />
       </padding>
-      <Label fx:id="helpHeading" text="CouchCoach commands:" />
+      <VBox spacing="4">
+        <Label fx:id="helpHeading" text="CouchCoach commands:" />
+        <Label fx:id="helpHint" text="Type 'list' to see your players again."
+               wrapText="true" minWidth="0" />
+      </VBox>
       <GridPane fx:id="helpCommands" hgap="20" minWidth="0">
         <columnConstraints>
           <ColumnConstraints minWidth="180" prefWidth="180" maxWidth="180" />

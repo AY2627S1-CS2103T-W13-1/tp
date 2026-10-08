@@ -31,6 +31,7 @@ public class HelpPanelTest {
             ScrollPane help = (ScrollPane) new HelpPanel().getRoot();
             Map<String, String> expectedText = Map.ofEntries(
                     Map.entry("helpHeading", "CouchCoach commands:"),
+                    Map.entry("helpHint", "Type 'list' to see your players again."),
                     Map.entry("addSyntax", "add n/NAME p/PHONE"),
                     Map.entry("addDescription", "Add a player\ne.g. add n/Tan Wei Ming p/91234567"),
                     Map.entry("listSyntax", "list"), Map.entry("listDescription", "Show all players"),
