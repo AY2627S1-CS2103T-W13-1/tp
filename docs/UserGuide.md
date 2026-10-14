@@ -202,7 +202,7 @@ Format: `clear`
 
 ### Exiting the program: `exit`
 
-Closes CouchCoach. Your changes are already saved, so nothing is lost.
+Closes CouchCoach. Every change that was saved successfully is kept. `exit` does not save, so if a change could not be saved, save it before exiting (see [Saving the data](#saving-the-data)); otherwise that change is lost.
 
 Format: `exit`
 
@@ -210,7 +210,13 @@ Format: `exit`
 
 CouchCoach saves your data automatically after every change (`add`, `edit`, `delete` and `clear`). You do not need to save manually. `list`, `find`, `help` and `exit` do not change your data, so they do not save.
 
-If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.`
+If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
+
+Fixing the problem does not save the change by itself, and `exit` does not save either. To save it:
+
+1. Fix the problem, e.g. restore the data folder or make it writable again.
+1. Make another change. Every save writes your whole team, so the next successful change also saves the change that failed earlier. If you have nothing else to change, add a temporary player and then delete it, e.g. `add n/Temp Player p/000` followed by `delete INDEX`, using the temporary player's index.
+1. Check that the result box shows the normal success message, not the save error, before you exit.
 
 ### Editing the data file
 
