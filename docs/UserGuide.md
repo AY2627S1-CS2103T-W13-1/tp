@@ -4,9 +4,9 @@
   pageNav: 3
 ---
 
-# AB-3 User Guide
+# CouchCoach User Guide
 
-AddressBook Level 3 (AB3) is a **desktop application for managing contacts, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, AB3 can help you manage contacts faster than traditional GUI applications.
+CouchCoach is a **desktop app for coaches of any sports team to keep track of their players, optimized for use through a Command Line Interface (CLI)** while retaining the benefits of a Graphical User Interface (GUI). If you type quickly, CouchCoach lets you add, find and remove players faster than a clipboard, a spreadsheet or a typical mouse-driven app.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -18,24 +18,24 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
-1. Download the latest `.jar` file from [here](https://github.com/se-edu/addressbook-level3/releases).
+1. Download the latest `couchcoach.jar` file from [here](https://github.com/AY2627S1-CS2103T-W13-1/tp/releases).
 
-1. Copy the file to the folder you want to use as the _home folder_ for your AddressBook.
+1. Copy the file to the folder you want to use as the _home folder_ for CouchCoach.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar addressbook.jar`.<br>
-   A GUI similar to the one below should appear in a few seconds. Note how the app contains some sample data.<br>
+1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar couchcoach.jar`.<br>
+   A window like the one below should appear in a few seconds. The first time you run it, CouchCoach contains some sample players.<br>
    ![Ui](images/Ui.png)
 
-1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to open the help window.<br>
+1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to see a summary of all commands.<br>
    Some example commands you can try:
 
    * `list` : Lists all players.
 
    * `add n/Tan Wei Ming p/91234567` : Adds a player named `Tan Wei Ming` to the team.
 
-   * `delete 3` : Deletes the 3rd contact shown in the current list.
+   * `delete 3` : Deletes the 3rd player shown in the current list.
 
-   * `clear` : Deletes all contacts.
+   * `clear` : Deletes all players.
 
    * `exit` : Exits the app.
 
@@ -53,10 +53,10 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
+  For example, `edit INDEX [n/NAME] [p/PHONE]` can be used as `edit 1 n/Tan Wei Ming` or as `edit 1 p/91234567`.
 
 * Items followed by `...` can appear zero or more times.<br>
-  For example, `[t/TAG]... ` may be omitted, or written as `t/friend` or `t/friend t/family`.
+  For example, `find KEYWORD [MORE_KEYWORDS]...` can be used as `find wei` or as `find wei ming`.
 
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
@@ -69,11 +69,14 @@ AddressBook Level 3 (AB3) is a **desktop application for managing contacts, opti
 
 ### Viewing help: `help`
 
-Shows a message explaining how to access the help page.
-
-![help message](images/helpMessage.png)
+Shows a summary of every command, with examples, in place of the player list.
 
 Format: `help`
+
+* You can also open the summary from the `Help` menu or by pressing `F1`.
+* Type `list` to see your players again. Any successful player command also brings the list back.
+* While the summary is shown, an index such as the `1` in `delete 1` still refers to the player list that was displayed before you opened help.
+* If you type a command CouchCoach does not recognise, or press Enter on an empty command box, the result box shows `Unknown command. Type 'help' to see the list of commands.`
 
 
 ### Adding a player: `add`
@@ -113,19 +116,20 @@ Any text after `list` is ignored, so `list all` has the same effect as `list`.
 Indices refer to positions in the currently displayed list and can change after deletion.
 Run `list` again before using an index if you need to see the full team.
 
-### Editing a person: `edit`
+### Editing a player: `edit`
 
-Edits an existing person in the address book.
+Edits an existing player in the team.
 
 Format: `edit INDEX [n/NAME] [p/PHONE]`
 
-* Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, ...
+* Edits the player at the specified `INDEX`. The index refers to the index number shown in the displayed player list. The index **must be a positive whole number** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
-* Existing values will be updated to the input values.
+* Existing values will be updated to the input values. Names and phone numbers follow the same rules as in `add`.
+* Each parameter can be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
 
 Examples:
-*  `edit 1 p/91234567` Edits the phone number of the 1st person to be `91234567`.
-*  `edit 2 n/Betsy Crower` Edits the name of the 2nd person to be `Betsy Crower`.
+*  `edit 1 p/91234567` Edits the phone number of the 1st player to be `91234567`.
+*  `edit 2 n/Lim Wei Jie` Edits the name of the 2nd player to be `Lim Wei Jie`.
 
 ### Finding players by name: `find`
 
@@ -185,50 +189,53 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd player in the team.
 * `find Tan` followed by `delete 1` deletes the 1st player in the results of the `find` command.
 
-### Clearing all entries: `clear`
+### Clearing all players: `clear`
 
-Clears all entries from the address book.
+Deletes all players from the team.
 
 Format: `clear`
 
+<box type="warning" seamless>
+
+**Caution:** `clear` cannot be undone and does not ask for confirmation.
+</box>
+
 ### Exiting the program: `exit`
 
-Exits the program.
+Closes CouchCoach. Your changes are already saved, so nothing is lost.
 
 Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+CouchCoach saves your data automatically after every change (`add`, `edit`, `delete` and `clear`). You do not need to save manually. `list`, `find`, `help` and `exit` do not change your data, so they do not save.
+
+If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.`
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+CouchCoach data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `delete` or `clear`), which replaces it, so back up the file before editing it.<br>
+A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
+Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
-
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous CouchCoach home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
-2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -239,7 +246,8 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE` <br> e.g., `add n/Tan Wei Ming p/91234567`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE]`<br> e.g.,`edit 2 n/James Lee`
-**Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find James Jake`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE]`<br> e.g., `edit 2 n/Lim Wei Jie`
+**Exit**   | `exit`
+**Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **List**   | `list`
 **Help**   | `help`
