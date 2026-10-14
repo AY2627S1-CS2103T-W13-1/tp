@@ -173,6 +173,14 @@ public class MainWindowTest {
         });
     }
 
+    @Test
+    public void showFeedback_unreadableDataFileWarning_shownInResultDisplay() throws Exception {
+        runOnFxThread(() -> {
+            window.showFeedback(Messages.MESSAGE_DATA_FILE_UNREADABLE);
+            assertEquals(Messages.MESSAGE_DATA_FILE_UNREADABLE, resultDisplay.getText());
+        });
+    }
+
     /**
      * Submits a command through the actual command-box event handler.
      */

@@ -133,6 +133,13 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_exit_successWithoutSaving() throws Exception {
+        // Any save attempt would throw, so this passes only if exit does not write the data file
+        logic = createLogicWithFailingSave();
+        assertTrue(logic.execute("exit").isExit());
+    }
+
+    @Test
     public void execute_unrecognisedInput_preservesPlayersAndFilter() throws Exception {
         TypicalPersons.getTypicalPersons().forEach(model::addPerson);
         logic = createLogicWithFailingSave();
@@ -150,14 +157,12 @@ public class LogicManagerTest {
 
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_SAVE_FAILURE);
     }
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_SAVE_FAILURE);
     }
 
     @Test
