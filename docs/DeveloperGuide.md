@@ -708,6 +708,46 @@ testers are expected to do more *exploratory* testing.
    1. Other incorrect add commands to try: `add`, `add n/ p/91234567`, `add n/Amy p/9123ABCD`, `add n/Amy p/91234567 e/amy@x.com`, a name longer than 100 characters<br>
       Expected: No player is added, and an error message is shown.
 
+### Listing all players (F2 / US02)
+
+Run these checks in a separate folder using disposable data. Prepare the team in this order:
+
+```text
+clear
+add n/Tan Wei Ming p/91234567
+add n/Lim Wei Jie p/92345678
+add n/Nur Aisyah p/93456789
+```
+
+For every successful listing below, the status message is exactly `Listed all players`,
+including when the team is empty. Listing clears the search filter and displays all
+remaining players in insertion order, with indices starting from 1.
+
+| Test case | Expected result |
+| --- | --- |
+| `list` | Tan, Lim, and Nur displayed in that order, numbered 1, 2, and 3, with their recorded names and phone numbers. |
+| `find wei`, then `list` | The two search results are replaced by all three players in their original order. |
+| `find NobodyMatchesThisName`, then `list` | The empty search results are replaced by all three players. |
+| `list` twice | Both requests succeed; the order and indices stay the same, with no duplicate players. |
+| `list all` or `list n/Tan` | Trailing arguments are ignored; all three players are displayed. |
+| `list` with leading and trailing spaces | All three players are displayed, as with `list`. |
+| `find wei`, then `List` or `lis` | `Unknown command. Type 'help' to see the list of commands.` is shown; Tan and Lim remain displayed, numbered 1 and 2. Run `list` to restore all three players. |
+| `help`, then `list` | The help panel is replaced by the full player list. |
+| `delete 2`, then `list` | Tan and Nur are displayed in that order, numbered 1 and 2; Lim is not restored. |
+| `clear`, then `list` | The player panel is empty; listing still succeeds with `Listed all players`. |
+
+Before each listing check, record the player data file's contents and modification
+time. Both must remain unchanged after successful and rejected listing requests;
+`list` changes only the displayed list. The setup, `delete`, and `clear` commands
+do change player data, so take a new baseline after those commands.
+
+To check listing with unavailable storage, prepare the three players again and run
+`find wei`. While the app remains open, rename the `data` directory and create a
+regular file named `data` in its place, blocking directory creation. Run `list`.
+Expected: all three players appear in their original order, `Listed all players`
+is shown, and no save-failure message appears. Remove the temporary file and restore
+the directory before modifying players or closing the app.
+
 ### Finding players by name (F3 / US04)
 
 Run these checks in a separate folder using disposable data. Prepare the team in this order:
