@@ -813,6 +813,29 @@ indices. `LogicManager` returns a successful find result without saving player d
 
 1. _{ more test cases … }_
 
+### Viewing help
+
+Prerequisites: Launch CouchCoach with at least one player and run `list`. Record the
+players' names, phone numbers, and order before these checks. Run `list` before each
+independent help entry-point check so that the player list is visible first.
+
+| Test case | Expected result |
+| --- | --- |
+| Enter `help`. | The player-list area shows the **CouchCoach commands:** summary in the main window, with usage for `add`, `list`, `find`, `delete`, `help`, and `exit`. The result box shows `Showing CouchCoach command summary.` No separate window opens. |
+| Enter `help extra words`. | The extra words are ignored; the same summary and result message appear as for `help`. |
+| Select **Help → Help** from the menu. | The same summary appears in the player-list area. The existing result-box message is unchanged. |
+| Press **F1** with focus in the command box, then repeat with focus in the result box. | Each shortcut shows the same summary in the player-list area, without opening another window or changing the result-box message. If the keyboard uses media keys by default, use **Fn+F1**. |
+| Enter `help` repeatedly, or select **Help → Help** repeatedly. | A single summary remains visible; no duplicate panels or windows appear. |
+| With help visible, enter `addd`. | The result box shows `Unknown command. Type 'help' to see the list of commands.` The command box is marked as invalid and the help summary remains visible. |
+| With help visible, submit an empty command, then a command containing only spaces. | Both produce the same unknown-command message and invalid-command indication; the help summary remains visible. |
+| With help visible, enter `list`. | The help summary is replaced by all players in their original order, with unchanged names and phone numbers. The result box shows `Listed all players`. |
+
+Repeat `help` followed by `list` on an empty team using disposable data. The summary
+must still appear, and `list` must return to an empty player list successfully.
+Opening help and submitting the invalid commands above must not modify player data.
+If the data file already exists, record its contents and modification time before
+these checks and verify that both remain unchanged afterwards.
+
 ### Saving data
 
 1. Dealing with missing/corrupted data files
