@@ -1,7 +1,6 @@
 package seedu.address.logic;
 
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.util.logging.Logger;
 
 import javafx.collections.ObservableList;
@@ -9,6 +8,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
@@ -23,12 +23,9 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
-    /** Feedback format for data-write failures. */
-    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
-
-    /** Feedback format for data-write permission failures. */
-    public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
-            "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+    /** Feedback shown when a change was applied in memory but could not be written to the data file. */
+    public static final String MESSAGE_SAVE_FAILURE = "Your change was applied but could not be saved to disk. "
+            + "Fix the problem before closing CouchCoach, or the change will be lost.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -56,20 +53,30 @@ public class LogicManager implements Logic {
         Command command = addressBookParser.parseCommand(commandText);
         commandResult = command.execute(model);
 
-        // Viewing help, finding, and listing players must not trigger a data write.
-        if (command instanceof FindCommand || command instanceof ListCommand || command instanceof HelpCommand) {
+        if (isReadOnly(command)) {
             return commandResult;
         }
 
         try {
             storage.saveAddressBook(model.getAddressBook());
-        } catch (AccessDeniedException e) {
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+            // The coach gets a plain-language message; the technical cause is kept in the log for diagnosis.
+            logger.warning("Could not save data: " + ioe);
+            throw new CommandException(MESSAGE_SAVE_FAILURE, ioe);
         }
 
         return commandResult;
+    }
+
+    /**
+     * Returns true if {@code command} never changes player data, so no save is needed after it.
+     * Skipping the save also stops these commands from overwriting a data file that could not be read.
+     */
+    private static boolean isReadOnly(Command command) {
+        return command instanceof FindCommand
+                || command instanceof ListCommand
+                || command instanceof HelpCommand
+                || command instanceof ExitCommand;
     }
 
     @Override
