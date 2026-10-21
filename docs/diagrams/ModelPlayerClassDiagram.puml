@@ -1,6 +1,7 @@
 @startuml
 !pragma layout smetana
 !include ModelDiagramStyle.puml
+left to right direction
 
 ' View 2: collection wrappers are omitted; values can be shared across player versions.
 class ModelManager {
@@ -15,21 +16,7 @@ class UniquePersonList {
 class Person {
     + isSamePerson(other): boolean
 }
-class Name {
-    + fullName: String
-}
-class Phone {
-    + value: String
-}
-class Tag #F2E7E3 {
-    - name: String
-    {static} + isValidTagName(name): boolean
-}
-
 AddressBook "1" *--> "1" UniquePersonList : persons
 UniquePersonList "0..*" --> "0..*" Person : all players
 ModelManager "0..*" --> "0..*" Person : filtered players
-Person "0..*" --> "1" Name : name
-Person "0..*" --> "1" Phone : phone
-Person "0..*" --> "0..*" Tag : tags
 @enduml

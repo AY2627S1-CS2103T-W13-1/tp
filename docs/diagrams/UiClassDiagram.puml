@@ -3,6 +3,8 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor UI_COLOR_T4
 skinparam classBackgroundColor UI_COLOR
+skinparam classAttributeFontColor #FFFFFF
+skinparam classAttributeIconSize 0
 
 package UI <<Rectangle>>{
 Class "<<interface>>\nUi" as Ui
@@ -12,13 +14,21 @@ Class MainWindow
 Class HelpPanel
 Class ResultDisplay
 Class PersonListPanel
-Class PersonCard
+Class PersonCard {
+    -remark: Label
+    -injuryStatus: Label
+}
+show PersonCard fields
 Class StatusBarFooter
 Class CommandBox
 }
 
 package Model <<Rectangle>> {
-Class HiddenModel #FFFFFF
+Class Person MODEL_COLOR {
+    -remark: Remark
+    -injuryStatus: InjuryStatus
+}
+show Person fields
 }
 
 package Logic <<Rectangle>> {
@@ -47,7 +57,7 @@ PersonCard --|> UiPart
 StatusBarFooter --|> UiPart
 HelpPanel --|> UiPart
 
-PersonCard ..> Model
+PersonCard "0..*" --> "1" Person : person
 UiManager -right-> Logic
 MainWindow -left-> Logic
 

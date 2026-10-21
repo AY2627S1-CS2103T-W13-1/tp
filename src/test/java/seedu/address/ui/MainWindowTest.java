@@ -38,6 +38,8 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.SelectionStatus;
+import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -51,6 +53,95 @@ public class MainWindowTest {
     private TextField commandField;
     private TextArea resultDisplay;
     private StackPane playerArea;
+
+    @Test
+    public void execute_filterThroughCommandBox_matchingErrorsAndHelp() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("add n/Tag Trialist p/123 t/Striker");
+            enterCommand("help");
+            assertHelpSummaryShown();
+            enterCommand("filter t/STRIKER");
+            assertPlayerPanelShown();
+            enterCommand("keep 1");
+            enterCommand("rate 1 10");
+            assertEquals(SelectionStatus.KEPT, model.getFilteredPersonList().getFirst().getSelectionStatus());
+            assertEquals("10", model.getFilteredPersonList().getFirst().getRating().toString());
+            enterCommand("squad");
+            enterCommand("filter t/STRIKER");
+            assertEquals("1 player listed!", resultDisplay.getText());
+            assertEquals("Tag Trialist", model.getFilteredPersonList().getFirst().getName().fullName);
+            enterCommand("filter t/");
+            assertEquals(Tag.MESSAGE_CONSTRAINTS, resultDisplay.getText());
+            assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand("filter t/NoSuchTag");
+            assertEquals("0 players listed!", resultDisplay.getText());
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            enterCommand("filter t/Striker");
+            enterCommand("delete 1");
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            enterCommand("list");
+            assertEquals(getTypicalPersons(), model.getFilteredPersonList());
+        });
+    }
+
+    @Test
+    public void execute_taggedPlayerThroughStatusAndRatingCommands_preservesAllFields() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("add n/Tag Trialist p/123 t/Striker");
+            enterCommand("find Trialist");
+            enterCommand("keep 1");
+            enterCommand("rate 1 10");
+            Person keptPlayer = model.getFilteredPersonList().getFirst();
+            assertEquals(SelectionStatus.KEPT, keptPlayer.getSelectionStatus());
+            assertEquals("10", keptPlayer.getRating().toString());
+            assertTrue(keptPlayer.getTags().contains(new Tag("Striker")));
+            enterCommand("squad");
+            assertEquals(List.of(keptPlayer), model.getFilteredPersonList());
+
+            enterCommand("rate 1 0");
+            Person ratedPlayer = model.getFilteredPersonList().getFirst();
+            assertEquals("0", ratedPlayer.getRating().toString());
+            assertEquals(keptPlayer.getTags(), ratedPlayer.getTags());
+            assertEquals(SelectionStatus.KEPT, ratedPlayer.getSelectionStatus());
+            AddressBook original = new AddressBook(model.getAddressBook());
+            for (String invalid : List.of("rate 1 11", "edit 1 t/Bad!", "keep 2")) {
+                enterCommand(invalid);
+                assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals(original, model.getAddressBook());
+            }
+            enterCommand("cut 1");
+            enterCommand("squad");
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertPlayerPanelShown();
+        });
+    }
+
+    @Test
+    public void execute_tagEditsThroughCommandBox_normalBoundaryAndErrors() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("add n/Tag Trialist p/123 t/Striker t/Trial Group 2");
+            assertPlayerPanelShown();
+            assertTrue(resultDisplay.getText().contains("Tags: Striker, Trial Group 2"));
+            enterCommand("find Trialist");
+            enterCommand("edit 1 t/" + "A".repeat(Tag.MAX_LENGTH));
+            assertTrue(resultDisplay.getText().contains("Tags: " + "A".repeat(Tag.MAX_LENGTH)));
+            AddressBook originalData = new AddressBook(model.getAddressBook());
+            for (String input : List.of("edit 1 t/Bad!", "edit 1 t/" + "A".repeat(Tag.MAX_LENGTH + 1),
+                    "edit 1 t/ t/Striker")) {
+                enterCommand(input);
+                assertEquals(Tag.MESSAGE_CONSTRAINTS, resultDisplay.getText());
+                assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals(originalData, model.getAddressBook());
+            }
+            enterCommand("find Trialist");
+            enterCommand("edit 1 t/");
+            assertPlayerPanelShown();
+            assertEquals(getTypicalPersons().size() + 1, model.getFilteredPersonList().size());
+            assertTrue(model.getFilteredPersonList().getLast().getTags().isEmpty());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+    }
 
     @BeforeEach
     public void setUp() throws Exception {

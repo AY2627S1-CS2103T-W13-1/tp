@@ -2,7 +2,7 @@
 !pragma layout smetana
 !include ModelDiagramStyle.puml
 
-' View 1: contracts and model-owned data. Player internals are in the second view.
+' View 1: contracts and model-owned data. Player internals are in the detail views.
 interface Model <<interface>> {
     + updateFilteredPersonList(predicate): void
 }
