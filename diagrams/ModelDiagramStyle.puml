@@ -1,0 +1,23 @@
+' Default diagram-design palette, applied only to the model views.
+skinparam backgroundColor #F5F5F5
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam defaultFontName SansSerif
+skinparam defaultFontColor #2D3142
+skinparam arrowColor #2D3142
+skinparam arrowThickness 1.1
+skinparam classAttributeFontSize 14
+skinparam ArrowFontSize 14
+skinparam stereotypeFontSize 14
+skinparam classStereotypeFontSize 14
+skinparam class {
+    BackgroundColor #F5F5F5
+    BorderColor #2D3142
+    FontColor #2D3142
+    FontSize 16
+    StereotypeFontColor #4F5D75
+}
+hide circle
+skinparam nodesep 48
+skinparam ranksep 64
+skinparam linetype ortho

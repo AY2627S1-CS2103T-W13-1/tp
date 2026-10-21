@@ -1,0 +1,23 @@
+@startuml
+!pragma layout smetana
+!include ModelDiagramStyle.puml
+left to right direction
+
+class Person {
+    + isSamePerson(other): boolean
+}
+class Name {
+    + fullName: String
+}
+class Phone {
+    + value: String
+}
+class Tag #F2E7E3 {
+    - name: String
+    {static} + isValidTagName(name): boolean
+}
+
+Person "0..*" --> "1" Name : name
+Person "0..*" --> "1" Phone : phone
+Person "0..*" --> "0..*" Tag : tags
+@enduml
