@@ -28,9 +28,9 @@
           <ColumnConstraints minWidth="180" prefWidth="180" maxWidth="180" />
           <ColumnConstraints hgrow="ALWAYS" minWidth="0" />
         </columnConstraints>
-        <Label fx:id="addSyntax" text="add n/NAME p/PHONE"
+        <Label fx:id="addSyntax" text="add n/NAME p/PHONE&#10;[t/TAG]..."
                GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.valignment="TOP" />
-        <Label fx:id="addDescription" text="Add a player&#10;e.g. add n/Tan Wei Ming p/91234567"
+        <Label fx:id="addDescription" text="Add a player with optional tags&#10;e.g. add n/Tan Wei Ming p/91234567 t/Striker"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.valignment="TOP" />
         <Label fx:id="listSyntax" text="list"
@@ -49,19 +49,53 @@
                text="Delete the player at that position in the list&#10;shown right now. Positions change after a delete.&#10;e.g. delete 3"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="TOP" />
-        <Label fx:id="helpSyntax" text="help"
+        <Label fx:id="statusSyntax" text="keep INDEX&#10;cut INDEX&#10;pending INDEX"
                GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.valignment="TOP" />
-        <Label fx:id="helpDescription" text="Show this summary" wrapText="true" minWidth="0"
+        <Label fx:id="statusDescription"
+               text="Mark the player at that position as kept, cut,&#10;or not yet decided (pending)&#10;e.g. keep 3"
+               wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.valignment="TOP" />
-        <Label fx:id="exitSyntax" text="exit"
+        <Label fx:id="squadSyntax" text="squad"
                GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
-        <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
+        <Label fx:id="squadDescription" text="Show only the players you have kept"
+               wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.valignment="TOP" />
-        <Label fx:id="injurySyntax" text="injury INDEX i/STATUS"
+        <Label fx:id="helpSyntax" text="help"
+               GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.valignment="TOP" />
+        <Label fx:id="helpDescription" text="Show this summary" wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP" />
+        <Label fx:id="exitSyntax" text="exit"
                GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.valignment="TOP" />
+        <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.valignment="TOP" />
+        <Label fx:id="rateSyntax" text="rate INDEX RATING"
+               GridPane.columnIndex="0" GridPane.rowIndex="8" GridPane.valignment="TOP" />
+        <Label fx:id="rateDescription" text="Set a player's rating (whole number 0 to 10)&#10;e.g. rate 1 8"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="8" GridPane.valignment="TOP" />
+        <Label fx:id="editSyntax" text="edit INDEX [n/NAME]&#10;[p/PHONE] [t/TAG]..."
+               GridPane.columnIndex="0" GridPane.rowIndex="9" GridPane.valignment="TOP" />
+        <Label fx:id="editDescription"
+               text="Edit the displayed player; tags replace existing tags&#10;A single empty t/ clears tags; omit t/ to keep them&#10;e.g. edit 1 t/Striker t/Captain"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.valignment="TOP" />
+        <Label fx:id="filterSyntax" text="filter t/TAG [t/TAG]..."
+               GridPane.columnIndex="0" GridPane.rowIndex="10" GridPane.valignment="TOP" />
+        <Label fx:id="filterDescription"
+               text="Show players with any requested tag&#10;Matches complete labels, ignores capitalisation&#10;e.g. filter t/Striker t/Trial Group 2"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="10" GridPane.valignment="TOP" />
+        <Label fx:id="remarkSyntax" text="remark INDEX r/REMARK"
+               GridPane.columnIndex="0" GridPane.rowIndex="11" GridPane.valignment="TOP" />
+        <Label fx:id="remarkDescription"
+               text="Set or replace a player remark; empty r/ clears it&#10;Use r/ only once; a second r/ after a space is rejected&#10;e.g. remark 1 r/Strong left foot"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="11" GridPane.valignment="TOP" />
+        <Label fx:id="injurySyntax" text="injury INDEX i/STATUS"
+               GridPane.columnIndex="0" GridPane.rowIndex="12" GridPane.valignment="TOP" />
         <Label fx:id="injuryDescription" text="Mark a player injured or fit again&#10;e.g. injury 1 i/injured or injury 1 i/fit"
                wrapText="true" minWidth="0"
-               GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.valignment="TOP" />
+               GridPane.columnIndex="1" GridPane.rowIndex="12" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />

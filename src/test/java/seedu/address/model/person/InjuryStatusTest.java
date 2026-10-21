@@ -18,6 +18,7 @@ public class InjuryStatusTest {
     public void fromString_invalidValues_throwsIllegalArgumentException() {
         assertThrows(NullPointerException.class, () -> InjuryStatus.fromString(null));
         assertThrows(IllegalArgumentException.class, () -> InjuryStatus.fromString("unknown"));
-        assertThrows(NullPointerException.class, () -> new Person(new Name("Amy Bee"), new Phone("123"), null));
+        assertThrows(NullPointerException.class, () -> new Person(
+                new Name("Amy Bee"), new Phone("123"), (InjuryStatus) null));
     }
 }

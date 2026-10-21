@@ -48,7 +48,7 @@ public class InjuryCommand extends Command {
         }
 
         Person player = displayedPlayers.get(index.getZeroBased());
-        Person updatedPlayer = new Person(player.getName(), player.getPhone(), injuryStatus);
+        Person updatedPlayer = player.withInjuryStatus(injuryStatus);
         assert player.isSamePerson(updatedPlayer) : "Updating injury status must preserve player identity";
         model.setPerson(player, updatedPlayer);
         logger.fine("Updated player injury status at displayed index " + index.getOneBased());
