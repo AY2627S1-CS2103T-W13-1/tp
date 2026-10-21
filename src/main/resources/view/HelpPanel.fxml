@@ -55,14 +55,19 @@
                text="Mark the player at that position as kept, cut,&#10;or not yet decided (pending)&#10;e.g. keep 3"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.valignment="TOP" />
-        <Label fx:id="helpSyntax" text="help"
+        <Label fx:id="squadSyntax" text="squad"
                GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
-        <Label fx:id="helpDescription" text="Show this summary" wrapText="true" minWidth="0"
+        <Label fx:id="squadDescription" text="Show only the players you have kept"
+               wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.valignment="TOP" />
-        <Label fx:id="exitSyntax" text="exit"
+        <Label fx:id="helpSyntax" text="help"
                GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.valignment="TOP" />
-        <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
+        <Label fx:id="helpDescription" text="Show this summary" wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP" />
+        <Label fx:id="exitSyntax" text="exit"
+               GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.valignment="TOP" />
+        <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />

@@ -134,6 +134,23 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_squad_showsKeptPlayersWithoutSaving() throws Exception {
+        TypicalPersons.getTypicalPersons().forEach(model::addPerson);
+        Person keptAlice = TypicalPersons.ALICE.withSelectionStatus(SelectionStatus.KEPT);
+        model.setPerson(TypicalPersons.ALICE, keptAlice);
+        // Any save attempt would throw, so this passes only if squad does not write the data file
+        logic = createLogicWithFailingSave();
+        AddressBook previousData = new AddressBook(model.getAddressBook());
+
+        assertEquals("1 player in your squad.", logic.execute("squad").getFeedbackToUser());
+        assertEquals(List.of(keptAlice), logic.getFilteredPersonList());
+        assertEquals(previousData, model.getAddressBook());
+
+        assertEquals("Listed all players", logic.execute("list").getFeedbackToUser());
+        assertEquals(TypicalPersons.getTypicalPersons().size(), logic.getFilteredPersonList().size());
+    }
+
+    @Test
     public void execute_exit_successWithoutSaving() throws Exception {
         // Any save attempt would throw, so this passes only if exit does not write the data file
         logic = createLogicWithFailingSave();
