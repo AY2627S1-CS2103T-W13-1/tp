@@ -10,7 +10,8 @@ public class RemarkTest {
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Remark(null));
-        assertThrows(NullPointerException.class, () -> new Person(new Name("Amy Bee"), new Phone("123"), null));
+        assertThrows(NullPointerException.class, () -> new Person(
+                new Name("Amy Bee"), new Phone("123"), (Remark) null));
     }
 
     @Test

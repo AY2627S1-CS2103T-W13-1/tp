@@ -11,16 +11,20 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
+import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Remark;
+import seedu.address.model.person.SelectionStatus;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -60,6 +64,23 @@ public class RemarkCommandTest {
         assertEquals(1, model.getFilteredPersonList().size());
         assertEquals(updatedPlayer, model.getFilteredPersonList().getFirst());
         assertEquals(updatedPlayer, model.getAddressBook().getPersonList().get(1));
+    }
+
+    @Test
+    public void execute_tagFilteredPlayer_preservesOtherFieldsAndFilter() throws Exception {
+        Person original = new PersonBuilder().withTags("Striker").withRating("8")
+                .withSelectionStatus(SelectionStatus.KEPT).build();
+        Person other = new PersonBuilder().withName("Other Player").withTags("Goalkeeper").build();
+        AddressBook team = new AddressBook();
+        team.setPersons(List.of(original, other));
+        Model filteredModel = new ModelManager(team, new UserPrefs());
+        new AddressBookParser().parseCommand("filter t/Striker").execute(filteredModel);
+
+        new RemarkCommand(INDEX_FIRST_PERSON, new Remark("Strong left foot")).execute(filteredModel);
+
+        Person expected = new PersonBuilder(original).withRemark("Strong left foot").build();
+        assertEquals(List.of(expected), filteredModel.getFilteredPersonList());
+        assertEquals(List.of(expected, other), filteredModel.getAddressBook().getPersonList());
     }
 
     @Test

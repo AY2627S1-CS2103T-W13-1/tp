@@ -90,7 +90,8 @@ public class Person {
      * Creates a player with all data fields, defensively copying the supplied tags.
      * Every field and tag must be non-null.
      */
-    public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating, Set<Tag> tags, Remark remark) {
+    public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating, Set<Tag> tags,
+                  Remark remark) {
         requireAllNonNull(name, phone, selectionStatus, rating, tags, remark);
         requireAllNonNull(tags);
         this.name = name;

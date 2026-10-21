@@ -164,6 +164,7 @@ public class PersonTest {
                 + ", selectionStatus=" + ALICE.getSelectionStatus() + ", tags=[], remark=" + ALICE.getRemark() + "}";
         assertEquals(expected, ALICE.toString());
     }
+
     @Test
     public void remark_changesDataEqualityButPreservesIdentity() {
         Person updated = new PersonBuilder(ALICE).withRemark("Strong left foot").build();
@@ -172,6 +173,11 @@ public class PersonTest {
         assertEquals(updated, new PersonBuilder(updated).build());
         assertEquals(updated.hashCode(), new PersonBuilder(updated).build().hashCode());
         assertEquals(new Remark(""), ALICE.getRemark());
+    }
+
+    @Test
+    public void withRemark_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withRemark(null));
     }
 
 }

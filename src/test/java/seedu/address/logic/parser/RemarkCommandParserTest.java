@@ -42,5 +42,9 @@ public class RemarkCommandParserTest {
     public void parse_duplicatePrefix_throwsParseException() {
         assertParseFailure(parser, " 1 r/Strong left foot r/Strong left foot",
                 Messages.getErrorMessageForDuplicatePrefixes(PREFIX_REMARK));
+        assertParseFailure(parser, " 1 r/Strong left foot r/Improved passing",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_REMARK));
+        assertParseFailure(parser, " 1 r/See r/soccer for drills",
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_REMARK));
     }
 }
