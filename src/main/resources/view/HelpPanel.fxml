@@ -62,6 +62,11 @@
         <Label text="Set a player's rating (whole number 0 to 10)&#10;e.g. rate 1 8"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP" />
+        <Label text="sort rating [asc|desc]"
+               GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.valignment="TOP" />
+        <Label text="Sort displayed players by rating; highest first by default&#10;Unrated players come last. Use list to reset.&#10;e.g. sort rating desc"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />

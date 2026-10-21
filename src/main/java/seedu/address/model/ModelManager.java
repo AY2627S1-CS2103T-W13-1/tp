@@ -119,7 +119,9 @@ public class ModelManager implements Model {
 
     @Override
     public void setPersonComparator(Comparator<Person> comparator) {
-        sortedPersons.setComparator(comparator);
+        // Explicitly break ties by source order: replacement events need not retain SortedList's tie order.
+        sortedPersons.setComparator(comparator == null ? null
+                : comparator.thenComparingInt(addressBook.getPersonList()::indexOf));
     }
 
     @Override
