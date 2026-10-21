@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 
@@ -61,4 +62,19 @@ public class ParserUtil {
         }
         return new Phone(normalizedPhone);
     }
+
+    /**
+     * Parses an injury status, allowing surrounding whitespace and mixed case.
+     *
+     * @throws ParseException if the value is neither injured nor fit.
+     */
+    public static InjuryStatus parseInjuryStatus(String value) throws ParseException {
+        requireNonNull(value);
+        try {
+            return InjuryStatus.fromString(value.trim());
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(InjuryStatus.MESSAGE_CONSTRAINTS, e);
+        }
+    }
+
 }

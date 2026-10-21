@@ -31,6 +31,8 @@ public class PersonCard extends UiPart<Region> {
     private Label id;
     @FXML
     private Label phone;
+    @FXML
+    private Label injuryStatus;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -41,5 +43,6 @@ public class PersonCard extends UiPart<Region> {
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
+        injuryStatus.setText("Injury status: " + person.getInjuryStatus());
     }
 }

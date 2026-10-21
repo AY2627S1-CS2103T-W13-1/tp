@@ -27,6 +27,7 @@
         <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
       </HBox>
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
+      <Label fx:id="injuryStatus" styleClass="cell_small_label" wrapText="true" minWidth="0" maxWidth="Infinity" />
     </VBox>
   </GridPane>
 </HBox>
