@@ -63,6 +63,12 @@
                text="Edit the displayed player; tags replace existing tags&#10;A single empty t/ clears tags; omit t/ to keep them&#10;e.g. edit 1 t/Striker t/Captain"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP" />
+        <Label fx:id="filterSyntax" text="filter t/TAG [t/TAG]..."
+               GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.valignment="TOP" />
+        <Label fx:id="filterDescription"
+               text="Show players with any requested tag&#10;Matches complete labels, ignores capitalisation&#10;e.g. filter t/Striker t/Trial Group 2"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />

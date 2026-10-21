@@ -172,6 +172,21 @@ copy their sets. `JsonAdaptedPerson` writes tag strings and accepts missing/null
 `tags` from older records as an empty collection; invalid/null entries are rejected.
 `PersonCard` displays tags alphabetically in a wrapping `FlowPane`.
 
+### Filtering players by tag (US16)
+
+`FilterCommandParser` accepts repeated `t/` arguments and reuses `ParserUtil.parseTags`.
+`TagsContainAnyPredicate` holds a defensive copy of the requested tags and matches
+any complete label using `Tag` equality. `FilterCommand` replaces the model's list
+predicate, so each filter searches the full roster. `LogicManager` treats it as read-only
+and skips saving, including when the data file is unreadable or unwritable.
+
+<puml src="diagrams/TagFilterClassDiagram.puml" width="650" />
+
+The UML shows creation dependencies from the parser and the predicate's realization
+of `Predicate<Person>`. The predicate reads `Person` tags; the command changes only
+the filtered view through `Model`. Matches retain roster order, use displayed indices,
+and are replaced by `find` or `list`. Invalid arguments fail before the view changes.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -880,3 +895,28 @@ Use a disposable data folder. Start with `add n/Tag Tester p/123 t/Striker t/Tri
 Run the existing add, edit, find, delete and saving regressions as well. Back up data
 before checking corrupt JSON tags; invalid tag strings and null tag entries should
 trigger the existing unreadable-data warning rather than silently creating labels.
+
+### Filtering by tag (US16): manual regression checks
+
+In a disposable team, add Amy with Striker and Captain, Bob with Goalkeeper, and
+Charlie with Captain, in that order. Confirm tags are visible on their cards.
+
+| Action | Expected result |
+| --- | --- |
+| `filter t/STRIKER` | Amy only; 1 player listed. |
+| `filter t/Striker t/Captain t/striker` | Amy and Charlie once each, numbered 1 and 2. |
+| `filter t/strik` or `filter t/NoSuchTag` | Empty list; 0 players listed. |
+| `filter t/Goalkeeper` after `find Amy` | Bob appears despite the earlier name filter. |
+| `filter t/Captain`, then `find Bob` | Bob appears; find replaces the tag filter. |
+| `filter t/`, `filter`, `filter Striker`, `filter t/Bad!`, `Filter t/Striker` | Error; previous list and player data unchanged. |
+| Use tags of 30 and 31 characters. | A valid 30-character label is searched; 31 is rejected. |
+| `filter t/Captain`, then `delete 1` | Amy is deleted; Charlie remains numbered 1, Bob stays hidden. |
+| `edit 1 t/Striker` after the previous step | Charlie's tags change; full roster returns. |
+| `filter t/Goalkeeper`, then add a new player. | Full roster returns, with the new player last. |
+| `help`, then `filter t/Goalkeeper` | Player panel returns showing Bob. Help includes filter syntax and examples. |
+| `list` after any filter | Full roster restored in its original order. |
+| Clear the disposable team, then `filter t/Striker`. | 0 players listed; no exception. |
+
+Compare the JSON file before and after successful/failed filtering; its contents must
+not change. Block the save path as in the existing find tests: filtering still works
+without a save error. Add/edit/delete remain subject to their existing save behavior.

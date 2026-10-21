@@ -54,6 +54,31 @@ public class MainWindowTest {
     private StackPane playerArea;
 
     @Test
+    public void execute_filterThroughCommandBox_matchingErrorsAndHelp() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("add n/Tag Trialist p/123 t/Striker");
+            enterCommand("help");
+            assertHelpSummaryShown();
+            enterCommand("filter t/STRIKER");
+            assertPlayerPanelShown();
+            assertEquals("1 player listed!", resultDisplay.getText());
+            assertEquals("Tag Trialist", model.getFilteredPersonList().getFirst().getName().fullName);
+            enterCommand("filter t/");
+            assertEquals(Tag.MESSAGE_CONSTRAINTS, resultDisplay.getText());
+            assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand("filter t/NoSuchTag");
+            assertEquals("0 players listed!", resultDisplay.getText());
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            enterCommand("filter t/Striker");
+            enterCommand("delete 1");
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            enterCommand("list");
+            assertEquals(getTypicalPersons(), model.getFilteredPersonList());
+        });
+    }
+
+    @Test
     public void execute_tagEditsThroughCommandBox_normalBoundaryAndErrors() throws Exception {
         runOnFxThread(() -> {
             enterCommand("add n/Tag Trialist p/123 t/Striker t/Trial Group 2");

@@ -91,7 +91,7 @@ Format: `add n/NAME p/PHONE [t/TAG]...`
 * `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces and hyphens are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567`.
 * A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan wei ming` counts as the same player as `Tan Wei Ming`. Phone numbers are not compared, so two players may share a contact number.
 * If `n/` or `p/` is given more than once, only the last one is used, e.g. `add n/Amy n/Bob p/91234567` adds `Bob`.
-* The new player appears at the bottom of the list. If the list was filtered by `find`, the full list is shown again.
+* The new player appears at the bottom of the list. If the list was filtered by `find` or `filter`, the full list is shown again.
 
 <box type="tip" seamless>
 
@@ -129,7 +129,7 @@ the full team after success, just like other edits.
 
 ### Listing all players: `list`
 
-Shows every player and clears any filter from a previous `find` command.
+Shows every player and clears any filter from a previous `find` or `filter` command.
 
 Format: `list`
 
@@ -199,6 +199,37 @@ Example: find wei ming
 The displayed list and player data remain unchanged after this error. Command words are
 case-sensitive: use `find`, as `Find` is unrecognized.
 
+### Filtering players by tag: `filter` (US16)
+
+Show a group of players by the custom tags assigned using `add` or `edit`.
+
+Format: `filter t/TAG [t/TAG]...`
+
+* Supply at least one non-empty tag. Labels follow the [tag rules](#categorising-players-with-tags-us08).
+* Match complete labels, ignoring capitalisation: `filter t/striker` matches `Striker`,
+  while `filter t/strik` does not. `filter t/Trial Group 2` treats the whole label as one tag.
+* Repeat `t/` to match **any** requested tag (OR). A player matching multiple tags is listed once.
+* Filter the whole team, including players hidden by a previous `find` or `filter`.
+  Results keep roster order and are numbered from 1.
+* `delete` and `edit` use the displayed indices. Deleting retains the filter; a successful
+  `add` or `edit` restores the full list. `find` replaces the tag filter with its name search.
+* `list` restores the full roster. Filtering changes no player data and does not save.
+* Missing tags, invalid labels, or text before the first `t/` show an error and leave the
+  current list unchanged. A tag with no matches is valid and displays `0 players listed!`.
+
+For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tagged `Captain`:
+
+| Command | Displayed players | Result message |
+| --- | --- | --- |
+| `filter t/STRIKER` | Amy | `1 player listed!` |
+| `filter t/Striker t/Captain` | Amy, Charlie | `2 players listed!` |
+| `filter t/Goalkeeper` | Bob | `1 player listed!` |
+| `filter t/strik` | Empty list | `0 players listed!` |
+
+Use the lowercase command word `filter`; `Filter` is unrecognized. `filter` without
+parameters displays the format error and syntax example. `filter t/` is rejected
+with the tag constraint message; it does not clear anything.
+
 ### Deleting a player: `delete`
 
 Deletes the specified player from the team.
@@ -206,7 +237,7 @@ Deletes the specified player from the team.
 Format: `delete INDEX`
 
 * Deletes the player at the specified `INDEX`.
-* The index refers to the index number shown in the displayed player list, which may be filtered by `find`.
+* The index refers to the index number shown in the displayed player list, which may be filtered by `find` or `filter`.
 * The index **must be a positive whole number** 1, 2, 3, ...
 * The remaining players are renumbered after a deletion, so check the list again before deleting another player.
 
@@ -233,7 +264,7 @@ Format: `exit`
 
 ### Saving the data
 
-CouchCoach saves your data automatically after every change (`add`, `edit`, `delete` and `clear`). You do not need to save manually. `list`, `find`, `help` and `exit` do not change your data, so they do not save.
+CouchCoach saves your data automatically after every change (`add`, `edit`, `delete` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `help` and `exit` do not change your data, so they do not save.
 
 If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
 
@@ -279,6 +310,7 @@ Action     | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`
 **Exit**   | `exit`
+**Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/Striker t/Captain`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **List**   | `list`
 **Help**   | `help`
