@@ -121,6 +121,7 @@
         "editing-a-player-edit": "Editing a player: edit",
         "finding-players-by-name-find": "Finding players by name: find",
         "deleting-a-player-delete": "Deleting a player: delete",
+        "marking-a-player-as-kept-cut-or-pending-keep-cut-pending": "Marking a player as kept, cut or pending: keep, cut, pending",
         "clearing-all-players-clear": "Clearing all players: clear",
         "exiting-the-program-exit": "Exiting the program: exit",
         "saving-the-data": "Saving the data",
