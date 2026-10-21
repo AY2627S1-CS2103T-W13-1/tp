@@ -157,6 +157,21 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Custom player tags (US08)
+
+`Person` holds an immutable set of `Tag` values. The model class diagram above shows
+its zero-to-many association with tags. Tags are shared values rather than part of
+player identity: duplicate detection remains based on the normalized player name.
+`Tag` validates and normalizes labels and compares them ignoring case.
+
+`AddCommandParser` collects all `t/` values through `ParserUtil.parseTags`.
+`EditCommandParser` distinguishes an omitted tag prefix (preserve tags), supplied
+labels (replace the set), and a single empty prefix (clear the set). Empty labels
+mixed with other labels are invalid. The edit descriptor and player defensively
+copy their sets. `JsonAdaptedPerson` writes tag strings and accepts missing/null
+`tags` from older records as an empty collection; invalid/null entries are rejected.
+`PersonCard` displays tags alphabetically in a wrapping `FlowPane`.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
@@ -843,3 +858,25 @@ these checks and verify that both remain unchanged afterwards.
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
 
 1. _{ more test cases … }_
+
+### Custom player tags (US08): manual regression checks
+
+Use a disposable data folder. Start with `add n/Tag Tester p/123 t/Striker t/Trial Group 2`.
+
+| Action | Expected result |
+| --- | --- |
+| Inspect the new card and result box. | Both tags appear, alphabetically, without hiding name or phone. |
+| `edit 1 p/456` | Tags remain. |
+| `edit 1 t/Captain t/captain` | Previous tags are replaced by one Captain tag. |
+| `edit 1 t/` | Tags are cleared; name and phone remain. |
+| `edit 1 t/` again | Successful idempotent clearing. |
+| `edit 1 t/` followed by `edit 1 t/Trial   Group 2` | One tag, Trial Group 2, with collapsed whitespace. |
+| `add n/Invalid p/456 t/`, `edit 1 t/Bad!`, `edit 1 t/ t/Striker` | Tag constraint error; records and displayed list unchanged. |
+| Try 30-character and 31-character tags. | The first succeeds; the second is rejected with the tag constraint error. |
+| `find Tag`, then `edit 1 t/Striker` | The displayed player is edited; the full team is restored. |
+| Restart, then inspect cards and JSON. | Tags persist. A legacy record with no tags field still loads. |
+| Open `help` at normal and minimum window width. | Add/edit syntax, examples, and tag-clearing guidance remain readable. |
+
+Run the existing add, edit, find, delete and saving regressions as well. Back up data
+before checking corrupt JSON tags; invalid tag strings and null tag entries should
+trigger the existing unreadable-data warning rather than silently creating labels.

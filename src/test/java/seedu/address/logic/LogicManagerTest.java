@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -47,6 +49,40 @@ public class LogicManagerTest {
 
     private Model model = new ModelManager();
     private Logic logic;
+
+    @Test
+    public void execute_addAndEditTags_saveReplacePreserveAndClear() throws Exception {
+        logic.execute("add n/Tagged Player p/123 t/Striker t/Trial Group 2 t/striker");
+        Person expected = new PersonBuilder().withName("Tagged Player").withPhone("123")
+                .withTags("Striker", "Trial Group 2").build();
+        assertEquals(expected, model.getFilteredPersonList().getFirst());
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+
+        logic.execute("edit 1 p/456");
+        assertEquals(expected.getTags(), model.getFilteredPersonList().getFirst().getTags());
+        logic.execute("edit 1 t/Goalkeeper");
+        assertEquals(Set.of(new Tag("Goalkeeper")), model.getFilteredPersonList().getFirst().getTags());
+        logic.execute("edit 1 t/");
+        assertTrue(model.getFilteredPersonList().getFirst().getTags().isEmpty());
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_invalidTags_preserveDataAndFile() throws Exception {
+        logic.execute("add n/Tagged Player p/123 t/Striker");
+        AddressBook original = new AddressBook(model.getAddressBook());
+        logic = createLogicWithFailingSave();
+        for (String command : List.of("add n/Other p/456 t/", "edit 1 t/Bad!", "edit 1 t/ t/Striker",
+                "edit 1 t/Striker t/", "edit 1 t/ t/")) {
+            assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> logic.execute(command));
+            assertEquals(original, model.getAddressBook());
+        }
+        assertThrows(CommandException.class,
+                AddCommand.MESSAGE_DUPLICATE_PERSON, () -> logic.execute("add n/Tagged Player p/999 t/Goalkeeper"));
+        assertThrows(CommandException.class,
+                MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () -> logic.execute("edit 2 t/Striker"));
+    }
 
     @BeforeEach
     public void setUp() {

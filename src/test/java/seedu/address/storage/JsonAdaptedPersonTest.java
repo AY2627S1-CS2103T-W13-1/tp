@@ -5,12 +5,17 @@ import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORM
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
@@ -19,6 +24,23 @@ public class JsonAdaptedPersonTest {
 
     private static final String VALID_NAME = BENSON.getName().toString();
     private static final String VALID_PHONE = BENSON.getPhone().toString();
+
+    @Test
+    public void toModelType_tagsRoundTripAndLegacyRecords() throws Exception {
+        Person player = new PersonBuilder(BENSON).withTags("Striker", "Trial Group 2").build();
+        assertEquals(player, new JsonAdaptedPerson(player).toModelType());
+        assertEquals(BENSON, new JsonAdaptedPerson(VALID_NAME, VALID_PHONE).toModelType());
+        assertEquals(Set.of(new Tag("Striker")), new JsonAdaptedPerson(VALID_NAME, VALID_PHONE,
+                List.of("Striker", "striker")).toModelType().getTags());
+    }
+
+    @Test
+    public void toModelType_invalidOrNullTag_throwsIllegalValueException() {
+        for (String label : Arrays.asList("", "Bad!", null, "a".repeat(Tag.MAX_LENGTH + 1))) {
+            JsonAdaptedPerson player = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, Arrays.asList(label));
+            assertThrows(IllegalValueException.class, Tag.MESSAGE_CONSTRAINTS, player::toModelType);
+        }
+    }
 
     @Test
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {

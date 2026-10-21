@@ -40,6 +40,10 @@ public class Messages {
         builder.append(person.getName())
                 .append("; Phone: ")
                 .append(person.getPhone());
+        if (!person.getTags().isEmpty()) {
+            builder.append("; Tags: ").append(person.getTags().stream()
+                    .map(Object::toString).sorted(String.CASE_INSENSITIVE_ORDER).collect(Collectors.joining(", ")));
+        }
         return builder.toString();
     }
 

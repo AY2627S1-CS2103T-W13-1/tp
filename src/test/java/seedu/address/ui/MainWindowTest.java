@@ -38,6 +38,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -51,6 +52,32 @@ public class MainWindowTest {
     private TextField commandField;
     private TextArea resultDisplay;
     private StackPane playerArea;
+
+    @Test
+    public void execute_tagEditsThroughCommandBox_normalBoundaryAndErrors() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("add n/Tag Trialist p/123 t/Striker t/Trial Group 2");
+            assertPlayerPanelShown();
+            assertTrue(resultDisplay.getText().contains("Tags: Striker, Trial Group 2"));
+            enterCommand("find Trialist");
+            enterCommand("edit 1 t/" + "A".repeat(Tag.MAX_LENGTH));
+            assertTrue(resultDisplay.getText().contains("Tags: " + "A".repeat(Tag.MAX_LENGTH)));
+            AddressBook originalData = new AddressBook(model.getAddressBook());
+            for (String input : List.of("edit 1 t/Bad!", "edit 1 t/" + "A".repeat(Tag.MAX_LENGTH + 1),
+                    "edit 1 t/ t/Striker")) {
+                enterCommand(input);
+                assertEquals(Tag.MESSAGE_CONSTRAINTS, resultDisplay.getText());
+                assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+                assertEquals(originalData, model.getAddressBook());
+            }
+            enterCommand("find Trialist");
+            enterCommand("edit 1 t/");
+            assertPlayerPanelShown();
+            assertEquals(getTypicalPersons().size() + 1, model.getFilteredPersonList().size());
+            assertTrue(model.getFilteredPersonList().getLast().getTags().isEmpty());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+    }
 
     @BeforeEach
     public void setUp() throws Exception {

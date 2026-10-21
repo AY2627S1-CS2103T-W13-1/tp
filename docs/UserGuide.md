@@ -53,7 +53,7 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `edit INDEX [n/NAME] [p/PHONE]` can be used as `edit 1 n/Tan Wei Ming` or as `edit 1 p/91234567`.
+  For example, `edit INDEX [n/NAME] [p/PHONE] [t/TAG]...` can be used as `edit 1 n/Tan Wei Ming` or as `edit 1 p/91234567`.
 
 * Items followed by `...` can appear zero or more times.<br>
   For example, `find KEYWORD [MORE_KEYWORDS]...` can be used as `find wei` or as `find wei ming`.
@@ -83,14 +83,14 @@ Format: `help`
 
 Adds a player to the team.
 
-Format: `add n/NAME p/PHONE`
+Format: `add n/NAME p/PHONE [t/TAG]...`
 
 * Both `NAME` and `PHONE` must be given, in any order.
 * `NAME` can contain only letters, digits, spaces, and the characters `-` `'` `/` `.`, and can be at most 100 characters long.
 * `NAME` is saved with the capitalisation you type. Extra spaces at the start and end are removed, and repeated spaces inside the name are reduced to one.
 * `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces and hyphens are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567`.
 * A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan wei ming` counts as the same player as `Tan Wei Ming`. Phone numbers are not compared, so two players may share a contact number.
-* If a parameter is given more than once, only the last one is used, e.g. `add n/Amy n/Bob p/91234567` adds `Bob`.
+* If `n/` or `p/` is given more than once, only the last one is used, e.g. `add n/Amy n/Bob p/91234567` adds `Bob`.
 * The new player appears at the bottom of the list. If the list was filtered by `find`, the full list is shown again.
 
 <box type="tip" seamless>
@@ -102,6 +102,30 @@ Examples:
 * `add n/Tan Wei Ming p/91234567`
 * `add p/+6598765432 n/Nur'ain Binte Hassan`
 * `add n/Muthu s/o Ramasamy p/8123 4567`
+
+### Categorising players with tags (US08)
+
+Add your own labels for a position, role, season, or trial group with `t/TAG`:
+
+* `add n/Amy Tan p/91234567 t/Striker t/Trial Group 2` adds Amy with two tags.
+* `edit 1 t/Goalkeeper t/Captain` replaces the first displayed player's tags with these two labels.
+* `edit 1 p/98765432` changes the phone while keeping existing tags.
+* `edit 1 t/` removes all tags from the first displayed player.
+
+Each tag must start with a letter or digit and contain only letters (A-Z, a-z), digits,
+spaces, or hyphens. A tag can contain up to 30 characters after surrounding spaces are
+trimmed and repeated internal whitespace is collapsed. For example, `t/ Trial   Group 2`
+is saved as `Trial Group 2`. Blank labels are invalid except for the single clearing
+`edit ... t/` form. An invalid tag rejects the whole command.
+
+Repeat `t/` for multiple tags. Duplicate labels are combined ignoring capitalisation,
+so `t/Striker t/striker` keeps the first spelling, `Striker`, once. Tags appear in
+alphabetical order on player cards and command feedback. They do not affect duplicate
+player detection: the same name is still rejected even if tags differ.
+
+Tags are saved automatically and restored when you restart. Older data files without
+a `tags` field load with no tags. Tag edits use the displayed list's index and restore
+the full team after success, just like other edits.
 
 ### Listing all players: `list`
 
@@ -120,12 +144,13 @@ Run `list` again before using an index if you need to see the full team.
 
 Edits an existing player in the team.
 
-Format: `edit INDEX [n/NAME] [p/PHONE]`
+Format: `edit INDEX [n/NAME] [p/PHONE] [t/TAG]...`
 
 * Edits the player at the specified `INDEX`. The index refers to the index number shown in the displayed player list. The index **must be a positive whole number** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values. Names and phone numbers follow the same rules as in `add`.
-* Each parameter can be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
+* `n/` and `p/` can each be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
+* Repeat `t/TAG` to replace all of the player's tags. Omit `t/` to keep them. Use a single empty `t/` to clear them; combining empty and non-empty tags is rejected.
 
 Examples:
 *  `edit 1 p/91234567` Edits the phone number of the 1st player to be `91234567`.
@@ -249,10 +274,10 @@ Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE` <br> e.g., `add n/Tan Wei Ming p/91234567`
+**Add**    | `add n/NAME p/PHONE [t/TAG]...` <br> e.g., `add n/Tan Wei Ming p/91234567`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE]`<br> e.g., `edit 2 n/Lim Wei Jie`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`
 **Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **List**   | `list`
