@@ -18,3 +18,24 @@
 .tooltip-text {
     -fx-text-fill: white;
 }
+
+/* Selection status badge on each player card. The badge always shows the status as text,
+   so the status does not depend on colour alone. */
+.selection-status {
+    -fx-font-size: 11px;
+    -fx-padding: 1 6 1 6;
+    -fx-background-radius: 3;
+    -fx-text-fill: white;
+}
+
+.selection-status-pending {
+    -fx-background-color: #6b6b6b;
+}
+
+.selection-status-kept {
+    -fx-background-color: #3d8b5a;
+}
+
+.selection-status-cut {
+    -fx-background-color: #b04a3c;
+}

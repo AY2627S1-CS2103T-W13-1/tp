@@ -13,6 +13,7 @@ import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.SquadCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -78,6 +79,7 @@ public class LogicManager implements Logic {
                 || command instanceof FilterCommand
                 || command instanceof ListCommand
                 || command instanceof HelpCommand
+                || command instanceof SquadCommand
                 || command instanceof ExitCommand;
     }
 

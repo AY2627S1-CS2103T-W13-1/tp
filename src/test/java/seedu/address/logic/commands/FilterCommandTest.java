@@ -16,6 +16,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.TagsContainAnyPredicate;
@@ -76,6 +77,20 @@ public class FilterCommandTest {
     public void constructorAndExecute_nullsRejected() {
         assertThrows(NullPointerException.class, () -> new FilterCommand(null));
         assertThrows(NullPointerException.class, () -> commandFor("Striker").execute(null));
+    }
+
+    @Test
+    public void execute_inconsistentModel_throwsAssertionError() {
+        Model inconsistentModel = new ModelManager() {
+            @Override
+            public ReadOnlyAddressBook getAddressBook() {
+                return new AddressBook();
+            }
+        };
+        // Simulate a broken model that exposes a filtered player but reports an empty roster.
+        inconsistentModel.addPerson(STRIKER);
+        FilterCommand command = commandFor("Striker");
+        assertThrows(AssertionError.class, "A filter cannot add players", () -> command.execute(inconsistentModel));
     }
 
     @Test
