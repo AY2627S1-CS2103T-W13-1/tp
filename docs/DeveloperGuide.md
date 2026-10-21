@@ -140,7 +140,7 @@ Each `Person` (a player) holds a `Name`, a `Phone` and an optional `JerseyNumber
 
 **API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
 
-<puml src="diagrams/StorageClassDiagram.puml" width="550" />
+<pic src="images/StorageClassDiagram.png" width="800" alt="Class diagram of the Storage component" />
 
 The `Storage` component,
 * can save both the team's player data and user preference data in JSON format, and read them back into corresponding objects.
