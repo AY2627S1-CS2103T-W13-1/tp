@@ -20,6 +20,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.SelectionStatus;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -90,9 +91,11 @@ public class EditCommand extends Command {
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
+        // edit cannot change the selection status (keep, cut and pending do), so keep the existing one
+        SelectionStatus unchangedStatus = personToEdit.getSelectionStatus();
 
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
-        return new Person(updatedName, updatedPhone, updatedTags);
+        return new Person(updatedName, updatedPhone, unchangedStatus, personToEdit.getRating(), updatedTags);
     }
 
     @Override

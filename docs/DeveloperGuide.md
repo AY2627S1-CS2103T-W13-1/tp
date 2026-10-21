@@ -876,6 +876,11 @@ Use a disposable data folder. Start with `add n/Tag Tester p/123 t/Striker t/Tri
 | `find Tag`, then `edit 1 t/Striker` | The displayed player is edited; the full team is restored. |
 | Restart, then inspect cards and JSON. | Tags persist. A legacy record with no tags field still loads. |
 | Open `help` at normal and minimum window width. | Add/edit syntax, examples, and tag-clearing guidance remain readable. |
+| `edit 1 t/Striker`, `keep 1`, then `rate 1 10` | The same player shows Striker, Kept, and Rating: 10/10 together. |
+| `squad`, then `rate 1 0` | The kept player remains visible with Striker and Rating: 0/10. |
+| `edit 1 t/Captain`, then `edit 1 p/456` | Kept and Rating: 0/10 remain; the Captain tag survives the phone edit. |
+| `edit 1 t/`, then restart | Only tags are cleared; the player remains kept and rated 0/10. |
+| `cut 1`, then `squad`; use `list` to inspect the player again | The cut player leaves the squad; their rating and other details remain. |
 
 Run the existing add, edit, find, delete and saving regressions as well. Back up data
 before checking corrupt JSON tags; invalid tag strings and null tag entries should

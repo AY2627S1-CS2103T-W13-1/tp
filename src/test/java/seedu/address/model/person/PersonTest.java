@@ -27,7 +27,7 @@ public class PersonTest {
         labels.clear();
         assertEquals(Set.of(new Tag("Striker")), player.getTags());
         assertThrows(UnsupportedOperationException.class, () -> player.getTags().clear());
-        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(), null));
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(), (Set<Tag>) null));
         labels.add(null);
         assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(), labels));
     }
@@ -40,6 +40,16 @@ public class PersonTest {
         Person sameTags = new PersonBuilder(ALICE).withTags("striker").build();
         assertEquals(taggedAlice, sameTags);
         assertEquals(taggedAlice.hashCode(), sameTags.hashCode());
+    }
+
+    @Test
+    public void withSelectionStatus_ratedPlayer_preservesRating() {
+        Person rated = new Person(ALICE.getName(), ALICE.getPhone(), new Rating("8"));
+        assertEquals(SelectionStatus.PENDING, rated.getSelectionStatus());
+        Person kept = rated.withSelectionStatus(SelectionStatus.KEPT);
+        assertEquals(new Rating("8"), kept.getRating());
+        assertEquals(SelectionStatus.KEPT, kept.getSelectionStatus());
+        assertEquals(SelectionStatus.PENDING, rated.getSelectionStatus());
     }
 
     @Test
@@ -97,6 +107,10 @@ public class PersonTest {
         // different phone -> returns false
         editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different selection status -> returns false
+        editedAlice = new PersonBuilder(ALICE).withSelectionStatus(SelectionStatus.KEPT).build();
+        assertFalse(ALICE.equals(editedAlice));
     }
 
     @Test
@@ -109,12 +123,45 @@ public class PersonTest {
 
         // different phone -> returns different hashcode
         assertNotEquals(ALICE.hashCode(), new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build().hashCode());
+
+        // different selection status -> returns different hashcode
+        assertNotEquals(ALICE.hashCode(),
+                new PersonBuilder(ALICE).withSelectionStatus(SelectionStatus.CUT).build().hashCode());
+    }
+
+    @Test
+    public void constructor_withoutSelectionStatus_isPending() {
+        Person newPlayer = new Person(ALICE.getName(), ALICE.getPhone());
+        assertEquals(SelectionStatus.PENDING, newPlayer.getSelectionStatus());
+    }
+
+    @Test
+    public void isSamePerson_differentSelectionStatus_returnsTrue() {
+        // the status is a decision about the player, not part of who they are
+        Person keptAlice = new PersonBuilder(ALICE).withSelectionStatus(SelectionStatus.KEPT).build();
+        assertTrue(ALICE.isSamePerson(keptAlice));
+    }
+
+    @Test
+    public void withSelectionStatus_newStatus_keepsOtherFields() {
+        Person cutAlice = ALICE.withSelectionStatus(SelectionStatus.CUT);
+        assertEquals(SelectionStatus.CUT, cutAlice.getSelectionStatus());
+        assertEquals(ALICE.getName(), cutAlice.getName());
+        assertEquals(ALICE.getPhone(), cutAlice.getPhone());
+
+        // the original player is not changed
+        assertEquals(SelectionStatus.PENDING, ALICE.getSelectionStatus());
+    }
+
+    @Test
+    public void withSelectionStatus_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withSelectionStatus(null));
     }
 
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", tags=[]}";
+                + ", selectionStatus=" + ALICE.getSelectionStatus() + ", tags=[]}";
         assertEquals(expected, ALICE.toString());
     }
 }

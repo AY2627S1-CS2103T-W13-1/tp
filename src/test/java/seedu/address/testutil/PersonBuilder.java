@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Rating;
+import seedu.address.model.person.SelectionStatus;
 import seedu.address.model.tag.Tag;
 
 /**
@@ -20,6 +22,8 @@ public class PersonBuilder {
 
     private Name name;
     private Phone phone;
+    private SelectionStatus selectionStatus;
+    private Rating rating = Rating.UNRATED;
     private Set<Tag> tags = Set.of();
 
     /**
@@ -28,6 +32,7 @@ public class PersonBuilder {
     public PersonBuilder() {
         name = new Name(DEFAULT_NAME);
         phone = new Phone(DEFAULT_PHONE);
+        selectionStatus = SelectionStatus.PENDING;
     }
 
     /**
@@ -36,6 +41,8 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
+        selectionStatus = personToCopy.getSelectionStatus();
+        rating = personToCopy.getRating();
         tags = personToCopy.getTags();
     }
 
@@ -63,8 +70,22 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the {@code SelectionStatus} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withSelectionStatus(SelectionStatus selectionStatus) {
+        this.selectionStatus = selectionStatus;
+        return this;
+    }
+
+    /** Sets the rating of the player being built. */
+    public PersonBuilder withRating(String rating) {
+        this.rating = new Rating(rating);
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, tags);
+        return new Person(name, phone, selectionStatus, rating, tags);
     }
 
 }

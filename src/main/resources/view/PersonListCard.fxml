@@ -26,7 +26,13 @@
           </minWidth>
         </Label>
         <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
+        <Label fx:id="selectionStatus" styleClass="selection-status">
+          <HBox.margin>
+            <Insets left="10" />
+          </HBox.margin>
+        </Label>
       </HBox>
+      <Label fx:id="rating" styleClass="cell_small_label" text="Rating: Unrated" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
       <FlowPane fx:id="tags" hgap="6" vgap="4" />
     </VBox>
