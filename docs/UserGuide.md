@@ -116,6 +116,28 @@ Any text after `list` is ignored, so `list all` has the same effect as `list`.
 Indices refer to positions in the currently displayed list and can change after deletion.
 Run `list` again before using an index if you need to see the full team.
 
+### Rating a player: `rate`
+
+Sets a player's performance rating and saves it automatically.
+
+Format: `rate INDEX RATING`
+
+* `INDEX` is the positive whole number shown beside the player in the current list,
+  including a list filtered by `find`.
+* `RATING` must be a whole number from **0 to 10**, inclusive. Decimal values, signs,
+  leading zeros such as `08`, extra arguments and values outside this range are rejected.
+* New players and players saved before ratings were introduced start as **Unrated**.
+  A rating of `0` is a real rating and is different from Unrated.
+* The rating appears on the player card and is retained when their name or phone is edited.
+* Rating a player keeps the current search filter. An invalid command changes nothing.
+* Ratings are saved with the rest of your team and restored when you reopen CouchCoach.
+
+Examples:
+
+* `rate 1 8` gives the first displayed player a rating of 8/10.
+* `find Tan` followed by `rate 1 10` gives the first search result a rating of 10/10.
+* `rate 1 11` shows `Rating must be a whole number from 0 to 10.`
+
 ### Editing a player: `edit`
 
 Edits an existing player in the team.
@@ -208,7 +230,7 @@ Format: `exit`
 
 ### Saving the data
 
-CouchCoach saves your data automatically after every change (`add`, `edit`, `delete` and `clear`). You do not need to save manually. `list`, `find`, `help` and `exit` do not change your data, so they do not save.
+CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `delete` and `clear`). You do not need to save manually. `list`, `find`, `help` and `exit` do not change your data, so they do not save.
 
 If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
 
@@ -225,7 +247,7 @@ CouchCoach data is saved automatically as a JSON file `[JAR file location]/data/
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `delete` or `clear`), which replaces it, so back up the file before editing it.<br>
+If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `rate`, `delete` or `clear`), which replaces it, so back up the file before editing it.<br>
 A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
 Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
@@ -255,5 +277,6 @@ Action     | Format, Examples
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE]`<br> e.g., `edit 2 n/Lim Wei Jie`
 **Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
+**Rate**   | `rate INDEX RATING`<br> e.g., `rate 1 8`
 **List**   | `list`
 **Help**   | `help`

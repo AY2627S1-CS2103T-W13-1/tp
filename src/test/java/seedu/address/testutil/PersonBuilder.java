@@ -3,6 +3,7 @@ package seedu.address.testutil;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Rating;
 
 /**
  * A utility class to help with building Person objects.
@@ -14,6 +15,7 @@ public class PersonBuilder {
 
     private Name name;
     private Phone phone;
+    private Rating rating = Rating.UNRATED;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -29,6 +31,7 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
+        rating = personToCopy.getRating();
     }
 
     /**
@@ -47,8 +50,14 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the rating of the player being built. */
+    public PersonBuilder withRating(String rating) {
+        this.rating = new Rating(rating);
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone);
+        return new Person(name, phone, rating);
     }
 
 }
