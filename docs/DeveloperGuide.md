@@ -157,6 +157,49 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Selection status feature
+
+#### Implementation
+
+Each `Person` has a `SelectionStatus`, an enum with the values `PENDING`, `KEPT` and `CUT`. New players start as `PENDING`. The `keep`, `cut` and `pending` commands change it, and all three are handled by one `SetStatusCommand` class, which takes the status to set. `AddressBookParser` picks the status from the command word and passes it to a `SetStatusCommandParser`, which parses the index.
+
+The sequence diagram below shows how `cut 1` is executed.
+
+<puml src="diagrams/CutSequenceDiagram.puml" alt="Interactions inside the Logic, Model and Storage components for the `cut 1` command" />
+
+<box type="info" seamless>
+
+**Note:** The lifeline for `SetStatusCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
+</box>
+
+1. `AddressBookParser` matches the command word `cut`, creates a `SetStatusCommandParser` for `CUT`, and uses it to parse `"1"` into a `SetStatusCommand`.
+1. `LogicManager` executes the command. The command gets the player `p` at index 1 of the displayed list from the `Model`.
+1. As `Person` is immutable, `p.withSelectionStatus(CUT)` returns a new `Person` with every other field (name, phone, rating, tags and remark) unchanged. The command replaces `p` with it using `Model#setPerson()`.
+1. `LogicManager` then saves the team through `Storage`. It decides this by command type: read-only command types, such as `find` and `squad`, skip this step, while `keep`, `cut` and `pending` always save.
+
+If the index is out of range, the command throws a `CommandException` before changing anything. If the player already has the status, the command returns a message saying so and does not replace the player. `LogicManager` still saves in this case, as it only checks the command type, but the saved data is unchanged.
+
+The status is saved in the data file as a `selectionStatus` field. Data files saved by v1.3 have no such field, so `JsonAdaptedPerson` loads those players as `PENDING`.
+
+#### Design considerations
+
+**Aspect: How to represent the three commands**
+
+* **Alternative 1 (current choice):** One `SetStatusCommand` that takes the status to set.
+  * Pros: No repeated code. Adding a new status needs a new enum value and command word, a case in `SetStatusCommand#getCommandWord()`, and a case in `AddressBookParser`.
+  * Cons: The shared class needs a mapping between each status and its command word, which the separate classes would not need.
+* **Alternative 2:** Separate `KeepCommand`, `CutCommand` and `PendingCommand` classes.
+  * Pros: Each class matches one command word, like the rest of AB3.
+  * Cons: Three almost identical classes and parsers to keep in sync.
+
+**Aspect: What the list shows after the command**
+
+* **Alternative 1 (current choice):** Keep the current filter.
+  * Pros: A coach can `find Tan` and then mark each result in turn without searching again.
+  * Cons: When the filter depends on the status, as in `squad`, the change can move the player out of the filter. For example, `cut 1` while viewing the squad removes that player from the displayed list, and the players below move up one index.
+* **Alternative 2:** Reset to the full list, like `add`.
+  * Cons: The coach loses their place after every decision.
+
 ### Custom player tags (US08)
 
 `Person` holds an immutable set of `Tag` values. The model class diagram above shows
