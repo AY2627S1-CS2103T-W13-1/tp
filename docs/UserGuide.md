@@ -83,13 +83,15 @@ Format: `help`
 
 Adds a player to the team.
 
-Format: `add n/NAME p/PHONE`
+Format: `add n/NAME p/PHONE [j/JERSEY]`
 
-* Both `NAME` and `PHONE` must be given, in any order.
+* Both `NAME` and `PHONE` must be given, in any order. `JERSEY` is optional.
 * `NAME` can contain only letters, digits, spaces, and the characters `-` `'` `/` `.`, and can be at most 100 characters long.
 * `NAME` is saved with the capitalisation you type. Extra spaces at the start and end are removed, and repeated spaces inside the name are reduced to one.
 * `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces and hyphens are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567`.
+* `JERSEY` must be a whole number from 0 to 99. A leading zero is dropped, e.g. `j/07` is saved as `7`.
 * A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan wei ming` counts as the same player as `Tan Wei Ming`. Phone numbers are not compared, so two players may share a contact number.
+* Players may share a jersey number, but the result box then warns you and names the other players with that number, e.g. `Warning: jersey number 7 is also used by Bernice Yu.` The player is still added.
 * If a parameter is given more than once, only the last one is used, e.g. `add n/Amy n/Bob p/91234567` adds `Bob`.
 * The new player appears at the bottom of the list. If the list was filtered by `find`, the full list is shown again.
 
@@ -100,6 +102,7 @@ Format: `add n/NAME p/PHONE`
 
 Examples:
 * `add n/Tan Wei Ming p/91234567`
+* `add n/Lim Wei Jie p/98765432 j/10`
 * `add p/+6598765432 n/Nur'ain Binte Hassan`
 * `add n/Muthu s/o Ramasamy p/8123 4567`
 
@@ -120,16 +123,20 @@ Run `list` again before using an index if you need to see the full team.
 
 Edits an existing player in the team.
 
-Format: `edit INDEX [n/NAME] [p/PHONE]`
+Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`
 
 * Edits the player at the specified `INDEX`. The index refers to the index number shown in the displayed player list. The index **must be a positive whole number** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
-* Existing values will be updated to the input values. Names and phone numbers follow the same rules as in `add`.
+* Existing values will be updated to the input values. Names, phone numbers and jersey numbers follow the same rules as in `add`.
+* To remove a player's jersey number, type `j/` with nothing after it.
+* If the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`.
 * Each parameter can be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
 
 Examples:
 *  `edit 1 p/91234567` Edits the phone number of the 1st player to be `91234567`.
 *  `edit 2 n/Lim Wei Jie` Edits the name of the 2nd player to be `Lim Wei Jie`.
+*  `edit 3 j/23` Sets the jersey number of the 3rd player to be `23`.
+*  `edit 3 j/` Removes the jersey number of the 3rd player.
 
 ### Finding players by name: `find`
 
@@ -249,10 +256,10 @@ Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE` <br> e.g., `add n/Tan Wei Ming p/91234567`
+**Add**    | `add n/NAME p/PHONE [j/JERSEY]` <br> e.g., `add n/Tan Wei Ming p/91234567 j/10`
 **Clear**  | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE]`<br> e.g., `edit 2 n/Lim Wei Jie`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`
 **Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **List**   | `list`
