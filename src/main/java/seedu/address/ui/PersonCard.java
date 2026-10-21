@@ -4,6 +4,7 @@ import java.util.Locale;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import seedu.address.model.person.Person;
@@ -39,6 +40,8 @@ public class PersonCard extends UiPart<Region> {
     private Label rating;
     @FXML
     private Label selectionStatus;
+    @FXML
+    private FlowPane tags;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -53,5 +56,7 @@ public class PersonCard extends UiPart<Region> {
         selectionStatus.setText(person.getSelectionStatus().toString());
         selectionStatus.getStyleClass().add(STATUS_STYLE_CLASS_PREFIX
                 + person.getSelectionStatus().name().toLowerCase(Locale.ROOT));
+        person.getTags().stream().map(Object::toString).sorted(String.CASE_INSENSITIVE_ORDER)
+                .forEach(tag -> tags.getChildren().add(new Label(tag)));
     }
 }

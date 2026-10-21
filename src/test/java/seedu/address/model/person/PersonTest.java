@@ -10,11 +10,37 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
+
+    @Test
+    public void constructor_tagsDefensivelyCopiedAndUnmodifiable() {
+        Set<Tag> labels = new HashSet<>(Set.of(new Tag("Striker")));
+        Person player = new Person(ALICE.getName(), ALICE.getPhone(), labels);
+        labels.clear();
+        assertEquals(Set.of(new Tag("Striker")), player.getTags());
+        assertThrows(UnsupportedOperationException.class, () -> player.getTags().clear());
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(), (Set<Tag>) null));
+        labels.add(null);
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(), labels));
+    }
+
+    @Test
+    public void equals_tagsAffectDataButNotPlayerIdentity() {
+        Person taggedAlice = new PersonBuilder(ALICE).withTags("Striker").build();
+        assertTrue(ALICE.isSamePerson(taggedAlice));
+        assertNotEquals(ALICE, taggedAlice);
+        Person sameTags = new PersonBuilder(ALICE).withTags("striker").build();
+        assertEquals(taggedAlice, sameTags);
+        assertEquals(taggedAlice.hashCode(), sameTags.hashCode());
+    }
 
     @Test
     public void withSelectionStatus_ratedPlayer_preservesRating() {
@@ -135,7 +161,7 @@ public class PersonTest {
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", selectionStatus=" + ALICE.getSelectionStatus() + "}";
+                + ", selectionStatus=" + ALICE.getSelectionStatus() + ", tags=[]}";
         assertEquals(expected, ALICE.toString());
     }
 }

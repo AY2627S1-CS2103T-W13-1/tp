@@ -5,13 +5,19 @@ import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORM
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Rating;
 import seedu.address.model.person.SelectionStatus;
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class JsonAdaptedPersonTest {
@@ -30,6 +36,32 @@ public class JsonAdaptedPersonTest {
         for (String invalid : java.util.List.of("", "11", "-1", "8.5", "Unrated")) {
             assertThrows(IllegalValueException.class, () ->
                     new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, invalid).toModelType());
+        }
+    }
+
+    @Test
+    public void toModelType_tagsRoundTripAndLegacyRecords() throws Exception {
+        Person player = new PersonBuilder(BENSON).withTags("Striker", "Trial Group 2").build();
+        assertEquals(player, new JsonAdaptedPerson(player).toModelType());
+        assertEquals(BENSON, new JsonAdaptedPerson(VALID_NAME, VALID_PHONE).toModelType());
+        assertEquals(Set.of(new Tag("Striker")), new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, null,
+                List.of("Striker", "striker")).toModelType().getTags());
+    }
+
+    @Test
+    public void toModelType_legacyRatedKeptPlayer_preservesDataWithoutTags() throws Exception {
+        Person player = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, "kept", "8").toModelType();
+        assertEquals(SelectionStatus.KEPT, player.getSelectionStatus());
+        assertEquals(new Rating("8"), player.getRating());
+        assertEquals(Set.of(), player.getTags());
+        assertEquals(player, new JsonAdaptedPerson(player).toModelType());
+    }
+
+    @Test
+    public void toModelType_invalidOrNullTag_throwsIllegalValueException() {
+        for (String label : Arrays.asList("", "Bad!", null, "a".repeat(Tag.MAX_LENGTH + 1))) {
+            JsonAdaptedPerson player = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, null, Arrays.asList(label));
+            assertThrows(IllegalValueException.class, Tag.MESSAGE_CONSTRAINTS, player::toModelType);
         }
     }
 

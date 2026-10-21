@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -33,6 +34,7 @@
       </HBox>
       <Label fx:id="rating" styleClass="cell_small_label" text="Rating: Unrated" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
+      <FlowPane fx:id="tags" hgap="6" vgap="4" />
     </VBox>
   </GridPane>
 </HBox>

@@ -28,9 +28,9 @@
           <ColumnConstraints minWidth="180" prefWidth="180" maxWidth="180" />
           <ColumnConstraints hgrow="ALWAYS" minWidth="0" />
         </columnConstraints>
-        <Label fx:id="addSyntax" text="add n/NAME p/PHONE"
+        <Label fx:id="addSyntax" text="add n/NAME p/PHONE&#10;[t/TAG]..."
                GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.valignment="TOP" />
-        <Label fx:id="addDescription" text="Add a player&#10;e.g. add n/Tan Wei Ming p/91234567"
+        <Label fx:id="addDescription" text="Add a player with optional tags&#10;e.g. add n/Tan Wei Ming p/91234567 t/Striker"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.valignment="TOP" />
         <Label fx:id="listSyntax" text="list"
@@ -73,6 +73,12 @@
         <Label fx:id="rateDescription" text="Set a player's rating (whole number 0 to 10)&#10;e.g. rate 1 8"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="8" GridPane.valignment="TOP" />
+        <Label fx:id="editSyntax" text="edit INDEX [n/NAME]&#10;[p/PHONE] [t/TAG]..."
+               GridPane.columnIndex="0" GridPane.rowIndex="9" GridPane.valignment="TOP" />
+        <Label fx:id="editDescription"
+               text="Edit the displayed player; tags replace existing tags&#10;A single empty t/ clears tags; omit t/ to keep them&#10;e.g. edit 1 t/Striker t/Captain"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />

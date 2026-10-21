@@ -2,9 +2,13 @@ package seedu.address.model.person;
 
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.model.tag.Tag;
 
 /**
  * Represents a Person in the address book.
@@ -19,13 +23,29 @@ public class Person {
     // Data fields
     private final SelectionStatus selectionStatus;
     private final Rating rating;
+    private final Set<Tag> tags;
 
     /**
      * Creates a player who has not been kept or cut yet.
      * Every field must be present and not null.
+     *
+     * @param name The player's name.
+     * @param phone The player's contact number.
      */
     public Person(Name name, Phone phone) {
-        this(name, phone, SelectionStatus.PENDING, Rating.UNRATED);
+        this(name, phone, SelectionStatus.PENDING, Rating.UNRATED, Set.of());
+    }
+
+    /**
+     * Creates a player with a defensive copy of the supplied tags.
+     * Every field and tag must be non-null.
+     *
+     * @param name The player's name.
+     * @param phone The player's contact number.
+     * @param tags The player's custom labels.
+     */
+    public Person(Name name, Phone phone, Set<Tag> tags) {
+        this(name, phone, SelectionStatus.PENDING, Rating.UNRATED, tags);
     }
 
     /**
@@ -43,11 +63,27 @@ public class Person {
 
     /** Creates a player with both a selection status and a rating. */
     public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating) {
-        requireAllNonNull(name, phone, selectionStatus, rating);
+        this(name, phone, selectionStatus, rating, Set.of());
+    }
+
+    /**
+     * Creates a player with all data fields, defensively copying the supplied tags.
+     * Every field and tag must be non-null.
+     *
+     * @param name The player's name.
+     * @param phone The player's contact number.
+     * @param selectionStatus The coach's selection decision.
+     * @param rating The player's rating, or {@link Rating#UNRATED}.
+     * @param tags The player's custom labels.
+     */
+    public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating, Set<Tag> tags) {
+        requireAllNonNull(name, phone, selectionStatus, rating, tags);
+        requireAllNonNull(tags);
         this.name = name;
         this.phone = phone;
         this.selectionStatus = selectionStatus;
         this.rating = rating;
+        this.tags = Collections.unmodifiableSet(new LinkedHashSet<>(tags));
     }
 
     public Name getName() {
@@ -70,7 +106,16 @@ public class Person {
      * Returns a copy of this player with the given selection status and all other details unchanged.
      */
     public Person withSelectionStatus(SelectionStatus newStatus) {
-        return new Person(name, phone, newStatus, rating);
+        return new Person(name, phone, newStatus, rating, tags);
+    }
+
+    /**
+     * Returns the player's tags as an unmodifiable set.
+     *
+     * @return The immutable tag set.
+     */
+    public Set<Tag> getTags() {
+        return tags;
     }
 
     /**
@@ -105,13 +150,14 @@ public class Person {
         return name.equals(otherPerson.name)
                 && phone.equals(otherPerson.phone)
                 && selectionStatus == otherPerson.selectionStatus
-                && rating.equals(otherPerson.rating);
+                && rating.equals(otherPerson.rating)
+                && tags.equals(otherPerson.tags);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, selectionStatus, rating);
+        return Objects.hash(name, phone, selectionStatus, rating, tags);
     }
 
     @Override
@@ -120,6 +166,7 @@ public class Person {
                 .add("name", name)
                 .add("phone", phone)
                 .add("selectionStatus", selectionStatus)
+                .add("tags", tags)
                 .toString();
     }
 

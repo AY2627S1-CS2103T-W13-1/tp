@@ -6,13 +6,42 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.JavaFxTestUtil.runOnFxThread;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.SelectionStatus;
+import seedu.address.testutil.PersonBuilder;
 
 public class PersonCardTest {
+
+    @Test
+    public void constructor_taggedRatedKeptPlayer_showsAllDataTogether() throws Exception {
+        runOnFxThread(() -> {
+            Person player = new PersonBuilder().withTags("Striker")
+                    .withSelectionStatus(SelectionStatus.KEPT).withRating("10").build();
+            PersonCard card = new PersonCard(player, 1);
+            assertEquals("Kept", lookupLabel(card, "#selectionStatus").getText());
+            assertEquals("Rating: 10/10", lookupLabel(card, "#rating").getText());
+            FlowPane tags = (FlowPane) card.getRoot().lookup("#tags");
+            assertEquals("Striker", ((Label) tags.getChildren().getFirst()).getText());
+        });
+    }
+
+    @Test
+    public void constructor_tagsAppearAlphabeticallyAndWrap() throws Exception {
+        runOnFxThread(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().withTags("Striker", "Captain").build(), 1);
+            FlowPane tags = (FlowPane) card.getRoot().lookup("#tags");
+            assertEquals(List.of("Captain", "Striker"), tags.getChildren().stream()
+                    .map(node -> ((Label) node).getText()).toList());
+            PersonCard untaggedCard = new PersonCard(new PersonBuilder().build(), 2);
+            assertEquals(0, ((FlowPane) untaggedCard.getRoot().lookup("#tags")).getChildren().size());
+        });
+    }
 
     @Test
     public void constructor_pendingPlayer_showsPendingBadge() throws Exception {

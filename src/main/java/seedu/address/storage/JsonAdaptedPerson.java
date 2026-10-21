@@ -1,5 +1,9 @@
 package seedu.address.storage;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -9,6 +13,7 @@ import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Rating;
 import seedu.address.model.person.SelectionStatus;
+import seedu.address.model.tag.Tag;
 
 /**
  * Jackson-friendly version of {@link Person}.
@@ -21,6 +26,7 @@ class JsonAdaptedPerson {
     private final String phone;
     private final String selectionStatus;
     private final String rating;
+    private final List<String> tags;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -34,14 +40,29 @@ class JsonAdaptedPerson {
         this(name, phone, selectionStatus, null);
     }
 
-    /** Constructs a stored player; missing optional fields use their model defaults. */
+    /** Constructs a stored player from a file without tags. */
+    public JsonAdaptedPerson(String name, String phone, String selectionStatus, String rating) {
+        this(name, phone, selectionStatus, rating, null);
+    }
+
+    /**
+     * Creates an adapted player, using model defaults for missing optional fields.
+     *
+     * @param name The stored player name.
+     * @param phone The stored contact number.
+     * @param selectionStatus The stored selection decision, or null for pending.
+     * @param rating The stored rating, or null for unrated.
+     * @param tags The stored labels, or null for no tags.
+     */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
-            @JsonProperty("selectionStatus") String selectionStatus, @JsonProperty("rating") String rating) {
+            @JsonProperty("selectionStatus") String selectionStatus, @JsonProperty("rating") String rating,
+            @JsonProperty("tags") List<String> tags) {
         this.name = name;
         this.phone = phone;
         this.selectionStatus = selectionStatus;
         this.rating = rating;
+        this.tags = tags == null ? List.of() : tags;
     }
 
     /**
@@ -52,6 +73,7 @@ class JsonAdaptedPerson {
         phone = source.getPhone().value;
         selectionStatus = source.getSelectionStatus().name();
         rating = source.getRating().isRated() ? source.getRating().toString() : null;
+        tags = source.getTags().stream().map(Object::toString).sorted(String.CASE_INSENSITIVE_ORDER).toList();
     }
 
     /**
@@ -85,7 +107,7 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(Rating.MESSAGE_CONSTRAINTS);
         }
         final Rating modelRating = rating == null ? Rating.UNRATED : new Rating(rating);
-        return new Person(modelName, modelPhone, modelSelectionStatus, modelRating);
+        return new Person(modelName, modelPhone, modelSelectionStatus, modelRating, toModelTags());
     }
 
     /**
@@ -103,6 +125,22 @@ class JsonAdaptedPerson {
         } catch (IllegalArgumentException e) {
             throw new IllegalValueException(SelectionStatus.MESSAGE_CONSTRAINTS);
         }
+    }
+
+    /**
+     * Converts stored label strings to validated, distinct model values.
+     *
+     * @throws IllegalValueException If any stored label is invalid or null.
+     */
+    private Set<Tag> toModelTags() throws IllegalValueException {
+        Set<Tag> modelTags = new LinkedHashSet<>();
+        for (String tag : tags) {
+            if (tag == null || !Tag.isValidTagName(tag)) {
+                throw new IllegalValueException(Tag.MESSAGE_CONSTRAINTS);
+            }
+            modelTags.add(new Tag(tag));
+        }
+        return modelTags;
     }
 
 }
