@@ -52,6 +52,7 @@
         "storage-component": "Storage component",
         "common-classes": "Common classes",
         "implementation": "Implementation",
+        "custom-player-tags-us08": "Custom player tags (US08)",
         "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
         "proposed-data-archiving": "[Proposed] Data archiving",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
@@ -68,7 +69,8 @@
         "finding-players-by-name-f3-us04": "Finding players by name (F3 / US04)",
         "deleting-a-person": "Deleting a person",
         "viewing-help": "Viewing help",
-        "saving-data": "Saving data"
+        "saving-data": "Saving data",
+        "custom-player-tags-us08-manual-regression-checks": "Custom player tags (US08): manual regression checks"
       },
       "headingKeywords": {}
     },
@@ -117,6 +119,7 @@
         "features": "Features",
         "viewing-help-help": "Viewing help: help",
         "adding-a-player-add": "Adding a player: add",
+        "categorising-players-with-tags-us08": "Categorising players with tags (US08)",
         "listing-all-players-list": "Listing all players: list",
         "rating-a-player-rate": "Rating a player: rate",
         "editing-a-player-edit": "Editing a player: edit",
