@@ -28,35 +28,41 @@
           <ColumnConstraints minWidth="180" prefWidth="180" maxWidth="180" />
           <ColumnConstraints hgrow="ALWAYS" minWidth="0" />
         </columnConstraints>
-        <Label fx:id="addSyntax" text="add n/NAME p/PHONE"
+        <Label fx:id="addSyntax" text="add n/NAME p/PHONE&#10;[j/JERSEY]"
                GridPane.columnIndex="0" GridPane.rowIndex="0" GridPane.valignment="TOP" />
-        <Label fx:id="addDescription" text="Add a player&#10;e.g. add n/Tan Wei Ming p/91234567"
+        <Label fx:id="addDescription" text="Add a player. The jersey number is optional&#10;e.g. add n/Tan Wei Ming p/91234567 j/10"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="0" GridPane.valignment="TOP" />
         <Label fx:id="listSyntax" text="list"
                GridPane.columnIndex="0" GridPane.rowIndex="1" GridPane.valignment="TOP" />
         <Label fx:id="listDescription" text="Show all players" wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.valignment="TOP" />
-        <Label fx:id="findSyntax" text="find KEYWORD..."
+        <Label fx:id="editSyntax" text="edit INDEX [n/NAME]&#10;[p/PHONE] [j/JERSEY]"
                GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+        <Label fx:id="editDescription"
+               text="Change the details of the player at that position&#10;An empty j/ removes the jersey number&#10;e.g. edit 2 j/10"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+        <Label fx:id="findSyntax" text="find KEYWORD..."
+               GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.valignment="TOP" />
         <Label fx:id="findDescription"
                text="Show players whose names contain a keyword&#10;Matches whole words only, ignores capitalisation&#10;e.g. find wei ming"
                wrapText="true" minWidth="0"
-               GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP" />
+               GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="TOP" />
         <Label fx:id="deleteSyntax" text="delete INDEX"
-               GridPane.columnIndex="0" GridPane.rowIndex="3" GridPane.valignment="TOP" />
+               GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.valignment="TOP" />
         <Label fx:id="deleteDescription"
                text="Delete the player at that position in the list&#10;shown right now. Positions change after a delete.&#10;e.g. delete 3"
                wrapText="true" minWidth="0"
-               GridPane.columnIndex="1" GridPane.rowIndex="3" GridPane.valignment="TOP" />
-        <Label fx:id="helpSyntax" text="help"
-               GridPane.columnIndex="0" GridPane.rowIndex="4" GridPane.valignment="TOP" />
-        <Label fx:id="helpDescription" text="Show this summary" wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.valignment="TOP" />
-        <Label fx:id="exitSyntax" text="exit"
+        <Label fx:id="helpSyntax" text="help"
                GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
-        <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
+        <Label fx:id="helpDescription" text="Show this summary" wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.valignment="TOP" />
+        <Label fx:id="exitSyntax" text="exit"
+               GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.valignment="TOP" />
+        <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />

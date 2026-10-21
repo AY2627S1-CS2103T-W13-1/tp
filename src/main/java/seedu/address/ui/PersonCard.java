@@ -31,6 +31,8 @@ public class PersonCard extends UiPart<Region> {
     private Label id;
     @FXML
     private Label phone;
+    @FXML
+    private Label jerseyNumber;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -41,5 +43,15 @@ public class PersonCard extends UiPart<Region> {
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
+        person.getJerseyNumber().ifPresentOrElse(
+                number -> jerseyNumber.setText("Jersey #" + number), this::hideJerseyNumber);
+    }
+
+    /**
+     * Hides the jersey number label so that a player without one has no blank line on the card.
+     */
+    private void hideJerseyNumber() {
+        jerseyNumber.setVisible(false);
+        jerseyNumber.setManaged(false);
     }
 }

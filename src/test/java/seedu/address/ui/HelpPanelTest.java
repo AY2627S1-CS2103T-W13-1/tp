@@ -32,9 +32,13 @@ public class HelpPanelTest {
             Map<String, String> expectedText = Map.ofEntries(
                     Map.entry("helpHeading", "CouchCoach commands:"),
                     Map.entry("helpHint", "Type 'list' to see your players again."),
-                    Map.entry("addSyntax", "add n/NAME p/PHONE"),
-                    Map.entry("addDescription", "Add a player\ne.g. add n/Tan Wei Ming p/91234567"),
+                    Map.entry("addSyntax", "add n/NAME p/PHONE\n[j/JERSEY]"),
+                    Map.entry("addDescription", "Add a player. The jersey number is optional\n"
+                            + "e.g. add n/Tan Wei Ming p/91234567 j/10"),
                     Map.entry("listSyntax", "list"), Map.entry("listDescription", "Show all players"),
+                    Map.entry("editSyntax", "edit INDEX [n/NAME]\n[p/PHONE] [j/JERSEY]"),
+                    Map.entry("editDescription", "Change the details of the player at that position\n"
+                            + "An empty j/ removes the jersey number\ne.g. edit 2 j/10"),
                     Map.entry("findSyntax", "find KEYWORD..."),
                     Map.entry("findDescription", "Show players whose names contain a keyword\n"
                             + "Matches whole words only, ignores capitalisation\ne.g. find wei ming"),
@@ -49,7 +53,7 @@ public class HelpPanelTest {
                 Label label = (Label) help.getContent().lookup("#" + id);
                 assertEquals(text, label.getText());
             });
-            for (String command : List.of("add", "list", "find", "delete", "help", "exit")) {
+            for (String command : List.of("add", "list", "edit", "find", "delete", "help", "exit")) {
                 assertTrue(((Label) help.getContent().lookup("#" + command + "Description")).isWrapText());
             }
         });
