@@ -39,6 +39,11 @@ public class PersonUtil {
         StringBuilder sb = new StringBuilder();
         descriptor.getName().ifPresent(name -> sb.append(PREFIX_NAME).append(name.fullName).append(" "));
         descriptor.getPhone().ifPresent(phone -> sb.append(PREFIX_PHONE).append(phone.value).append(" "));
+        if (descriptor.isJerseyNumberEdited()) {
+            // an empty value removes the jersey number
+            sb.append(PREFIX_JERSEY_NUMBER).append(descriptor.getJerseyNumber().map(String::valueOf).orElse(""))
+                    .append(" ");
+        }
         return sb.toString();
     }
 }

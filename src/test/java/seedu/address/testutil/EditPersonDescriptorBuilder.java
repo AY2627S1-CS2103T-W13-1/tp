@@ -1,6 +1,7 @@
 package seedu.address.testutil;
 
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -27,6 +28,7 @@ public class EditPersonDescriptorBuilder {
         descriptor = new EditPersonDescriptor();
         descriptor.setName(person.getName());
         descriptor.setPhone(person.getPhone());
+        descriptor.setJerseyNumber(person.getJerseyNumber().orElse(null));
     }
 
     /**
@@ -42,6 +44,22 @@ public class EditPersonDescriptorBuilder {
      */
     public EditPersonDescriptorBuilder withPhone(String phone) {
         descriptor.setPhone(new Phone(phone));
+        return this;
+    }
+
+    /**
+     * Sets the {@code JerseyNumber} of the {@code EditPersonDescriptor} that we are building.
+     */
+    public EditPersonDescriptorBuilder withJerseyNumber(String jerseyNumber) {
+        descriptor.setJerseyNumber(new JerseyNumber(jerseyNumber));
+        return this;
+    }
+
+    /**
+     * Sets the {@code EditPersonDescriptor} that we are building to remove the jersey number.
+     */
+    public EditPersonDescriptorBuilder withoutJerseyNumber() {
+        descriptor.setJerseyNumber(null);
         return this;
     }
 
