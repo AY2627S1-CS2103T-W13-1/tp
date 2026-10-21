@@ -28,7 +28,8 @@ public class HelpPanelLayoutTest {
                 double commandX = firstSyntax.localToScene(0, 0).getX();
                 double descriptionX = firstDescription.localToScene(0, 0).getX();
 
-                for (String command : List.of("add", "list", "find", "delete", "help", "exit")) {
+                for (String command : List.of("add", "list", "find", "delete", "status", "squad",
+                        "help", "exit", "edit", "rate", "filter", "remark", "injury")) {
                     Label syntax = (Label) help.getContent().lookup("#" + command + "Syntax");
                     Label description = (Label) help.getContent().lookup("#" + command + "Description");
 

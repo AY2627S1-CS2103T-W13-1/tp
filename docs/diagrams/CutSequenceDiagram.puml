@@ -1,0 +1,85 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":SetStatusCommandParser" as SetStatusCommandParser LOGIC_COLOR
+participant "c:SetStatusCommand" as SetStatusCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+participant "p:Person" as Person MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("cut 1")
+activate LogicManager
+
+LogicManager -> AddressBookParser : parseCommand("cut 1")
+activate AddressBookParser
+
+create SetStatusCommandParser
+AddressBookParser -> SetStatusCommandParser : SetStatusCommandParser(CUT)
+activate SetStatusCommandParser
+
+SetStatusCommandParser --> AddressBookParser
+deactivate SetStatusCommandParser
+
+AddressBookParser -> SetStatusCommandParser : parse("1")
+activate SetStatusCommandParser
+
+create SetStatusCommand
+SetStatusCommandParser -> SetStatusCommand : SetStatusCommand(1, CUT)
+activate SetStatusCommand
+
+SetStatusCommand --> SetStatusCommandParser
+deactivate SetStatusCommand
+
+SetStatusCommandParser --> AddressBookParser : c
+deactivate SetStatusCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+SetStatusCommandParser -[hidden]-> AddressBookParser
+destroy SetStatusCommandParser
+
+AddressBookParser --> LogicManager : c
+deactivate AddressBookParser
+
+LogicManager -> SetStatusCommand : execute(m)
+activate SetStatusCommand
+
+SetStatusCommand -> Model : getFilteredPersonList()
+activate Model
+
+Model --> SetStatusCommand : players
+deactivate Model
+
+SetStatusCommand -> Person : withSelectionStatus(CUT)
+activate Person
+
+Person --> SetStatusCommand : cutPlayer
+deactivate Person
+
+SetStatusCommand -> Model : setPerson(p, cutPlayer)
+activate Model
+
+Model --> SetStatusCommand
+deactivate Model
+
+SetStatusCommand --> LogicManager : result
+deactivate SetStatusCommand
+
+LogicManager -> Storage : saveAddressBook(addressBook)
+activate Storage
+
+Storage --> LogicManager
+deactivate Storage
+
+[<--LogicManager : result
+deactivate LogicManager
+@enduml

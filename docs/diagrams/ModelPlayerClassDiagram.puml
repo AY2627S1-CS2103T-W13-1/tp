@@ -1,0 +1,22 @@
+@startuml
+!pragma layout smetana
+!include ModelDiagramStyle.puml
+left to right direction
+
+' View 2: collection wrappers are omitted; values can be shared across player versions.
+class ModelManager {
+    + updateFilteredPersonList(...)
+}
+class AddressBook {
+    + addPerson(person): void
+}
+class UniquePersonList {
+    + contains(person): boolean
+}
+class Person {
+    + isSamePerson(other): boolean
+}
+AddressBook "1" *--> "1" UniquePersonList : persons
+UniquePersonList "0..*" --> "0..*" Person : all players
+ModelManager "0..*" --> "0..*" Person : filtered players
+@enduml
