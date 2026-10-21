@@ -1,6 +1,8 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -12,6 +14,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
@@ -47,6 +50,20 @@ public class JsonAdaptedPersonTest {
     public void toModelType_invalidJerseyNumber_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, null, null, null, null, "100");
         assertThrows(IllegalValueException.class, JerseyNumber.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
+    public void jsonRoundTrip_jerseyNumber_savedOnlyWhenPresent() throws Exception {
+        // a leading zero is dropped before saving, and the number reloads unchanged
+        Person numberedPlayer = new PersonBuilder(BENSON).withJerseyNumber("07").build();
+        String numberedJson = JsonUtil.toJsonString(new JsonAdaptedPerson(numberedPlayer));
+        assertTrue(numberedJson.matches("(?s).*\"jerseyNumber\"\\s*:\\s*\"7\".*"));
+        assertEquals(numberedPlayer, JsonUtil.fromJsonString(numberedJson, JsonAdaptedPerson.class).toModelType());
+
+        // a player without a jersey number is saved without the field
+        String unnumberedJson = JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON));
+        assertFalse(unnumberedJson.contains("jerseyNumber"));
+        assertEquals(BENSON, JsonUtil.fromJsonString(unnumberedJson, JsonAdaptedPerson.class).toModelType());
     }
 
     @Test
