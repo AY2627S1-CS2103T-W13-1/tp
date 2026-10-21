@@ -22,6 +22,7 @@ public class RemarkCommand extends Command {
     public static final String COMMAND_WORD = "remark";
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Updates a player's remark.\n"
             + "Parameters: INDEX (must be a positive integer) " + PREFIX_REMARK + "REMARK (leave empty to clear)\n"
+            + "Use r/ once; a second r/ after a space is not allowed in REMARK.\n"
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_REMARK + "Strong left foot";
     public static final String MESSAGE_SUCCESS = "Updated remark for %1$s: %2$s";
 

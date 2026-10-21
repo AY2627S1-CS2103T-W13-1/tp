@@ -87,7 +87,8 @@
                GridPane.columnIndex="1" GridPane.rowIndex="10" GridPane.valignment="TOP" />
         <Label fx:id="remarkSyntax" text="remark INDEX r/REMARK"
                GridPane.columnIndex="0" GridPane.rowIndex="11" GridPane.valignment="TOP" />
-        <Label fx:id="remarkDescription" text="Set or replace a player remark; empty r/ clears it&#10;e.g. remark 1 r/Strong left foot"
+        <Label fx:id="remarkDescription"
+               text="Set or replace a player remark; empty r/ clears it&#10;Use r/ only once; a second r/ after a space is rejected&#10;e.g. remark 1 r/Strong left foot"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="11" GridPane.valignment="TOP" />
       </GridPane>

@@ -60,6 +60,7 @@ public class HelpPanelTest {
                     Map.entry("exitSyntax", "exit"), Map.entry("exitDescription", "Close CouchCoach"),
                     Map.entry("remarkSyntax", "remark INDEX r/REMARK"),
                     Map.entry("remarkDescription", "Set or replace a player remark; empty r/ clears it\n"
+                            + "Use r/ only once; a second r/ after a space is rejected\n"
                             + "e.g. remark 1 r/Strong left foot"),
                     Map.entry("helpFooter", "Your data is saved automatically after every change."));
 
