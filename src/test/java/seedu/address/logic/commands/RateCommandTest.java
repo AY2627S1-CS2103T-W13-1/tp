@@ -39,11 +39,11 @@ public class RateCommandTest {
         ModelManager model = new ModelManager();
         Person amy = new PersonBuilder().build();
         model.addPerson(amy);
-        assertThrows(CommandException.class,
-                () -> new RateCommand(Index.fromOneBased(2), new Rating("8")).execute(model));
+        assertThrows(CommandException.class, () ->
+                new RateCommand(Index.fromOneBased(2), new Rating("8")).execute(model));
         assertEquals(List.of(amy), model.getFilteredPersonList());
-        assertThrows(IllegalArgumentException.class,
-                () -> new RateCommand(Index.fromOneBased(1), Rating.UNRATED));
+        assertThrows(IllegalArgumentException.class, () ->
+                new RateCommand(Index.fromOneBased(1), Rating.UNRATED));
     }
 
     @Test

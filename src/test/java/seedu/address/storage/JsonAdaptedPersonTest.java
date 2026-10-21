@@ -26,8 +26,8 @@ public class JsonAdaptedPersonTest {
         assertEquals(rated, new JsonAdaptedPerson(rated).toModelType());
         assertEquals(BENSON, new JsonAdaptedPerson(VALID_NAME, VALID_PHONE).toModelType());
         for (String invalid : java.util.List.of("", "11", "-1", "8.5", "Unrated")) {
-            assertThrows(IllegalValueException.class,
-                    () -> new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, invalid).toModelType());
+            assertThrows(IllegalValueException.class, () ->
+                    new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, invalid).toModelType());
         }
     }
 

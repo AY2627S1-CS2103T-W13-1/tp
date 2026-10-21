@@ -70,6 +70,16 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_rateThenReload_preservesRating() throws Exception {
+        model.addPerson(new PersonBuilder().build());
+        logic.execute("rate 1 8");
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+        logic.execute("edit 1 p/12345678");
+        assertEquals("8", saved.readAddressBook().orElseThrow().getPersonList().get(0).getRating().toString());
+    }
+
+    @Test
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);
