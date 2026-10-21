@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
+import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
@@ -70,6 +71,10 @@ public class PersonTest {
         // different phone -> returns false
         editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different selection status -> returns false
+        editedAlice = new PersonBuilder(ALICE).withSelectionStatus(SelectionStatus.KEPT).build();
+        assertFalse(ALICE.equals(editedAlice));
     }
 
     @Test
@@ -82,12 +87,45 @@ public class PersonTest {
 
         // different phone -> returns different hashcode
         assertNotEquals(ALICE.hashCode(), new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build().hashCode());
+
+        // different selection status -> returns different hashcode
+        assertNotEquals(ALICE.hashCode(),
+                new PersonBuilder(ALICE).withSelectionStatus(SelectionStatus.CUT).build().hashCode());
+    }
+
+    @Test
+    public void constructor_withoutSelectionStatus_isPending() {
+        Person newPlayer = new Person(ALICE.getName(), ALICE.getPhone());
+        assertEquals(SelectionStatus.PENDING, newPlayer.getSelectionStatus());
+    }
+
+    @Test
+    public void isSamePerson_differentSelectionStatus_returnsTrue() {
+        // the status is a decision about the player, not part of who they are
+        Person keptAlice = new PersonBuilder(ALICE).withSelectionStatus(SelectionStatus.KEPT).build();
+        assertTrue(ALICE.isSamePerson(keptAlice));
+    }
+
+    @Test
+    public void withSelectionStatus_newStatus_keepsOtherFields() {
+        Person cutAlice = ALICE.withSelectionStatus(SelectionStatus.CUT);
+        assertEquals(SelectionStatus.CUT, cutAlice.getSelectionStatus());
+        assertEquals(ALICE.getName(), cutAlice.getName());
+        assertEquals(ALICE.getPhone(), cutAlice.getPhone());
+
+        // the original player is not changed
+        assertEquals(SelectionStatus.PENDING, ALICE.getSelectionStatus());
+    }
+
+    @Test
+    public void withSelectionStatus_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withSelectionStatus(null));
     }
 
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + "}";
+                + ", selectionStatus=" + ALICE.getSelectionStatus() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

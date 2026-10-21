@@ -189,6 +189,25 @@ Examples:
 * `list` followed by `delete 2` deletes the 2nd player in the team.
 * `find Tan` followed by `delete 1` deletes the 1st player in the results of the `find` command.
 
+### Marking a player as kept, cut or pending: `keep`, `cut`, `pending`
+
+Records your selection decision for a player. The decision is shown as a badge next to the player's name: **Pending**, **Kept** or **Cut**.
+
+Format: `keep INDEX`, `cut INDEX` or `pending INDEX`
+
+* `keep` marks the player at the specified `INDEX` as kept, and `cut` marks them as cut.
+* `pending` marks the player as not yet decided, e.g. to undo a `keep` or `cut` you made by mistake.
+* Every player you add starts as pending. Editing a player with `edit` does not change their status.
+* The index refers to the index number shown in the displayed player list, which may be filtered by `find`.
+* The index **must be a positive whole number** 1, 2, 3, ...
+* The displayed list stays as it is, so you can keep working through the results of a `find`.
+* If the player already has that status, CouchCoach tells you so and nothing changes.
+
+Examples:
+* `list` followed by `keep 2` marks the 2nd player in the team as kept.
+* `find Tan` followed by `cut 1` marks the 1st player in the results of the `find` command as cut.
+* `pending 1` changes the 1st player in the displayed list back to pending.
+
 ### Clearing all players: `clear`
 
 Deletes all players from the team.
@@ -208,7 +227,7 @@ Format: `exit`
 
 ### Saving the data
 
-CouchCoach saves your data automatically after every change (`add`, `edit`, `delete` and `clear`). You do not need to save manually. `list`, `find`, `help` and `exit` do not change your data, so they do not save.
+CouchCoach saves your data automatically after every change (`add`, `edit`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `help` and `exit` do not change your data, so they do not save.
 
 If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
 
@@ -225,7 +244,7 @@ CouchCoach data is saved automatically as a JSON file `[JAR file location]/data/
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `delete` or `clear`), which replaces it, so back up the file before editing it.<br>
+If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `delete`, `keep`, `cut`, `pending` or `clear`), which replaces it, so back up the file before editing it.<br>
 A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
 Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
@@ -251,9 +270,12 @@ Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 **Add**    | `add n/NAME p/PHONE` <br> e.g., `add n/Tan Wei Ming p/91234567`
 **Clear**  | `clear`
+**Cut**    | `cut INDEX`<br> e.g., `cut 3`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE]`<br> e.g., `edit 2 n/Lim Wei Jie`
 **Exit**   | `exit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
+**Keep**   | `keep INDEX`<br> e.g., `keep 3`
 **List**   | `list`
+**Pending** | `pending INDEX`<br> e.g., `pending 3`
 **Help**   | `help`

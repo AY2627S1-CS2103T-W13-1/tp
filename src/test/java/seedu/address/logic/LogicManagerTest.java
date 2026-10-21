@@ -32,6 +32,7 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.SelectionStatus;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -153,6 +154,24 @@ public class LogicManagerTest {
             assertEquals(previousList, logic.getFilteredPersonList());
             assertEquals(previousData, model.getAddressBook());
         }
+    }
+
+    @Test
+    public void execute_keep_savesStatusToDataFile() throws Exception {
+        model.addPerson(AMY);
+        assertEquals("Marked " + AMY.getName() + " as kept.", logic.execute("keep 1").getFeedbackToUser());
+
+        // reading the saved file back shows the player as kept, so the decision survives a restart
+        ReadOnlyAddressBook savedData = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow();
+        assertEquals(SelectionStatus.KEPT, savedData.getPersonList().get(0).getSelectionStatus());
+    }
+
+    @Test
+    public void execute_cutWhenSaveFails_throwsCommandException() {
+        model.addPerson(AMY);
+        logic = createLogicWithFailingSave();
+        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> logic.execute("cut 1"));
     }
 
     @Test

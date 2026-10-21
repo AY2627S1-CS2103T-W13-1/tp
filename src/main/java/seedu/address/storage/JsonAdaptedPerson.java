@@ -7,6 +7,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.SelectionStatus;
 
 /**
  * Jackson-friendly version of {@link Person}.
@@ -17,14 +18,17 @@ class JsonAdaptedPerson {
 
     private final String name;
     private final String phone;
+    private final String selectionStatus;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      */
     @JsonCreator
-    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone) {
+    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
+            @JsonProperty("selectionStatus") String selectionStatus) {
         this.name = name;
         this.phone = phone;
+        this.selectionStatus = selectionStatus;
     }
 
     /**
@@ -33,6 +37,7 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(Person source) {
         name = source.getName().fullName;
         phone = source.getPhone().value;
+        selectionStatus = source.getSelectionStatus().name();
     }
 
     /**
@@ -60,7 +65,26 @@ class JsonAdaptedPerson {
         }
         final Phone modelPhone = new Phone(phone);
 
-        return new Person(modelName, modelPhone);
+        final SelectionStatus modelSelectionStatus = toModelSelectionStatus();
+
+        return new Person(modelName, modelPhone, modelSelectionStatus);
+    }
+
+    /**
+     * Converts the saved selection status into the model's {@code SelectionStatus}.
+     * Data files saved before selection statuses existed have none, so their players start as pending.
+     *
+     * @throws IllegalValueException if the saved status is not a valid selection status.
+     */
+    private SelectionStatus toModelSelectionStatus() throws IllegalValueException {
+        if (selectionStatus == null) {
+            return SelectionStatus.PENDING;
+        }
+        try {
+            return SelectionStatus.fromName(selectionStatus);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(SelectionStatus.MESSAGE_CONSTRAINTS);
+        }
     }
 
 }

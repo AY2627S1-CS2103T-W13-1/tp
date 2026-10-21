@@ -20,9 +20,11 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.SetStatusCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.SelectionStatus;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 import seedu.address.testutil.PersonUtil;
@@ -85,6 +87,27 @@ public class AddressBookParserTest {
     public void parseCommand_list() throws Exception {
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD) instanceof ListCommand);
         assertTrue(parser.parseCommand(ListCommand.COMMAND_WORD + " all") instanceof ListCommand);
+    }
+
+    @Test
+    public void parseCommand_keep() throws Exception {
+        SetStatusCommand command = (SetStatusCommand) parser.parseCommand(
+                SetStatusCommand.COMMAND_WORD_KEEP + " " + INDEX_FIRST_PERSON.getOneBased());
+        assertEquals(new SetStatusCommand(INDEX_FIRST_PERSON, SelectionStatus.KEPT), command);
+    }
+
+    @Test
+    public void parseCommand_cut() throws Exception {
+        SetStatusCommand command = (SetStatusCommand) parser.parseCommand(
+                SetStatusCommand.COMMAND_WORD_CUT + " " + INDEX_FIRST_PERSON.getOneBased());
+        assertEquals(new SetStatusCommand(INDEX_FIRST_PERSON, SelectionStatus.CUT), command);
+    }
+
+    @Test
+    public void parseCommand_pending() throws Exception {
+        SetStatusCommand command = (SetStatusCommand) parser.parseCommand(
+                SetStatusCommand.COMMAND_WORD_PENDING + " " + INDEX_FIRST_PERSON.getOneBased());
+        assertEquals(new SetStatusCommand(INDEX_FIRST_PERSON, SelectionStatus.PENDING), command);
     }
 
     @Test

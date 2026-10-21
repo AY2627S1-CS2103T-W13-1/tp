@@ -18,6 +18,7 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.SelectionStatus;
 
 /**
  * Edits the details of an existing player in the team.
@@ -84,8 +85,10 @@ public class EditCommand extends Command {
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
+        // edit cannot change the selection status (keep, cut and pending do), so keep the existing one
+        SelectionStatus unchangedStatus = personToEdit.getSelectionStatus();
 
-        return new Person(updatedName, updatedPhone);
+        return new Person(updatedName, updatedPhone, unchangedStatus);
     }
 
     @Override

@@ -3,6 +3,7 @@ package seedu.address.testutil;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.SelectionStatus;
 
 /**
  * A utility class to help with building Person objects.
@@ -14,6 +15,7 @@ public class PersonBuilder {
 
     private Name name;
     private Phone phone;
+    private SelectionStatus selectionStatus;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -21,6 +23,7 @@ public class PersonBuilder {
     public PersonBuilder() {
         name = new Name(DEFAULT_NAME);
         phone = new Phone(DEFAULT_PHONE);
+        selectionStatus = SelectionStatus.PENDING;
     }
 
     /**
@@ -29,6 +32,7 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
+        selectionStatus = personToCopy.getSelectionStatus();
     }
 
     /**
@@ -47,8 +51,16 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the {@code SelectionStatus} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withSelectionStatus(SelectionStatus selectionStatus) {
+        this.selectionStatus = selectionStatus;
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone);
+        return new Person(name, phone, selectionStatus);
     }
 
 }
