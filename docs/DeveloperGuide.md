@@ -126,7 +126,21 @@ How the parsing works:
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+The model is shown in four class views: contracts, roster data, identity, and player assessments. Repeated class
+names refer to the same classes across views. Interface realization uses a dashed
+line with a hollow triangle pointing to the interface. Association arrowheads show
+navigability; multiplicities describe the number of objects at each end.
+Notation follows the [course UML reference sheet](https://nus-cs2103-ay2627-s1.github.io/website/admin/uml-reference-sheet.html).
+
+<iframe src="diagrams/ModelClassDiagram.html" title="CouchCoach model UML class diagrams"
+        width="100%" height="2400" style="border: 0;"></iframe>
+
+[Open the editable HTML diagram](diagrams/ModelClassDiagram.html).
+The corresponding PlantUML sources are
+[model contracts](diagrams/ModelClassDiagram.puml),
+[roster data](diagrams/ModelPlayerClassDiagram.puml),
+[player identity](diagrams/ModelIdentityClassDiagram.puml), and
+[player assessments](diagrams/ModelAssessmentClassDiagram.puml).
 
 
 The `Model` component,
@@ -136,7 +150,33 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-Each `Person` (a player) holds only a `Name` and a `Phone`. `UniquePersonList` uses `Person#isSamePerson` to reject duplicates: two players are the same if their names match after ignoring case and repeated spaces. The phone number is not compared, because players such as siblings may share a parent's contact number.
+Each `Person` (a player) holds one `Name`, one `Phone`, one `SelectionStatus`, one
+`Rating`, one `Remark`, one `InjuryStatus`, and zero or more `Tag` values. Empty remarks
+and unrated ratings are present value objects, so their multiplicity is still `1`.
+These are ordinary associations: immutable
+values can be shared between player versions, so deleting one player does not imply
+deleting its value objects. `AddressBook` exclusively contains its `UniquePersonList`,
+which is shown using composition. The full roster and filtered view reference the
+same player objects; filtering does not create copies.
+
+`UniquePersonList` uses `Person#isSamePerson` to reject duplicates: two players are the
+same if their names match after ignoring case and repeated spaces. Phone numbers and
+tags do not affect identity, because players such as siblings may share a parent's
+contact number. Routine accessors, library collection wrappers, and unrelated methods
+are omitted from the diagrams. The static tag-validation operation is underlined.
+
+Edit the PlantUML sources, then run `python3 docs/scripts/generate_model_diagrams.py`
+from the repository root with Java 25 selected (install documentation dependencies
+with `npm ci --prefix docs` first). The script uses MarkBind's bundled PlantUML renderer
+to regenerate the self-contained HTML and its inline SVG; do not edit generated SVG
+separately. This keeps one diagramming source for each displayed figure. The HTML
+also includes the editable source text. The shared legend lists only relationships
+used across the four views.
+
+The assessment view reflects the merged selection, rating, remarks, and injury features.
+Jersey numbers are not present in `Person` yet; reconcile that field after its feature
+merges. The [rating and sorting UML](diagrams/player-rating-sorting-uml.html)
+provides the separate command-level design view.
 
 
 ### Storage component
