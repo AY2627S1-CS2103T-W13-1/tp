@@ -1,5 +1,6 @@
 package seedu.address.testutil;
 
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -14,6 +15,7 @@ public class PersonBuilder {
 
     private Name name;
     private Phone phone;
+    private JerseyNumber jerseyNumber;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -29,6 +31,7 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
+        jerseyNumber = personToCopy.getJerseyNumber().orElse(null);
     }
 
     /**
@@ -47,8 +50,24 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the {@code JerseyNumber} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withJerseyNumber(String jerseyNumber) {
+        this.jerseyNumber = new JerseyNumber(jerseyNumber);
+        return this;
+    }
+
+    /**
+     * Removes the {@code JerseyNumber} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withoutJerseyNumber() {
+        this.jerseyNumber = null;
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone);
+        return new Person(name, phone, jerseyNumber);
     }
 
 }

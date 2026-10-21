@@ -3,6 +3,7 @@ package seedu.address.model.person;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import seedu.address.commons.util.ToStringBuilder;
 
@@ -16,13 +17,25 @@ public class Person {
     private final Name name;
     private final Phone phone;
 
+    // Data fields
+    private final JerseyNumber jerseyNumber; // null if the player has no jersey number
+
     /**
-     * Every field must be present and not null.
+     * Creates a player without a jersey number. Every field must be present and not null.
      */
     public Person(Name name, Phone phone) {
+        this(name, phone, null);
+    }
+
+    /**
+     * Creates a player. The name and phone must be present and not null.
+     * {@code jerseyNumber} may be null if the player has no jersey number.
+     */
+    public Person(Name name, Phone phone, JerseyNumber jerseyNumber) {
         requireAllNonNull(name, phone);
         this.name = name;
         this.phone = phone;
+        this.jerseyNumber = jerseyNumber;
     }
 
     public Name getName() {
@@ -31,6 +44,10 @@ public class Person {
 
     public Phone getPhone() {
         return phone;
+    }
+
+    public Optional<JerseyNumber> getJerseyNumber() {
+        return Optional.ofNullable(jerseyNumber);
     }
 
     /**
@@ -63,13 +80,14 @@ public class Person {
         }
 
         return name.equals(otherPerson.name)
-                && phone.equals(otherPerson.phone);
+                && phone.equals(otherPerson.phone)
+                && Objects.equals(jerseyNumber, otherPerson.jerseyNumber);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone);
+        return Objects.hash(name, phone, jerseyNumber);
     }
 
     @Override
@@ -77,6 +95,7 @@ public class Person {
         return new ToStringBuilder(this)
                 .add("name", name)
                 .add("phone", phone)
+                .add("jerseyNumber", jerseyNumber)
                 .toString();
     }
 

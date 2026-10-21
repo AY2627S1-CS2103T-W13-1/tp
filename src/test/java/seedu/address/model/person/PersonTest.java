@@ -70,6 +70,16 @@ public class PersonTest {
         // different phone -> returns false
         editedAlice = new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // jersey number added -> returns false
+        editedAlice = new PersonBuilder(ALICE).withJerseyNumber("10").build();
+        assertFalse(ALICE.equals(editedAlice));
+
+        // different jersey number -> returns false
+        assertFalse(editedAlice.equals(new PersonBuilder(ALICE).withJerseyNumber("11").build()));
+
+        // same jersey number -> returns true
+        assertTrue(editedAlice.equals(new PersonBuilder(ALICE).withJerseyNumber("10").build()));
     }
 
     @Test
@@ -82,12 +92,22 @@ public class PersonTest {
 
         // different phone -> returns different hashcode
         assertNotEquals(ALICE.hashCode(), new PersonBuilder(ALICE).withPhone(VALID_PHONE_BOB).build().hashCode());
+
+        // jersey number added -> returns different hashcode
+        assertNotEquals(ALICE.hashCode(), new PersonBuilder(ALICE).withJerseyNumber("10").build().hashCode());
+    }
+
+    @Test
+    public void getJerseyNumber() {
+        assertTrue(ALICE.getJerseyNumber().isEmpty());
+        assertEquals(new JerseyNumber("10"),
+                new PersonBuilder(ALICE).withJerseyNumber("10").build().getJerseyNumber().get());
     }
 
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + "}";
+                + ", jerseyNumber=null}";
         assertEquals(expected, ALICE.toString());
     }
 }
