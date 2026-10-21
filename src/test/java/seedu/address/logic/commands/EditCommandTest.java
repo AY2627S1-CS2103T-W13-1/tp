@@ -160,6 +160,26 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_sharedJerseyNumberRemoved_noWarning() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        Person firstWithJerseyNumber =
+                new PersonBuilder(firstPerson).withJerseyNumber(VALID_JERSEY_NUMBER_BOB).build();
+        model.setPerson(firstPerson, firstWithJerseyNumber);
+        model.setPerson(secondPerson,
+                new PersonBuilder(secondPerson).withJerseyNumber(VALID_JERSEY_NUMBER_BOB).build());
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withoutJerseyNumber().build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(firstPerson));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(firstWithJerseyNumber, firstPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_otherFieldEditedWithSharedJerseyNumber_noWarning() {
         Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
         Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
