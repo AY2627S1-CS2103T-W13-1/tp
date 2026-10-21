@@ -226,8 +226,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values. Names, phone numbers and jersey numbers follow the same rules as in `add`.
 * `n/`, `p/` and `j/` can each be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
-* To remove a player's jersey number, type `j/` with nothing after it.
-* If the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`.
+* Omit `j/` to keep the player's current jersey number. Type `j/` with nothing after it to remove the jersey number. An empty `j/` works only with `edit`; `add` rejects it.
+* If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
 * Repeat `t/TAG` to replace all of the player's tags. Omit `t/` to keep them. Use a single empty `t/` to clear them; combining empty and non-empty tags is rejected.
 
 Examples:
