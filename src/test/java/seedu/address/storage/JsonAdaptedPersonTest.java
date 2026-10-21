@@ -21,6 +21,17 @@ public class JsonAdaptedPersonTest {
     private static final String VALID_PHONE = BENSON.getPhone().toString();
 
     @Test
+    public void toModelType_rating_roundTripsAndRejectsInvalidScores() throws Exception {
+        Person rated = new PersonBuilder(BENSON).withRating("8").build();
+        assertEquals(rated, new JsonAdaptedPerson(rated).toModelType());
+        assertEquals(BENSON, new JsonAdaptedPerson(VALID_NAME, VALID_PHONE).toModelType());
+        for (String invalid : java.util.List.of("", "11", "-1", "8.5", "Unrated")) {
+            assertThrows(IllegalValueException.class,
+                    () -> new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, invalid).toModelType());
+        }
+    }
+
+    @Test
     public void toModelType_validPersonDetails_returnsPerson() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(BENSON);
         assertEquals(BENSON, person.toModelType());
