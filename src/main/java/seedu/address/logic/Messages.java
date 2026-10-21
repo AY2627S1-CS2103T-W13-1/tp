@@ -43,6 +43,10 @@ public class Messages {
                 .append("; Phone: ")
                 .append(person.getPhone());
         person.getJerseyNumber().ifPresent(jerseyNumber -> builder.append("; Jersey: ").append(jerseyNumber));
+        if (!person.getTags().isEmpty()) {
+            builder.append("; Tags: ").append(person.getTags().stream()
+                    .map(Object::toString).sorted(String.CASE_INSENSITIVE_ORDER).collect(Collectors.joining(", ")));
+        }
         return builder.toString();
     }
 

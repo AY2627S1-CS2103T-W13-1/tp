@@ -5,6 +5,10 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_JERSEY_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
+
+import java.util.List;
+import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.EditCommand;
@@ -25,7 +29,7 @@ public class EditCommandParser implements Parser<EditCommand> {
     public EditCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap argMultimap =
-                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_JERSEY_NUMBER);
+                ArgumentTokenizer.tokenize(args, PREFIX_NAME, PREFIX_PHONE, PREFIX_TAG, PREFIX_JERSEY_NUMBER);
 
         Index index;
 
@@ -44,6 +48,11 @@ public class EditCommandParser implements Parser<EditCommand> {
         }
         if (argMultimap.getValue(PREFIX_PHONE).isPresent()) {
             editPersonDescriptor.setPhone(ParserUtil.parsePhone(argMultimap.getValue(PREFIX_PHONE).get()));
+        }
+        if (argMultimap.getValue(PREFIX_TAG).isPresent()) {
+            List<String> labels = argMultimap.getAllValues(PREFIX_TAG);
+            boolean isClearingTags = labels.size() == 1 && labels.getFirst().isEmpty();
+            editPersonDescriptor.setTags(isClearingTags ? Set.of() : ParserUtil.parseTags(labels));
         }
         if (argMultimap.getValue(PREFIX_JERSEY_NUMBER).isPresent()) {
             editPersonDescriptor.setJerseyNumber(

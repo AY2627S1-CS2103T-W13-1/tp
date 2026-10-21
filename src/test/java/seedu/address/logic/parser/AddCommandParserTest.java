@@ -21,6 +21,8 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
@@ -28,10 +30,26 @@ import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class AddCommandParserTest {
     private AddCommandParser parser = new AddCommandParser();
+
+    @Test
+    public void parse_tagsAcceptedInAnyOrderAndDeduplicated() {
+        Person taggedBob = new PersonBuilder(BOB).withTags("Striker", "Trial Group 2").build();
+        assertParseSuccess(parser, " t/Striker" + NAME_DESC_BOB + " t/ Trial   Group 2 "
+                + PHONE_DESC_BOB + " t/striker", new AddCommand(taggedBob));
+    }
+
+    @Test
+    public void parse_anyInvalidTag_rejectsWholeCommand() {
+        for (String labels : List.of(" t/", " t/Striker t/", " t/Bad!", " t/"
+                + "a".repeat(Tag.MAX_LENGTH + 1))) {
+            assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + labels, Tag.MESSAGE_CONSTRAINTS);
+        }
+    }
 
     @Test
     public void parse_allFieldsPresent_success() {
