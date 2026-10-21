@@ -20,6 +20,23 @@ import seedu.address.testutil.PersonBuilder;
 
 public class RateCommandTest {
     @Test
+    public void equals_comparesDisplayedIndexAndRating() {
+        RateCommand command = new RateCommand(Index.fromOneBased(1), new Rating("8"));
+        assertEquals(command, command);
+        assertEquals(command, new RateCommand(Index.fromOneBased(1), new Rating("8")));
+        assertFalse(command.equals(new RateCommand(Index.fromOneBased(2), new Rating("8"))));
+        assertFalse(command.equals(new RateCommand(Index.fromOneBased(1), new Rating("9"))));
+        assertFalse(command.equals(null));
+        assertFalse(command.equals(new ListCommand()));
+    }
+
+    @Test
+    public void constructor_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new RateCommand(null, new Rating("8")));
+        assertThrows(NullPointerException.class, () -> new RateCommand(Index.fromOneBased(1), null));
+    }
+
+    @Test
     public void execute_filteredList_ratesDisplayedPlayerAndPreservesFilter() throws Exception {
         ModelManager model = new ModelManager();
         Person amy = new PersonBuilder().withName("Amy Bee").build();
