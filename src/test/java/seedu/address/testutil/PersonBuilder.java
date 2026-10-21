@@ -9,6 +9,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Rating;
+import seedu.address.model.person.Remark;
 import seedu.address.model.person.SelectionStatus;
 import seedu.address.model.tag.Tag;
 
@@ -24,6 +25,7 @@ public class PersonBuilder {
     private Phone phone;
     private SelectionStatus selectionStatus;
     private Rating rating = Rating.UNRATED;
+    private Remark remark;
     private Set<Tag> tags = Set.of();
 
     /**
@@ -33,6 +35,7 @@ public class PersonBuilder {
         name = new Name(DEFAULT_NAME);
         phone = new Phone(DEFAULT_PHONE);
         selectionStatus = SelectionStatus.PENDING;
+        remark = new Remark("");
     }
 
     /**
@@ -43,6 +46,7 @@ public class PersonBuilder {
         phone = personToCopy.getPhone();
         selectionStatus = personToCopy.getSelectionStatus();
         rating = personToCopy.getRating();
+        remark = personToCopy.getRemark();
         tags = personToCopy.getTags();
     }
 
@@ -84,8 +88,14 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the player's remark. */
+    public PersonBuilder withRemark(String remark) {
+        this.remark = new Remark(remark);
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, selectionStatus, rating, tags);
+        return new Person(name, phone, selectionStatus, rating, tags, remark);
     }
 
 }

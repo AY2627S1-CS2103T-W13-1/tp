@@ -24,6 +24,7 @@ public class Person {
     private final SelectionStatus selectionStatus;
     private final Rating rating;
     private final Set<Tag> tags;
+    private final Remark remark;
 
     /**
      * Creates a player who has not been kept or cut yet.
@@ -34,6 +35,11 @@ public class Person {
      */
     public Person(Name name, Phone phone) {
         this(name, phone, SelectionStatus.PENDING, Rating.UNRATED, Set.of());
+    }
+
+    /** Creates a pending, unrated player with the given remark and no tags. */
+    public Person(Name name, Phone phone, Remark remark) {
+        this(name, phone, SelectionStatus.PENDING, Rating.UNRATED, Set.of(), remark);
     }
 
     /**
@@ -77,12 +83,22 @@ public class Person {
      * @param tags The player's custom labels.
      */
     public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating, Set<Tag> tags) {
-        requireAllNonNull(name, phone, selectionStatus, rating, tags);
+        this(name, phone, selectionStatus, rating, tags, new Remark(""));
+    }
+
+    /**
+     * Creates a player with all data fields, defensively copying the supplied tags.
+     * Every field and tag must be non-null.
+     */
+    public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating, Set<Tag> tags,
+                  Remark remark) {
+        requireAllNonNull(name, phone, selectionStatus, rating, tags, remark);
         requireAllNonNull(tags);
         this.name = name;
         this.phone = phone;
         this.selectionStatus = selectionStatus;
         this.rating = rating;
+        this.remark = remark;
         this.tags = Collections.unmodifiableSet(new LinkedHashSet<>(tags));
     }
 
@@ -92,6 +108,15 @@ public class Person {
 
     public Phone getPhone() {
         return phone;
+    }
+
+    public Remark getRemark() {
+        return remark;
+    }
+
+    /** Returns a copy with the given remark and all other player details unchanged. */
+    public Person withRemark(Remark newRemark) {
+        return new Person(name, phone, selectionStatus, rating, tags, newRemark);
     }
 
     public Rating getRating() {
@@ -106,7 +131,7 @@ public class Person {
      * Returns a copy of this player with the given selection status and all other details unchanged.
      */
     public Person withSelectionStatus(SelectionStatus newStatus) {
-        return new Person(name, phone, newStatus, rating, tags);
+        return new Person(name, phone, newStatus, rating, tags, remark);
     }
 
     /**
@@ -151,13 +176,14 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && selectionStatus == otherPerson.selectionStatus
                 && rating.equals(otherPerson.rating)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && remark.equals(otherPerson.remark);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, selectionStatus, rating, tags);
+        return Objects.hash(name, phone, selectionStatus, rating, tags, remark);
     }
 
     @Override
@@ -167,6 +193,7 @@ public class Person {
                 .add("phone", phone)
                 .add("selectionStatus", selectionStatus)
                 .add("tags", tags)
+                .add("remark", remark)
                 .toString();
     }
 

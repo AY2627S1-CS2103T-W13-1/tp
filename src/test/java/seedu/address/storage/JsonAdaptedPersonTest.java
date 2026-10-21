@@ -136,4 +136,18 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, "maybe");
         assertThrows(IllegalValueException.class, SelectionStatus.MESSAGE_CONSTRAINTS, person::toModelType);
     }
+
+    @Test
+    public void toModelType_emptyAndMissingRemark_returnsEmptyRemark() throws Exception {
+        assertEquals("", new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, null, null, "")
+                .toModelType().getRemark().value);
+        assertEquals("", new JsonAdaptedPerson(VALID_NAME, VALID_PHONE).toModelType().getRemark().value);
+    }
+
+    @Test
+    public void toModelType_freeText_preservesPunctuationAndUnicode() throws Exception {
+        String text = "Good teamwork! 教练 says: \"keep\"\nWorks well under pressure.";
+        Person player = new PersonBuilder(BENSON).withRemark(text).build();
+        assertEquals(player, new JsonAdaptedPerson(player).toModelType());
+    }
 }

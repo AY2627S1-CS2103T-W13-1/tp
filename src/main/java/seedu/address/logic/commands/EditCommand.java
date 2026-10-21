@@ -95,7 +95,8 @@ public class EditCommand extends Command {
         SelectionStatus unchangedStatus = personToEdit.getSelectionStatus();
 
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
-        return new Person(updatedName, updatedPhone, unchangedStatus, personToEdit.getRating(), updatedTags);
+        return new Person(updatedName, updatedPhone, unchangedStatus, personToEdit.getRating(), updatedTags,
+                personToEdit.getRemark());
     }
 
     @Override

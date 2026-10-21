@@ -12,6 +12,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Rating;
+import seedu.address.model.person.Remark;
 import seedu.address.model.person.SelectionStatus;
 import seedu.address.model.tag.Tag;
 
@@ -27,6 +28,7 @@ class JsonAdaptedPerson {
     private final String selectionStatus;
     private final String rating;
     private final List<String> tags;
+    private final String remark;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -54,15 +56,21 @@ class JsonAdaptedPerson {
      * @param rating The stored rating, or null for unrated.
      * @param tags The stored labels, or null for no tags.
      */
+    public JsonAdaptedPerson(String name, String phone, String selectionStatus, String rating, List<String> tags) {
+        this(name, phone, selectionStatus, rating, tags, null);
+    }
+
+    /** Creates an adapted player, accepting missing remarks in older data files. */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("selectionStatus") String selectionStatus, @JsonProperty("rating") String rating,
-            @JsonProperty("tags") List<String> tags) {
+            @JsonProperty("tags") List<String> tags, @JsonProperty("remark") String remark) {
         this.name = name;
         this.phone = phone;
         this.selectionStatus = selectionStatus;
         this.rating = rating;
         this.tags = tags == null ? List.of() : tags;
+        this.remark = remark;
     }
 
     /**
@@ -71,6 +79,7 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(Person source) {
         name = source.getName().fullName;
         phone = source.getPhone().value;
+        remark = source.getRemark().value;
         selectionStatus = source.getSelectionStatus().name();
         rating = source.getRating().isRated() ? source.getRating().toString() : null;
         tags = source.getTags().stream().map(Object::toString).sorted(String.CASE_INSENSITIVE_ORDER).toList();
@@ -107,7 +116,8 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(Rating.MESSAGE_CONSTRAINTS);
         }
         final Rating modelRating = rating == null ? Rating.UNRATED : new Rating(rating);
-        return new Person(modelName, modelPhone, modelSelectionStatus, modelRating, toModelTags());
+        final Remark modelRemark = new Remark(remark == null ? "" : remark);
+        return new Person(modelName, modelPhone, modelSelectionStatus, modelRating, toModelTags(), modelRemark);
     }
 
     /**

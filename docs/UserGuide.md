@@ -166,6 +166,30 @@ Examples:
 * `find Tan` followed by `rate 1 10` gives the first search result a rating of 10/10.
 * `rate 1 11` shows `Rating must be a whole number from 0 to 10.`
 
+### Recording a player observation: `remark` (US21)
+
+Sets or replaces a player's remark. An empty remark clears the observation from their card.
+
+Format: `remark INDEX r/REMARK`
+
+* `INDEX` is the positive whole number beside a player in the current displayed list,
+  including a list filtered by `find`, `filter` or `squad`.
+* Use `r/` exactly once. A second `r/` after a space is treated as another delimiter and
+  rejects the command, even within an observation: `remark 1 r/See r/soccer for drills`
+  is invalid. Write `remark 1 r/See soccer for drills` instead. Other prefix-like text
+  such as `n/coach` can appear in the remark.
+* Leading and trailing spaces are removed. `remark 1 r/` clears the remark.
+* The current filter is retained. Invalid syntax or an invalid index leaves the team unchanged.
+* Remarks are saved automatically, restored when CouchCoach reopens, and preserved by
+  name, phone, tag, rating and selection-status updates. Older files start with empty remarks.
+
+Examples:
+
+* `remark 1 r/Strong left foot` records an observation for the first displayed player.
+* `remark 1 r/Improved passing` replaces that observation.
+* `remark 1 r/` clears it.
+* After `find Amy`, `remark 1 r/Strong left foot` updates the first search result.
+
 ### Editing a player: `edit`
 
 Edits an existing player in the team.
@@ -327,7 +351,7 @@ Format: `exit`
 
 ### Saving the data
 
-CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `squad`, `help` and `exit` do not change your data, so they do not save.
+CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `remark`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `squad`, `help` and `exit` do not change your data, so they do not save.
 
 If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
 
@@ -344,7 +368,7 @@ CouchCoach data is saved automatically as a JSON file `[JAR file location]/data/
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `rate`, `delete`, `keep`, `cut`, `pending` or `clear`), which replaces it, so back up the file before editing it.<br>
+If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `rate`, `remark`, `delete`, `keep`, `cut`, `pending` or `clear`), which replaces it, so back up the file before editing it.<br>
 A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
 Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
@@ -377,6 +401,7 @@ Action     | Format, Examples
 **Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/Striker t/Captain`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Rate**   | `rate INDEX RATING`<br> e.g., `rate 1 8`
+**Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Strong left foot`; clear with `remark 1 r/`
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`
 **List**   | `list`
 **Pending** | `pending INDEX`<br> e.g., `pending 3`

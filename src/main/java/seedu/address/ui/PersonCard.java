@@ -39,6 +39,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label rating;
     @FXML
+    private Label remark;
+    @FXML
     private Label selectionStatus;
     @FXML
     private FlowPane tags;
@@ -52,6 +54,9 @@ public class PersonCard extends UiPart<Region> {
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
+        remark.setText("Remark: " + person.getRemark().value);
+        remark.setVisible(!person.getRemark().value.isEmpty());
+        remark.setManaged(remark.isVisible());
         rating.setText("Rating: " + person.getRating() + (person.getRating().isRated() ? "/10" : ""));
         selectionStatus.setText(person.getSelectionStatus().toString());
         selectionStatus.getStyleClass().add(STATUS_STYLE_CLASS_PREFIX
