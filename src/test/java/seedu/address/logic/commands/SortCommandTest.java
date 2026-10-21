@@ -1,15 +1,19 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.parser.SortCommandParser;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.Phone;
 import seedu.address.model.person.Rating;
 import seedu.address.testutil.PersonBuilder;
 
@@ -52,6 +56,22 @@ public class SortCommandTest {
         model.addPerson(unrated);
         new SortCommand(true).execute(model);
         assertEquals(List.of(unrated), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_addEditAndInvalidCommands_preservesSorting() throws Exception {
+        ModelManager model = createModel();
+        new SortCommand(false).execute(model);
+        Person added = new PersonBuilder().withName("Added Player").withRating("5").build();
+        model.addPerson(added);
+        assertEquals(List.of(high, tied, added, low, unrated), model.getFilteredPersonList());
+        EditCommand.EditPersonDescriptor edit = new EditCommand.EditPersonDescriptor();
+        edit.setPhone(new Phone("12345678"));
+        new EditCommand(Index.fromOneBased(3), edit).execute(model);
+        assertEquals(new Rating("5"), model.getFilteredPersonList().get(2).getRating());
+        List<Person> before = List.copyOf(model.getFilteredPersonList());
+        assertThrows(ParseException.class, () -> new SortCommandParser().parse("rating invalid"));
+        assertEquals(before, model.getFilteredPersonList());
     }
 
     private ModelManager createModel() {
