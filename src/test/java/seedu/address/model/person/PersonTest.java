@@ -191,4 +191,9 @@ public class PersonTest {
         assertEquals(InjuryStatus.FIT, ALICE.getInjuryStatus());
     }
 
+    @Test
+    public void withInjuryStatus_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withInjuryStatus(null));
+    }
+
 }

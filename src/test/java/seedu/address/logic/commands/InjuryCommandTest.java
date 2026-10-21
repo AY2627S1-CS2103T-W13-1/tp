@@ -11,16 +11,20 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
+import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.SelectionStatus;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -42,8 +46,9 @@ public class InjuryCommandTest {
     @Test
     public void execute_replaceAndRepeatStatus_success() throws Exception {
         new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.INJURED).execute(model);
-        new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.FIT).execute(model);
-        assertEquals(InjuryStatus.FIT, model.getFilteredPersonList().getFirst().getInjuryStatus());
+        assertEquals(InjuryStatus.INJURED, model.getFilteredPersonList().getFirst().getInjuryStatus());
+        new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.INJURED).execute(model);
+        assertEquals(InjuryStatus.INJURED, model.getFilteredPersonList().getFirst().getInjuryStatus());
         new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.FIT).execute(model);
         assertEquals(InjuryStatus.FIT, model.getFilteredPersonList().getFirst().getInjuryStatus());
         new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.FIT).execute(model);
@@ -60,6 +65,23 @@ public class InjuryCommandTest {
         assertEquals(1, model.getFilteredPersonList().size());
         assertEquals(updatedPlayer, model.getFilteredPersonList().getFirst());
         assertEquals(updatedPlayer, model.getAddressBook().getPersonList().get(1));
+    }
+
+    @Test
+    public void execute_tagFilteredPlayer_preservesOtherFieldsAndFilter() throws Exception {
+        Person original = new PersonBuilder().withTags("Striker").withRating("8")
+                .withSelectionStatus(SelectionStatus.KEPT).withRemark("Strong left foot").build();
+        Person other = new PersonBuilder().withName("Other Player").withTags("Goalkeeper").build();
+        AddressBook team = new AddressBook();
+        team.setPersons(List.of(original, other));
+        Model filteredModel = new ModelManager(team, new UserPrefs());
+        new AddressBookParser().parseCommand("filter t/Striker").execute(filteredModel);
+
+        new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.INJURED).execute(filteredModel);
+
+        Person expected = new PersonBuilder(original).withInjuryStatus(InjuryStatus.INJURED).build();
+        assertEquals(List.of(expected), filteredModel.getFilteredPersonList());
+        assertEquals(List.of(expected, other), filteredModel.getAddressBook().getPersonList());
     }
 
     @Test
