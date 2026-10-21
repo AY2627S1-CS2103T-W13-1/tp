@@ -8,6 +8,7 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 
@@ -133,5 +134,23 @@ public class ParserUtilTest {
         assertEquals(new Phone("81234567"), ParserUtil.parsePhone("8123 4567"));
         assertEquals(new Phone("81234567"), ParserUtil.parsePhone("8123-4567"));
         assertEquals(new Phone("+6598765432"), ParserUtil.parsePhone("+65 9876-5432"));
+    }
+
+    @Test
+    public void parseJerseyNumber_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseJerseyNumber(null));
+    }
+
+    @Test
+    public void parseJerseyNumber_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, JerseyNumber.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseJerseyNumber(""));
+        assertThrows(ParseException.class, JerseyNumber.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseJerseyNumber("100"));
+        assertThrows(ParseException.class, JerseyNumber.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseJerseyNumber("1 0"));
+    }
+
+    @Test
+    public void parseJerseyNumber_validValueWithWhitespace_returnsTrimmedJerseyNumber() throws Exception {
+        assertEquals(new JerseyNumber("10"), ParserUtil.parseJerseyNumber(WHITESPACE + "10" + WHITESPACE));
+        assertEquals(new JerseyNumber("7"), ParserUtil.parseJerseyNumber("07"));
     }
 }

@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 
@@ -60,5 +61,20 @@ public class ParserUtil {
             throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
         }
         return new Phone(normalizedPhone);
+    }
+
+    /**
+     * Parses a {@code String jerseyNumber} into a {@code JerseyNumber}.
+     * Leading and trailing whitespaces will be trimmed.
+     *
+     * @throws ParseException if the given {@code jerseyNumber} is invalid.
+     */
+    public static JerseyNumber parseJerseyNumber(String jerseyNumber) throws ParseException {
+        requireNonNull(jerseyNumber);
+        String trimmedJerseyNumber = jerseyNumber.trim();
+        if (!JerseyNumber.isValidJerseyNumber(trimmedJerseyNumber)) {
+            throw new ParseException(JerseyNumber.MESSAGE_CONSTRAINTS);
+        }
+        return new JerseyNumber(trimmedJerseyNumber);
     }
 }

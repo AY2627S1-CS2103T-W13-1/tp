@@ -40,6 +40,7 @@ public class Messages {
         builder.append(person.getName())
                 .append("; Phone: ")
                 .append(person.getPhone());
+        person.getJerseyNumber().ifPresent(jerseyNumber -> builder.append("; Jersey: ").append(jerseyNumber));
         return builder.toString();
     }
 

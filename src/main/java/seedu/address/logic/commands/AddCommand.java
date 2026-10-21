@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_JERSEY_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
@@ -20,10 +21,12 @@ public class AddCommand extends Command {
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Adds a player to the team.\n"
             + "Parameters: "
             + PREFIX_NAME + "NAME "
-            + PREFIX_PHONE + "PHONE\n"
+            + PREFIX_PHONE + "PHONE "
+            + "[" + PREFIX_JERSEY_NUMBER + "JERSEY]\n"
             + "Example: " + COMMAND_WORD + " "
             + PREFIX_NAME + "Tan Wei Ming "
-            + PREFIX_PHONE + "91234567";
+            + PREFIX_PHONE + "91234567 "
+            + PREFIX_JERSEY_NUMBER + "10";
 
     public static final String MESSAGE_SUCCESS = "New player added: %1$s";
     public static final String MESSAGE_DUPLICATE_PERSON = "This player already exists in the team.";
