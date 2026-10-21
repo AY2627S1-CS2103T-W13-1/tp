@@ -12,6 +12,7 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -73,7 +74,8 @@ public class LogicManager implements Logic {
      * Skipping the save also stops these commands from overwriting a data file that could not be read.
      */
     private static boolean isReadOnly(Command command) {
-        return command instanceof FindCommand
+        return command instanceof SortCommand
+                || command instanceof FindCommand
                 || command instanceof ListCommand
                 || command instanceof HelpCommand
                 || command instanceof ExitCommand;
