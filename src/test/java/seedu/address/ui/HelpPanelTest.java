@@ -43,13 +43,16 @@ public class HelpPanelTest {
                             + "shown right now. Positions change after a delete.\ne.g. delete 3"),
                     Map.entry("helpSyntax", "help"), Map.entry("helpDescription", "Show this summary"),
                     Map.entry("exitSyntax", "exit"), Map.entry("exitDescription", "Close CouchCoach"),
+                    Map.entry("remarkSyntax", "remark INDEX r/REMARK"),
+                    Map.entry("remarkDescription", "Set or replace a player remark; empty r/ clears it\n"
+                            + "e.g. remark 1 r/Strong left foot"),
                     Map.entry("helpFooter", "Your data is saved automatically after every change."));
 
             expectedText.forEach((id, text) -> {
                 Label label = (Label) help.getContent().lookup("#" + id);
                 assertEquals(text, label.getText());
             });
-            for (String command : List.of("add", "list", "find", "delete", "help", "exit")) {
+            for (String command : List.of("add", "list", "find", "delete", "help", "exit", "remark")) {
                 assertTrue(((Label) help.getContent().lookup("#" + command + "Description")).isWrapText());
             }
         });

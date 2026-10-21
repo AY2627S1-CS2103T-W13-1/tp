@@ -57,6 +57,11 @@
                GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
         <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.valignment="TOP" />
+        <Label fx:id="remarkSyntax" text="remark INDEX r/REMARK"
+               GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.valignment="TOP" />
+        <Label fx:id="remarkDescription" text="Set or replace a player remark; empty r/ clears it&#10;e.g. remark 1 r/Strong left foot"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />
