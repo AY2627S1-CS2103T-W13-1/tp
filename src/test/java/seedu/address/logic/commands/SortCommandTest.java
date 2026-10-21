@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.List;
@@ -22,6 +23,37 @@ public class SortCommandTest {
     private final Person high = new PersonBuilder().withName("High Tan").withRating("10").build();
     private final Person tied = new PersonBuilder().withName("Tied Tan").withRating("10").build();
     private final Person unrated = new PersonBuilder().withName("Unrated Lee").build();
+
+    @Test
+    public void equals_comparesSortDirection() {
+        SortCommand ascending = new SortCommand(true);
+        SortCommand descending = new SortCommand(false);
+        assertEquals(ascending, ascending);
+        assertEquals(ascending, new SortCommand(true));
+        assertEquals(descending, new SortCommand(false));
+        assertFalse(ascending.equals(descending));
+        assertFalse(ascending.equals(null));
+        assertFalse(ascending.equals(new ListCommand()));
+    }
+
+    @Test
+    public void execute_nullModel_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new SortCommand(true).execute(null));
+    }
+
+    @Test
+    public void execute_multipleUnratedPlayers_retainsInsertionOrderInBothDirections() {
+        ModelManager model = new ModelManager();
+        Person anotherUnrated = new PersonBuilder().withName("Another Player").build();
+        model.addPerson(unrated);
+        model.addPerson(anotherUnrated);
+        for (boolean ascending : new boolean[] {true, false}) {
+            CommandResult result = new SortCommand(ascending).execute(model);
+            assertEquals(List.of(unrated, anotherUnrated), model.getFilteredPersonList());
+            assertEquals(String.format(SortCommand.MESSAGE_SUCCESS, ascending ? "ascending" : "descending"),
+                    result.getFeedbackToUser());
+        }
+    }
 
     @Test
     public void execute_bothDirections_keepsUnratedLastAndTiesInInsertionOrder() {
