@@ -25,6 +25,11 @@
           </minWidth>
         </Label>
         <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
+        <Label fx:id="selectionStatus" styleClass="selection-status">
+          <HBox.margin>
+            <Insets left="10" />
+          </HBox.margin>
+        </Label>
       </HBox>
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
     </VBox>
