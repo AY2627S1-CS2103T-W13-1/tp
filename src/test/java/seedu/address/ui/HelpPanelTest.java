@@ -59,7 +59,7 @@ public class HelpPanelTest {
                     Map.entry("helpSyntax", "help"), Map.entry("helpDescription", "Show this summary"),
                     Map.entry("exitSyntax", "exit"), Map.entry("exitDescription", "Close CouchCoach"),
                     Map.entry("injurySyntax", "injury INDEX i/STATUS"),
-                    Map.entry("injuryDescription", "Mark a player injured or fit again\n"
+                    Map.entry("injuryDescription", "Mark a player injured or fit again; ignores case\n"
                             + "e.g. injury 1 i/injured or injury 1 i/fit"),
                     Map.entry("remarkSyntax", "remark INDEX r/REMARK"),
                     Map.entry("remarkDescription", "Set or replace a player remark; empty r/ clears it\n"

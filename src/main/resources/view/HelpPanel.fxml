@@ -93,7 +93,8 @@
                GridPane.columnIndex="1" GridPane.rowIndex="11" GridPane.valignment="TOP" />
         <Label fx:id="injurySyntax" text="injury INDEX i/STATUS"
                GridPane.columnIndex="0" GridPane.rowIndex="12" GridPane.valignment="TOP" />
-        <Label fx:id="injuryDescription" text="Mark a player injured or fit again&#10;e.g. injury 1 i/injured or injury 1 i/fit"
+        <Label fx:id="injuryDescription"
+               text="Mark a player injured or fit again; ignores case&#10;e.g. injury 1 i/injured or injury 1 i/fit"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="12" GridPane.valignment="TOP" />
       </GridPane>
