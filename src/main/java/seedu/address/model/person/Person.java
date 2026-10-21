@@ -65,6 +65,15 @@ public class Person {
     }
 
     /**
+     * Returns true if both persons have a jersey number and it is the same number.
+     */
+    public boolean hasSameJerseyNumber(Person otherPerson) {
+        return otherPerson != null
+                && jerseyNumber != null
+                && jerseyNumber.equals(otherPerson.jerseyNumber);
+    }
+
+    /**
      * Returns true if both persons have the same identity and data fields.
      * This defines a stronger notion of equality between two persons.
      */
