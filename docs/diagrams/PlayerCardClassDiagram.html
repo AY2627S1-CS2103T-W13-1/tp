@@ -71,8 +71,8 @@
   <path d="M200 352 V440" stroke-dasharray="4,3" marker-end="url(#association)"/>
   <path d="M360 488 H384 Q392 488 392 480 V352 Q392 344 400 344 H440" stroke-dasharray="4,3" marker-end="url(#association)"/>
   <path d="M760 280 H928" marker-end="url(#association)"/>
-  <path d="M1008 368 V400 Q1008 408 1000 408 H952 Q944 408 944 416 V472" marker-end="url(#association)"/>
-  <path d="M1088 368 V424 Q1088 432 1096 432 H1160 Q1168 432 1168 440 V472" marker-end="url(#association)"/>
+  <path d="M1008 304 V400 Q1008 408 1000 408 H952 Q944 408 944 416 V472" marker-end="url(#association)"/>
+  <path d="M1088 304 V424 Q1088 432 1096 432 H1160 Q1168 432 1168 440 V472" marker-end="url(#association)"/>
 </g>
 <rect x="208" y="388" width="52" height="12" fill="#ffffff"/>
 <text x="234.0" y="397" class="edge-label" text-anchor="middle">CREATES</text>
@@ -84,12 +84,16 @@
 <text x="844.0" y="269" class="edge-label" text-anchor="middle">PERSON</text>
 <rect x="904" y="260" width="16" height="12" fill="#ffffff"/>
 <text x="912.0" y="269" class="edge-label" text-anchor="middle">1</text>
-<rect x="1016" y="380" width="32" height="12" fill="#ffffff"/>
-<text x="1032.0" y="389" class="edge-label" text-anchor="middle">0..*</text>
+<rect x="1016" y="316" width="32" height="12" fill="#ffffff"/>
+<text x="1032.0" y="325" class="edge-label" text-anchor="middle">0..*</text>
+<rect x="872" y="448" width="64" height="12" fill="#ffffff"/>
+<text x="904.0" y="457" class="edge-label" text-anchor="middle">remark</text>
 <rect x="952" y="448" width="16" height="12" fill="#ffffff"/>
 <text x="960.0" y="457" class="edge-label" text-anchor="middle">1</text>
-<rect x="1096" y="380" width="32" height="12" fill="#ffffff"/>
-<text x="1112.0" y="389" class="edge-label" text-anchor="middle">0..*</text>
+<rect x="1096" y="316" width="32" height="12" fill="#ffffff"/>
+<text x="1112.0" y="325" class="edge-label" text-anchor="middle">0..*</text>
+<rect x="1088" y="448" width="72" height="12" fill="#ffffff"/>
+<text x="1124.0" y="457" class="edge-label" text-anchor="middle">injuryStatus</text>
 <rect x="1176" y="448" width="16" height="12" fill="#ffffff"/>
 <text x="1184.0" y="457" class="edge-label" text-anchor="middle">1</text>
 <g class="uml-class ui">
@@ -123,13 +127,10 @@
 <text x="452" y="336" class="member">+PersonCard(Person, int)</text>
 </g>
 <g class="uml-class model">
-<rect x="928" y="224" width="240" height="144" rx="6" class="class-box"/>
+<rect x="928" y="224" width="240" height="80" rx="6" class="class-box"/>
 <text x="1048.0" y="248" class="name" text-anchor="middle">Person</text>
 <line x1="928" y1="264" x2="1168" y2="264" class="divider"/>
-<text x="940" y="284" class="member">-remark: Remark</text>
-<text x="940" y="304" class="member">-injuryStatus: InjuryStatus</text>
-<line x1="928" y1="316" x2="1168" y2="316" class="divider"/>
-<text x="940" y="336" class="member">+isSamePerson(other): boolean</text>
+<text x="940" y="284" class="member">+isSamePerson(other): boolean</text>
 </g>
 <g class="uml-class model">
 <rect x="864" y="472" width="160" height="80" rx="6" class="class-box"/>
@@ -139,7 +140,7 @@
 </g>
 <g class="uml-class model">
 <rect x="1088" y="472" width="160" height="112" rx="6" class="class-box"/>
-<text x="1168.0" y="488" class="tag" text-anchor="middle">ENUMERATION</text>
+<text x="1168.0" y="488" class="tag" text-anchor="middle">«enumeration»</text>
 <text x="1168.0" y="508" class="name" text-anchor="middle">InjuryStatus</text>
 <line x1="1088" y1="520" x2="1248" y2="520" class="divider"/>
 <text x="1100" y="540" class="member">FIT</text>
