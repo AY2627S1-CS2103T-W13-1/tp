@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,6 +22,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -32,6 +34,8 @@ import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.SelectionStatus;
+import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -47,6 +51,78 @@ public class LogicManagerTest {
 
     private Model model = new ModelManager();
     private Logic logic;
+
+    @Test
+    public void execute_filter_doesNotSaveAndPreservesPreviousViewOnErrors() throws Exception {
+        Person striker = new PersonBuilder().withName("Amy").withTags("Striker", "Trial Group 2").build();
+        Person captain = new PersonBuilder().withName("Bob").withTags("Captain").build();
+        model.addPerson(striker);
+        model.addPerson(captain);
+        logic = createLogicWithFailingSave();
+        AddressBook original = new AddressBook(model.getAddressBook());
+        logic.execute("find Bob");
+        assertEquals("1 player listed!", logic.execute("filter t/striker").getFeedbackToUser());
+        assertEquals(List.of(striker), model.getFilteredPersonList());
+        for (String input : List.of("filter", "filter Striker", "filter t/", "filter t/Bad!", "Filter t/Striker")) {
+            assertThrows(ParseException.class, () -> logic.execute(input));
+            assertEquals(List.of(striker), model.getFilteredPersonList());
+        }
+        assertEquals("2 players listed!", logic.execute("filter t/Captain t/Trial Group 2").getFeedbackToUser());
+        assertEquals(List.of(striker, captain), model.getFilteredPersonList());
+        assertEquals(original, model.getAddressBook());
+        assertEquals(FilterCommand.MESSAGE_ONE_PLAYER_LISTED,
+                logic.execute("filter t/Trial Group 2 t/trial group 2").getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_addAndEditAfterFilter_restoreFullRosterAndPersistTags() throws Exception {
+        logic.execute("add n/Amy p/123 t/Striker");
+        logic.execute("add n/Bob p/456 t/Goalkeeper");
+        logic.execute("filter t/Goalkeeper");
+        logic.execute("edit 1 t/Captain");
+        assertEquals("Bob", model.getFilteredPersonList().getLast().getName().fullName);
+        assertEquals(Set.of(new Tag("Captain")), model.getFilteredPersonList().getLast().getTags());
+        assertEquals(2, model.getFilteredPersonList().size());
+        logic.execute("filter t/Striker");
+        logic.execute("add n/Charlie p/789 t/Captain");
+        assertEquals(3, model.getFilteredPersonList().size());
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_addAndEditTags_saveReplacePreserveAndClear() throws Exception {
+        logic.execute("add n/Tagged Player p/123 t/Striker t/Trial Group 2 t/striker");
+        Person expected = new PersonBuilder().withName("Tagged Player").withPhone("123")
+                .withTags("Striker", "Trial Group 2").build();
+        assertEquals(expected, model.getFilteredPersonList().getFirst());
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+
+        logic.execute("edit 1 p/456");
+        assertEquals(expected.getTags(), model.getFilteredPersonList().getFirst().getTags());
+        logic.execute("edit 1 t/Goalkeeper");
+        assertEquals(Set.of(new Tag("Goalkeeper")), model.getFilteredPersonList().getFirst().getTags());
+        logic.execute("edit 1 t/");
+        assertTrue(model.getFilteredPersonList().getFirst().getTags().isEmpty());
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_invalidTags_preserveDataAndFile() throws Exception {
+        logic.execute("add n/Tagged Player p/123 t/Striker");
+        AddressBook original = new AddressBook(model.getAddressBook());
+        logic = createLogicWithFailingSave();
+        for (String command : List.of("add n/Other p/456 t/", "edit 1 t/Bad!", "edit 1 t/ t/Striker",
+                "edit 1 t/Striker t/", "edit 1 t/ t/")) {
+            assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> logic.execute(command));
+            assertEquals(original, model.getAddressBook());
+        }
+        assertThrows(CommandException.class,
+                AddCommand.MESSAGE_DUPLICATE_PERSON, () -> logic.execute("add n/Tagged Player p/999 t/Goalkeeper"));
+        assertThrows(CommandException.class,
+                MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () -> logic.execute("edit 2 t/Striker"));
+    }
 
     @BeforeEach
     public void setUp() {
@@ -67,6 +143,58 @@ public class LogicManagerTest {
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
         assertCommandException(deleteCommand, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void execute_ratingAndStatusChanges_preserveBothFieldsOnReload() throws Exception {
+        model.addPerson(new PersonBuilder().withTags("Striker").build());
+        logic.execute("keep 1");
+        logic.execute("rate 1 8");
+        logic.execute("edit 1 p/12345678");
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Person kept = saved.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertEquals("8", kept.getRating().toString());
+        assertEquals("Kept", kept.getSelectionStatus().toString());
+        assertEquals(Set.of(new Tag("Striker")), kept.getTags());
+        logic.execute("cut 1");
+        Person cut = saved.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertEquals("8", cut.getRating().toString());
+        assertEquals("Cut", cut.getSelectionStatus().toString());
+        assertEquals(Set.of(new Tag("Striker")), cut.getTags());
+        logic.execute("pending 1");
+        Person pending = saved.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertEquals("8", pending.getRating().toString());
+        assertEquals("Pending", pending.getSelectionStatus().toString());
+        assertEquals(Set.of(new Tag("Striker")), pending.getTags());
+    }
+
+    @Test
+    public void execute_tagEdits_preserveSelectionAndRatingOnReload() throws Exception {
+        PersonBuilder expected = new PersonBuilder().withTags("Striker")
+                .withSelectionStatus(SelectionStatus.KEPT).withRating("10");
+        model.addPerson(expected.build());
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+
+        logic.execute("edit 1 n/Tag Captain p/456");
+        assertEquals(expected.withName("Tag Captain").withPhone("456").build(),
+                saved.readAddressBook().orElseThrow().getPersonList().getFirst());
+        logic.execute("edit 1 t/Captain");
+        assertEquals(expected.withTags("Captain").build(),
+                saved.readAddressBook().orElseThrow().getPersonList().getFirst());
+        logic.execute("edit 1 t/");
+        assertEquals(expected.withTags().build(),
+                saved.readAddressBook().orElseThrow().getPersonList().getFirst());
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_rateThenReload_preservesRating() throws Exception {
+        model.addPerson(new PersonBuilder().build());
+        logic.execute("rate 1 8");
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+        logic.execute("edit 1 p/12345678");
+        assertEquals("8", saved.readAddressBook().orElseThrow().getPersonList().get(0).getRating().toString());
     }
 
     @Test
@@ -133,6 +261,23 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_squad_showsKeptPlayersWithoutSaving() throws Exception {
+        TypicalPersons.getTypicalPersons().forEach(model::addPerson);
+        Person keptAlice = TypicalPersons.ALICE.withSelectionStatus(SelectionStatus.KEPT);
+        model.setPerson(TypicalPersons.ALICE, keptAlice);
+        // Any save attempt would throw, so this passes only if squad does not write the data file
+        logic = createLogicWithFailingSave();
+        AddressBook previousData = new AddressBook(model.getAddressBook());
+
+        assertEquals("1 player in your squad.", logic.execute("squad").getFeedbackToUser());
+        assertEquals(List.of(keptAlice), logic.getFilteredPersonList());
+        assertEquals(previousData, model.getAddressBook());
+
+        assertEquals("Listed all players", logic.execute("list").getFeedbackToUser());
+        assertEquals(TypicalPersons.getTypicalPersons().size(), logic.getFilteredPersonList().size());
+    }
+
+    @Test
     public void execute_exit_successWithoutSaving() throws Exception {
         // Any save attempt would throw, so this passes only if exit does not write the data file
         logic = createLogicWithFailingSave();
@@ -153,6 +298,24 @@ public class LogicManagerTest {
             assertEquals(previousList, logic.getFilteredPersonList());
             assertEquals(previousData, model.getAddressBook());
         }
+    }
+
+    @Test
+    public void execute_keep_savesStatusToDataFile() throws Exception {
+        model.addPerson(AMY);
+        assertEquals("Marked " + AMY.getName() + " as kept.", logic.execute("keep 1").getFeedbackToUser());
+
+        // reading the saved file back shows the player as kept, so the decision survives a restart
+        ReadOnlyAddressBook savedData = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow();
+        assertEquals(SelectionStatus.KEPT, savedData.getPersonList().get(0).getSelectionStatus());
+    }
+
+    @Test
+    public void execute_cutWhenSaveFails_throwsCommandException() {
+        model.addPerson(AMY);
+        logic = createLogicWithFailingSave();
+        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> logic.execute("cut 1"));
     }
 
     @Test

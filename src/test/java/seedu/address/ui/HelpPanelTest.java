@@ -32,8 +32,15 @@ public class HelpPanelTest {
             Map<String, String> expectedText = Map.ofEntries(
                     Map.entry("helpHeading", "CouchCoach commands:"),
                     Map.entry("helpHint", "Type 'list' to see your players again."),
-                    Map.entry("addSyntax", "add n/NAME p/PHONE"),
-                    Map.entry("addDescription", "Add a player\ne.g. add n/Tan Wei Ming p/91234567"),
+                    Map.entry("addSyntax", "add n/NAME p/PHONE\n[t/TAG]..."),
+                    Map.entry("addDescription", "Add a player with optional tags\n"
+                            + "e.g. add n/Tan Wei Ming p/91234567 t/Striker"),
+                    Map.entry("editSyntax", "edit INDEX [n/NAME]\n[p/PHONE] [t/TAG]..."),
+                    Map.entry("editDescription", "Edit the displayed player; tags replace existing tags\n"
+                            + "A single empty t/ clears tags; omit t/ to keep them\ne.g. edit 1 t/Striker t/Captain"),
+                    Map.entry("filterSyntax", "filter t/TAG [t/TAG]..."),
+                    Map.entry("filterDescription", "Show players with any requested tag\n"
+                            + "Matches complete labels, ignores capitalisation\ne.g. filter t/Striker t/Trial Group 2"),
                     Map.entry("listSyntax", "list"), Map.entry("listDescription", "Show all players"),
                     Map.entry("findSyntax", "find KEYWORD..."),
                     Map.entry("findDescription", "Show players whose names contain a keyword\n"
@@ -41,15 +48,28 @@ public class HelpPanelTest {
                     Map.entry("deleteSyntax", "delete INDEX"),
                     Map.entry("deleteDescription", "Delete the player at that position in the list\n"
                             + "shown right now. Positions change after a delete.\ne.g. delete 3"),
+                    Map.entry("statusSyntax", "keep INDEX\ncut INDEX\npending INDEX"),
+                    Map.entry("statusDescription", "Mark the player at that position as kept, cut,\n"
+                            + "or not yet decided (pending)\ne.g. keep 3"),
+                    Map.entry("squadSyntax", "squad"),
+                    Map.entry("squadDescription", "Show only the players you have kept"),
+                    Map.entry("rateSyntax", "rate INDEX RATING"),
+                    Map.entry("rateDescription", "Set a player's rating (whole number 0 to 10)\n"
+                            + "e.g. rate 1 8"),
                     Map.entry("helpSyntax", "help"), Map.entry("helpDescription", "Show this summary"),
                     Map.entry("exitSyntax", "exit"), Map.entry("exitDescription", "Close CouchCoach"),
+                    Map.entry("remarkSyntax", "remark INDEX r/REMARK"),
+                    Map.entry("remarkDescription", "Set or replace a player remark; empty r/ clears it\n"
+                            + "Use r/ only once; a second r/ after a space is rejected\n"
+                            + "e.g. remark 1 r/Strong left foot"),
                     Map.entry("helpFooter", "Your data is saved automatically after every change."));
 
             expectedText.forEach((id, text) -> {
                 Label label = (Label) help.getContent().lookup("#" + id);
                 assertEquals(text, label.getText());
             });
-            for (String command : List.of("add", "list", "find", "delete", "help", "exit")) {
+            for (String command : List.of("add", "list", "find", "delete", "status", "squad",
+                    "help", "exit", "edit", "rate", "filter", "remark")) {
                 assertTrue(((Label) help.getContent().lookup("#" + command + "Description")).isWrapText());
             }
         });
