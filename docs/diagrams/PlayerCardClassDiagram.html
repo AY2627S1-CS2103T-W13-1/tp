@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Player-card remarks and injury status — CouchCoach</title>
+  <style>
+    * { box-sizing: border-box; }
+    :root {
+      /* Project skin: docs/diagrams/style.puml (UI_COLOR, MODEL_COLOR, Arial). */
+      --paper: #ffffff;
+      --ink: #222222;
+      --muted: #555555;
+      --accent: #1d8900;
+      --model: #9d0012;
+      --font-sans: Arial, Helvetica, sans-serif;
+      --font-mono: 'Courier New', Courier, monospace;
+    }
+    body { margin: 0; padding: 24px; background: var(--paper); color: var(--ink); font-family: var(--font-sans); }
+    .frame { width: 100%; max-width: 1280px; min-width: 0; margin: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: .08em; }
+    h1 { font-family: var(--font-sans); font-size: 28px; margin: 8px 0 12px; font-weight: 600; }
+    p { font-size: 14px; line-height: 1.5; max-width: 90ch; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    svg { width: 100%; min-width: 1280px; display: block; }
+    .class-box { fill: var(--paper); stroke: #0e4100; stroke-width: 1; }
+    .divider { stroke: #0e4100; stroke-width: 1; }
+    .model .class-box, .model .divider { stroke: var(--model); }
+    .model .name, .model .tag { fill: var(--model); }
+    .focal .class-box { fill: var(--accent); stroke: #0e4100; }
+    .focal .divider { stroke: #ffffff; }
+    .focal text { fill: #ffffff; }
+    .name { font-family: var(--font-sans); font-size: 12px; font-weight: 600; fill: var(--ink); }
+    .abstract { font-style: italic; }
+    .member { font-family: var(--font-mono); font-size: 9px; fill: var(--ink); }
+    .tag, .edge-label { font-family: var(--font-mono); font-size: 8px; fill: var(--muted); }
+    .legend { font-family: var(--font-sans); font-size: 10px; fill: var(--muted); }
+    .relations { fill: none; stroke: #555555; stroke-width: 1.1; }
+    .caption { color: var(--muted); margin-bottom: 0; }
+    @media print {
+      body { padding: 0; }
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <main class="frame">
+    <p class="eyebrow">COUCHCOACH / UI CLASS DETAIL / US21 + US13</p>
+    <h1>Player-card remarks and injury status</h1>
+    <p>Each list cell creates a card for one player. The card reads the player's remark and injury status
+      and fills the matching JavaFX labels.</p>
+    <div class="diagram-container" tabindex="0" role="region" aria-label="Scrollable player-card UML class diagram">
+<svg viewBox="0 0 1280 720" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="PlayerCardClassDiagram-title PlayerCardClassDiagram-desc">
+<title id="PlayerCardClassDiagram-title">Player-card remarks and injury status</title>
+<desc id="PlayerCardClassDiagram-desc">PersonListPanel creates cells that display PersonCard objects, which read each player's remark and injury status from the model.</desc>
+<defs>
+  <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#555555"/></marker>
+  <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#1d8900"/></marker>
+  <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0,8 3,0 6" fill="#9d0012"/></marker>
+  <marker id="inheritance" markerWidth="12" markerHeight="12" refX="12" refY="6" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L12 6 L0 12 Z" fill="#ffffff" stroke="#333333"/></marker>
+  <marker id="association" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 0 L8 4 L0 8" fill="none" stroke="#555555"/></marker>
+  <marker id="composition" markerWidth="12" markerHeight="8" refX="0" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 4 L6 0 L12 4 L6 8 Z" fill="#333333" stroke="#333333"/></marker>
+  <marker id="aggregation" markerWidth="12" markerHeight="8" refX="0" refY="4" orient="auto" markerUnits="userSpaceOnUse"><path d="M0 4 L6 0 L12 4 L6 8 Z" fill="#ffffff" stroke="#333333"/></marker>
+</defs>
+<rect width="1280" height="720" fill="#ffffff"/>
+<!-- Relationships precede classes. Each shared edge has separate ports. -->
+<g class="relations">
+  <path d="M200 224 V144" marker-end="url(#inheritance)"/>
+  <path d="M600 224 V112 Q600 104 592 104 H320" marker-end="url(#inheritance)"/>
+  <path d="M200 352 V440" stroke-dasharray="4,3" marker-end="url(#association)"/>
+  <path d="M360 488 H384 Q392 488 392 480 V352 Q392 344 400 344 H440" stroke-dasharray="4,3" marker-end="url(#association)"/>
+  <path d="M760 280 H928" marker-end="url(#association)"/>
+  <path d="M1008 304 V400 Q1008 408 1000 408 H952 Q944 408 944 416 V472" marker-end="url(#association)"/>
+  <path d="M1088 304 V424 Q1088 432 1096 432 H1160 Q1168 432 1168 440 V472" marker-end="url(#association)"/>
+</g>
+<rect x="208" y="388" width="52" height="12" fill="#ffffff"/>
+<text x="234.0" y="397" class="edge-label" text-anchor="middle">CREATES</text>
+<rect x="400" y="404" width="52" height="12" fill="#ffffff"/>
+<text x="426.0" y="413" class="edge-label" text-anchor="middle">CREATES</text>
+<rect x="768" y="260" width="32" height="12" fill="#ffffff"/>
+<text x="784.0" y="269" class="edge-label" text-anchor="middle">0..*</text>
+<rect x="816" y="260" width="56" height="12" fill="#ffffff"/>
+<text x="844.0" y="269" class="edge-label" text-anchor="middle">PERSON</text>
+<rect x="904" y="260" width="16" height="12" fill="#ffffff"/>
+<text x="912.0" y="269" class="edge-label" text-anchor="middle">1</text>
+<rect x="1016" y="316" width="32" height="12" fill="#ffffff"/>
+<text x="1032.0" y="325" class="edge-label" text-anchor="middle">0..*</text>
+<rect x="872" y="448" width="64" height="12" fill="#ffffff"/>
+<text x="904.0" y="457" class="edge-label" text-anchor="middle">remark</text>
+<rect x="952" y="448" width="16" height="12" fill="#ffffff"/>
+<text x="960.0" y="457" class="edge-label" text-anchor="middle">1</text>
+<rect x="1096" y="316" width="32" height="12" fill="#ffffff"/>
+<text x="1112.0" y="325" class="edge-label" text-anchor="middle">0..*</text>
+<rect x="1088" y="448" width="72" height="12" fill="#ffffff"/>
+<text x="1124.0" y="457" class="edge-label" text-anchor="middle">injuryStatus</text>
+<rect x="1176" y="448" width="16" height="12" fill="#ffffff"/>
+<text x="1184.0" y="457" class="edge-label" text-anchor="middle">1</text>
+<g class="uml-class ui">
+<rect x="80" y="64" width="240" height="80" rx="6" class="class-box"/>
+<text x="200.0" y="88" class="name abstract" text-anchor="middle">UiPart&lt;T&gt;</text>
+<line x1="80" y1="104" x2="320" y2="104" class="divider"/>
+<text x="92" y="124" class="member">-fxmlLoader: FXMLLoader</text>
+</g>
+<g class="uml-class ui">
+<rect x="40" y="224" width="320" height="128" rx="6" class="class-box"/>
+<text x="200.0" y="248" class="name" text-anchor="middle">PersonListPanel</text>
+<line x1="40" y1="264" x2="360" y2="264" class="divider"/>
+<text x="52" y="284" class="member">-personListView: ListView&lt;Person&gt;</text>
+<line x1="40" y1="296" x2="360" y2="296" class="divider"/>
+<text x="52" y="316" class="member">+PersonListPanel(ObservableList&lt;Person&gt;)</text>
+</g>
+<g class="uml-class ui">
+<rect x="40" y="440" width="320" height="96" rx="6" class="class-box"/>
+<text x="200.0" y="456" class="tag" text-anchor="middle">INNER CLASS</text>
+<text x="200.0" y="476" class="name" text-anchor="middle">PersonListViewCell</text>
+<line x1="40" y1="488" x2="360" y2="488" class="divider"/>
+<text x="52" y="508" class="member">#updateItem(Person, boolean): void</text>
+</g>
+<g class="uml-class focal">
+<rect x="440" y="224" width="320" height="176" rx="6" class="class-box"/>
+<text x="600.0" y="248" class="name" text-anchor="middle">PersonCard</text>
+<line x1="440" y1="264" x2="760" y2="264" class="divider"/>
+<text x="452" y="284" class="member">-remark: Label</text>
+<text x="452" y="304" class="member">-injuryStatus: Label</text>
+<line x1="440" y1="316" x2="760" y2="316" class="divider"/>
+<text x="452" y="336" class="member">+PersonCard(Person, int)</text>
+</g>
+<g class="uml-class model">
+<rect x="928" y="224" width="240" height="80" rx="6" class="class-box"/>
+<text x="1048.0" y="248" class="name" text-anchor="middle">Person</text>
+<line x1="928" y1="264" x2="1168" y2="264" class="divider"/>
+<text x="940" y="284" class="member">+isSamePerson(other): boolean</text>
+</g>
+<g class="uml-class model">
+<rect x="864" y="472" width="160" height="80" rx="6" class="class-box"/>
+<text x="944.0" y="496" class="name" text-anchor="middle">Remark</text>
+<line x1="864" y1="512" x2="1024" y2="512" class="divider"/>
+<text x="876" y="532" class="member">+value: String</text>
+</g>
+<g class="uml-class model">
+<rect x="1088" y="472" width="160" height="112" rx="6" class="class-box"/>
+<text x="1168.0" y="488" class="tag" text-anchor="middle">«enumeration»</text>
+<text x="1168.0" y="508" class="name" text-anchor="middle">InjuryStatus</text>
+<line x1="1088" y1="520" x2="1248" y2="520" class="divider"/>
+<text x="1100" y="540" class="member">FIT</text>
+<text x="1100" y="560" class="member">INJURED</text>
+</g>
+<line x1="40" y1="660" x2="1240" y2="660" stroke="#cccccc"/>
+<line x1="40" y1="692" x2="76" y2="692" stroke="#555555" marker-end="url(#inheritance)"/>
+<text x="88" y="695" class="legend">Inheritance</text>
+<line x1="240" y1="692" x2="276" y2="692" stroke="#555555" stroke-dasharray="4,3" marker-end="url(#inheritance)"/>
+<text x="288" y="695" class="legend">Realization</text>
+<line x1="440" y1="692" x2="476" y2="692" stroke="#555555" marker-start="url(#composition)"/>
+<text x="488" y="695" class="legend">Composition</text>
+<line x1="640" y1="692" x2="676" y2="692" stroke="#555555" marker-start="url(#aggregation)"/>
+<text x="688" y="695" class="legend">Aggregation</text>
+<line x1="840" y1="692" x2="876" y2="692" stroke="#555555" marker-end="url(#association)"/>
+<text x="888" y="695" class="legend">Association</text>
+<line x1="1040" y1="692" x2="1076" y2="692" stroke="#555555" stroke-dasharray="4,3" marker-end="url(#association)"/>
+<text x="1088" y="695" class="legend">Dependency</text>
+</svg>
+    </div>
+    <p class="caption">Partial view of PRs #105 (US21) and #106 (US13), pending merge. Fields and operations unrelated
+      to this view are omitted. Association multiplicities describe model references, not ownership:
+      an immutable value may be shared by more than one player. An empty remark label is hidden and unmanaged;
+      injury status displays fit or injured.</p>
+  </main>
+</body>
+</html>

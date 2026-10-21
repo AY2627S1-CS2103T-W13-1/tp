@@ -75,6 +75,9 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
+See the [player-card detail](diagrams/PlayerCardClassDiagram.html) for the planned
+US21 remarks and US13 injury-status display.
+
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
@@ -156,6 +159,79 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Selection status feature
+
+#### Implementation
+
+Each `Person` has a `SelectionStatus`, an enum with the values `PENDING`, `KEPT` and `CUT`. New players start as `PENDING`. The `keep`, `cut` and `pending` commands change it, and all three are handled by one `SetStatusCommand` class, which takes the status to set. `AddressBookParser` picks the status from the command word and passes it to a `SetStatusCommandParser`, which parses the index.
+
+The sequence diagram below shows how `cut 1` is executed.
+
+<puml src="diagrams/CutSequenceDiagram.puml" alt="Interactions inside the Logic, Model and Storage components for the `cut 1` command" />
+
+<box type="info" seamless>
+
+**Note:** The lifeline for `SetStatusCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
+</box>
+
+1. `AddressBookParser` matches the command word `cut`, creates a `SetStatusCommandParser` for `CUT`, and uses it to parse `"1"` into a `SetStatusCommand`.
+1. `LogicManager` executes the command. The command gets the player `p` at index 1 of the displayed list from the `Model`.
+1. As `Person` is immutable, `p.withSelectionStatus(CUT)` returns a new `Person` with every other field (name, phone, rating, tags and remark) unchanged. The command replaces `p` with it using `Model#setPerson()`.
+1. `LogicManager` then saves the team through `Storage`. It decides this by command type: read-only command types, such as `find` and `squad`, skip this step, while `keep`, `cut` and `pending` always save.
+
+If the index is out of range, the command throws a `CommandException` before changing anything. If the player already has the status, the command returns a message saying so and does not replace the player. `LogicManager` still saves in this case, as it only checks the command type, but the saved data is unchanged.
+
+The status is saved in the data file as a `selectionStatus` field. Data files saved by v1.3 have no such field, so `JsonAdaptedPerson` loads those players as `PENDING`.
+
+#### Design considerations
+
+**Aspect: How to represent the three commands**
+
+* **Alternative 1 (current choice):** One `SetStatusCommand` that takes the status to set.
+  * Pros: No repeated code. Adding a new status needs a new enum value and command word, a case in `SetStatusCommand#getCommandWord()`, and a case in `AddressBookParser`.
+  * Cons: The shared class needs a mapping between each status and its command word, which the separate classes would not need.
+* **Alternative 2:** Separate `KeepCommand`, `CutCommand` and `PendingCommand` classes.
+  * Pros: Each class matches one command word, like the rest of AB3.
+  * Cons: Three almost identical classes and parsers to keep in sync.
+
+**Aspect: What the list shows after the command**
+
+* **Alternative 1 (current choice):** Keep the current filter.
+  * Pros: A coach can `find Tan` and then mark each result in turn without searching again.
+  * Cons: When the filter depends on the status, as in `squad`, the change can move the player out of the filter. For example, `cut 1` while viewing the squad removes that player from the displayed list, and the players below move up one index.
+* **Alternative 2:** Reset to the full list, like `add`.
+  * Cons: The coach loses their place after every decision.
+
+### Custom player tags (US08)
+
+`Person` holds an immutable set of `Tag` values. The model class diagram above shows
+its zero-to-many association with tags. Tags are shared values rather than part of
+player identity: duplicate detection remains based on the normalized player name.
+`Tag` validates and normalizes labels and compares them ignoring case.
+
+`AddCommandParser` collects all `t/` values through `ParserUtil.parseTags`.
+`EditCommandParser` distinguishes an omitted tag prefix (preserve tags), supplied
+labels (replace the set), and a single empty prefix (clear the set). Empty labels
+mixed with other labels are invalid. The edit descriptor and player defensively
+copy their sets. `JsonAdaptedPerson` writes tag strings and accepts missing/null
+`tags` from older records as an empty collection; invalid/null entries are rejected.
+`PersonCard` displays tags alphabetically in a wrapping `FlowPane`.
+
+### Filtering players by tag (US16)
+
+`FilterCommandParser` accepts repeated `t/` arguments and reuses `ParserUtil.parseTags`.
+`TagsContainAnyPredicate` holds a defensive copy of the requested tags and matches
+any complete label using `Tag` equality. `FilterCommand` replaces the model's list
+predicate, so each filter searches the full roster. `LogicManager` treats it as read-only
+and skips saving, including when the data file is unreadable or unwritable.
+
+<puml src="diagrams/TagFilterClassDiagram.puml" width="650" />
+
+The UML shows creation dependencies from the parser and the predicate's realization
+of `Predicate<Person>`. The predicate reads `Person` tags; the command changes only
+the filtered view through `Model`. Matches retain roster order, use displayed indices,
+and are replaced by `find` or `list`. Invalid arguments fail before the view changes.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -843,3 +919,56 @@ these checks and verify that both remain unchanged afterwards.
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
 
 1. _{ more test cases … }_
+
+### Custom player tags (US08): manual regression checks
+
+Use a disposable data folder. Start with `add n/Tag Tester p/123 t/Striker t/Trial Group 2`.
+
+| Action | Expected result |
+| --- | --- |
+| Inspect the new card and result box. | Both tags appear, alphabetically, without hiding name or phone. |
+| `edit 1 p/456` | Tags remain. |
+| `edit 1 t/Captain t/captain` | Previous tags are replaced by one Captain tag. |
+| `edit 1 t/` | Tags are cleared; name and phone remain. |
+| `edit 1 t/` again | Successful idempotent clearing. |
+| `edit 1 t/` followed by `edit 1 t/Trial   Group 2` | One tag, Trial Group 2, with collapsed whitespace. |
+| `add n/Invalid p/456 t/`, `edit 1 t/Bad!`, `edit 1 t/ t/Striker` | Tag constraint error; records and displayed list unchanged. |
+| Try 30-character and 31-character tags. | The first succeeds; the second is rejected with the tag constraint error. |
+| `find Tag`, then `edit 1 t/Striker` | The displayed player is edited; the full team is restored. |
+| Restart, then inspect cards and JSON. | Tags persist. A legacy record with no tags field still loads. |
+| Open `help` at normal and minimum window width. | Add/edit syntax, examples, and tag-clearing guidance remain readable. |
+| `edit 1 t/Striker`, `keep 1`, then `rate 1 10` | The same player shows Striker, Kept, and Rating: 10/10 together. |
+| `squad`, then `rate 1 0` | The kept player remains visible with Striker and Rating: 0/10. |
+| `edit 1 t/Captain`, then `edit 1 p/456` | Kept and Rating: 0/10 remain; the Captain tag survives the phone edit. |
+| `edit 1 t/`, then restart | Only tags are cleared; the player remains kept and rated 0/10. |
+| `cut 1`, then `squad`; use `list` to inspect the player again | The cut player leaves the squad; their rating and other details remain. |
+
+Run the existing add, edit, find, delete and saving regressions as well. Back up data
+before checking corrupt JSON tags; invalid tag strings and null tag entries should
+trigger the existing unreadable-data warning rather than silently creating labels.
+
+### Filtering by tag (US16): manual regression checks
+
+In a disposable team, add Amy with Striker and Captain, Bob with Goalkeeper, and
+Charlie with Captain, in that order. Confirm tags are visible on their cards.
+
+| Action | Expected result |
+| --- | --- |
+| `filter t/STRIKER` | Amy only; 1 player listed. |
+| `keep 1`, `rate 1 10`, `squad`, then `filter t/STRIKER` | Amy remains visible with Striker, Captain, Kept, and Rating: 10/10. |
+| `filter t/Striker t/Captain t/striker` | Amy and Charlie once each, numbered 1 and 2. |
+| `filter t/strik` or `filter t/NoSuchTag` | Empty list; 0 players listed. |
+| `filter t/Goalkeeper` after `find Amy` | Bob appears despite the earlier name filter. |
+| `filter t/Captain`, then `find Bob` | Bob appears; find replaces the tag filter. |
+| `filter t/`, `filter`, `filter Striker`, `filter t/Bad!`, `Filter t/Striker` | Error; previous list and player data unchanged. |
+| Use tags of 30 and 31 characters. | A valid 30-character label is searched; 31 is rejected. |
+| `filter t/Captain`, then `delete 1` | Amy is deleted; Charlie remains numbered 1, Bob stays hidden. |
+| `edit 1 t/Striker` after the previous step | Charlie's tags change; full roster returns. |
+| `filter t/Goalkeeper`, then add a new player. | Full roster returns, with the new player last. |
+| `help`, then `filter t/Goalkeeper` | Player panel returns showing Bob. Help includes filter syntax and examples. |
+| `list` after any filter | Full roster restored in its original order. |
+| Clear the disposable team, then `filter t/Striker`. | 0 players listed; no exception. |
+
+Compare the JSON file before and after successful/failed filtering; its contents must
+not change. Block the save path as in the existing find tests: filtering still works
+without a save error. Add/edit/delete remain subject to their existing save behavior.

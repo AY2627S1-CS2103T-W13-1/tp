@@ -17,6 +17,7 @@ Class Person
 Class Name
 Class Phone
 Class Rating
+Class Tag
 
 Class I #FFFFFF
 }
@@ -38,6 +39,7 @@ UniquePersonList --> "~* all" Person
 Person *--> Name
 Person *--> Phone
 Person --> "1" Rating
+Person --> "0..*" Tag : labels
 
 Person -[hidden]up--> I
 UniquePersonList -[hidden]right-> I
