@@ -41,6 +41,11 @@ public class HelpPanelTest {
                     Map.entry("deleteSyntax", "delete INDEX"),
                     Map.entry("deleteDescription", "Delete the player at that position in the list\n"
                             + "shown right now. Positions change after a delete.\ne.g. delete 3"),
+                    Map.entry("statusSyntax", "keep INDEX\ncut INDEX\npending INDEX"),
+                    Map.entry("statusDescription", "Mark the player at that position as kept, cut,\n"
+                            + "or not yet decided (pending)\ne.g. keep 3"),
+                    Map.entry("squadSyntax", "squad"),
+                    Map.entry("squadDescription", "Show only the players you have kept"),
                     Map.entry("helpSyntax", "help"), Map.entry("helpDescription", "Show this summary"),
                     Map.entry("exitSyntax", "exit"), Map.entry("exitDescription", "Close CouchCoach"),
                     Map.entry("helpFooter", "Your data is saved automatically after every change."));
@@ -49,7 +54,7 @@ public class HelpPanelTest {
                 Label label = (Label) help.getContent().lookup("#" + id);
                 assertEquals(text, label.getText());
             });
-            for (String command : List.of("add", "list", "find", "delete", "help", "exit")) {
+            for (String command : List.of("add", "list", "find", "delete", "status", "squad", "help", "exit")) {
                 assertTrue(((Label) help.getContent().lookup("#" + command + "Description")).isWrapText());
             }
         });

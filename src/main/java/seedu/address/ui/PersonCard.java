@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import java.util.Locale;
+
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -12,6 +14,8 @@ import seedu.address.model.person.Person;
 public class PersonCard extends UiPart<Region> {
 
     private static final String FXML = "PersonListCard.fxml";
+    /** Prefix of the style class that colours the status badge, e.g. {@code selection-status-kept}. */
+    private static final String STATUS_STYLE_CLASS_PREFIX = "selection-status-";
 
     /**
      * Note: Certain keywords such as "location" and "resources" are reserved keywords in JavaFX.
@@ -33,6 +37,8 @@ public class PersonCard extends UiPart<Region> {
     private Label phone;
     @FXML
     private Label rating;
+    @FXML
+    private Label selectionStatus;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -44,5 +50,8 @@ public class PersonCard extends UiPart<Region> {
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
         rating.setText("Rating: " + person.getRating() + (person.getRating().isRated() ? "/10" : ""));
+        selectionStatus.setText(person.getSelectionStatus().toString());
+        selectionStatus.getStyleClass().add(STATUS_STYLE_CLASS_PREFIX
+                + person.getSelectionStatus().name().toLowerCase(Locale.ROOT));
     }
 }

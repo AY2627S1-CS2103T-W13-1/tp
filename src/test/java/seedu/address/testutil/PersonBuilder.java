@@ -4,6 +4,7 @@ import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Rating;
+import seedu.address.model.person.SelectionStatus;
 
 /**
  * A utility class to help with building Person objects.
@@ -15,6 +16,7 @@ public class PersonBuilder {
 
     private Name name;
     private Phone phone;
+    private SelectionStatus selectionStatus;
     private Rating rating = Rating.UNRATED;
 
     /**
@@ -23,6 +25,7 @@ public class PersonBuilder {
     public PersonBuilder() {
         name = new Name(DEFAULT_NAME);
         phone = new Phone(DEFAULT_PHONE);
+        selectionStatus = SelectionStatus.PENDING;
     }
 
     /**
@@ -31,6 +34,7 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
+        selectionStatus = personToCopy.getSelectionStatus();
         rating = personToCopy.getRating();
     }
 
@@ -50,6 +54,14 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the {@code SelectionStatus} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withSelectionStatus(SelectionStatus selectionStatus) {
+        this.selectionStatus = selectionStatus;
+        return this;
+    }
+
     /** Sets the rating of the player being built. */
     public PersonBuilder withRating(String rating) {
         this.rating = new Rating(rating);
@@ -57,7 +69,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, rating);
+        return new Person(name, phone, selectionStatus, rating);
     }
 
 }
