@@ -25,6 +25,7 @@ public class Person {
     private final Rating rating;
     private final Set<Tag> tags;
     private final Remark remark;
+    private final InjuryStatus injuryStatus;
 
     /**
      * Creates a player who has not been kept or cut yet.
@@ -35,6 +36,11 @@ public class Person {
      */
     public Person(Name name, Phone phone) {
         this(name, phone, SelectionStatus.PENDING, Rating.UNRATED, Set.of());
+    }
+
+    /** Creates a pending, unrated player with the given injury status, no tags and an empty remark. */
+    public Person(Name name, Phone phone, InjuryStatus injuryStatus) {
+        this(name, phone, SelectionStatus.PENDING, Rating.UNRATED, Set.of(), new Remark(""), injuryStatus);
     }
 
     /** Creates a pending, unrated player with the given remark and no tags. */
@@ -92,13 +98,20 @@ public class Person {
      */
     public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating, Set<Tag> tags,
                   Remark remark) {
-        requireAllNonNull(name, phone, selectionStatus, rating, tags, remark);
+        this(name, phone, selectionStatus, rating, tags, remark, InjuryStatus.FIT);
+    }
+
+    /** Creates a player with all fields present and a defensive copy of the supplied tags. */
+    public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating, Set<Tag> tags,
+                  Remark remark, InjuryStatus injuryStatus) {
+        requireAllNonNull(name, phone, selectionStatus, rating, tags, remark, injuryStatus);
         requireAllNonNull(tags);
         this.name = name;
         this.phone = phone;
         this.selectionStatus = selectionStatus;
         this.rating = rating;
         this.remark = remark;
+        this.injuryStatus = injuryStatus;
         this.tags = Collections.unmodifiableSet(new LinkedHashSet<>(tags));
     }
 
@@ -110,13 +123,22 @@ public class Person {
         return phone;
     }
 
+    public InjuryStatus getInjuryStatus() {
+        return injuryStatus;
+    }
+
+    /** Returns a copy with the given injury status and all other player details unchanged. */
+    public Person withInjuryStatus(InjuryStatus newInjuryStatus) {
+        return new Person(name, phone, selectionStatus, rating, tags, remark, newInjuryStatus);
+    }
+
     public Remark getRemark() {
         return remark;
     }
 
     /** Returns a copy with the given remark and all other player details unchanged. */
     public Person withRemark(Remark newRemark) {
-        return new Person(name, phone, selectionStatus, rating, tags, newRemark);
+        return new Person(name, phone, selectionStatus, rating, tags, newRemark, injuryStatus);
     }
 
     public Rating getRating() {
@@ -131,7 +153,7 @@ public class Person {
      * Returns a copy of this player with the given selection status and all other details unchanged.
      */
     public Person withSelectionStatus(SelectionStatus newStatus) {
-        return new Person(name, phone, newStatus, rating, tags, remark);
+        return new Person(name, phone, newStatus, rating, tags, remark, injuryStatus);
     }
 
     /**
@@ -177,13 +199,14 @@ public class Person {
                 && selectionStatus == otherPerson.selectionStatus
                 && rating.equals(otherPerson.rating)
                 && tags.equals(otherPerson.tags)
-                && remark.equals(otherPerson.remark);
+                && remark.equals(otherPerson.remark)
+                && injuryStatus == otherPerson.injuryStatus;
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, selectionStatus, rating, tags, remark);
+        return Objects.hash(name, phone, selectionStatus, rating, tags, remark, injuryStatus);
     }
 
     @Override
@@ -194,6 +217,7 @@ public class Person {
                 .add("selectionStatus", selectionStatus)
                 .add("tags", tags)
                 .add("remark", remark)
+                .add("injuryStatus", injuryStatus)
                 .toString();
     }
 

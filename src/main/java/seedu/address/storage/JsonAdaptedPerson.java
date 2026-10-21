@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -29,6 +30,7 @@ class JsonAdaptedPerson {
     private final String rating;
     private final List<String> tags;
     private final String remark;
+    private final String injuryStatus;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -61,16 +63,24 @@ class JsonAdaptedPerson {
     }
 
     /** Creates an adapted player, accepting missing remarks in older data files. */
+    public JsonAdaptedPerson(String name, String phone, String selectionStatus, String rating,
+                             List<String> tags, String remark) {
+        this(name, phone, selectionStatus, rating, tags, remark, null);
+    }
+
+    /** Creates an adapted player, accepting missing injury status in older data files. */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("selectionStatus") String selectionStatus, @JsonProperty("rating") String rating,
-            @JsonProperty("tags") List<String> tags, @JsonProperty("remark") String remark) {
+            @JsonProperty("tags") List<String> tags, @JsonProperty("remark") String remark,
+            @JsonProperty("injuryStatus") String injuryStatus) {
         this.name = name;
         this.phone = phone;
         this.selectionStatus = selectionStatus;
         this.rating = rating;
         this.tags = tags == null ? List.of() : tags;
         this.remark = remark;
+        this.injuryStatus = injuryStatus;
     }
 
     /**
@@ -80,6 +90,7 @@ class JsonAdaptedPerson {
         name = source.getName().fullName;
         phone = source.getPhone().value;
         remark = source.getRemark().value;
+        injuryStatus = source.getInjuryStatus().toString();
         selectionStatus = source.getSelectionStatus().name();
         rating = source.getRating().isRated() ? source.getRating().toString() : null;
         tags = source.getTags().stream().map(Object::toString).sorted(String.CASE_INSENSITIVE_ORDER).toList();
@@ -116,8 +127,15 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(Rating.MESSAGE_CONSTRAINTS);
         }
         final Rating modelRating = rating == null ? Rating.UNRATED : new Rating(rating);
+        final InjuryStatus modelInjuryStatus;
+        try {
+            modelInjuryStatus = injuryStatus == null ? InjuryStatus.FIT : InjuryStatus.fromString(injuryStatus);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(InjuryStatus.MESSAGE_CONSTRAINTS);
+        }
         final Remark modelRemark = new Remark(remark == null ? "" : remark);
-        return new Person(modelName, modelPhone, modelSelectionStatus, modelRating, toModelTags(), modelRemark);
+        return new Person(modelName, modelPhone, modelSelectionStatus, modelRating, toModelTags(),
+                modelRemark, modelInjuryStatus);
     }
 
     /**

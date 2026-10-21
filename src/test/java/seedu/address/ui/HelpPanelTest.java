@@ -58,6 +58,9 @@ public class HelpPanelTest {
                             + "e.g. rate 1 8"),
                     Map.entry("helpSyntax", "help"), Map.entry("helpDescription", "Show this summary"),
                     Map.entry("exitSyntax", "exit"), Map.entry("exitDescription", "Close CouchCoach"),
+                    Map.entry("injurySyntax", "injury INDEX i/STATUS"),
+                    Map.entry("injuryDescription", "Mark a player injured or fit again; ignores case\n"
+                            + "e.g. injury 1 i/injured or injury 1 i/fit"),
                     Map.entry("remarkSyntax", "remark INDEX r/REMARK"),
                     Map.entry("remarkDescription", "Set or replace a player remark; empty r/ clears it\n"
                             + "Use r/ only once; a second r/ after a space is rejected\n"
@@ -69,7 +72,7 @@ public class HelpPanelTest {
                 assertEquals(text, label.getText());
             });
             for (String command : List.of("add", "list", "find", "delete", "status", "squad",
-                    "help", "exit", "edit", "rate", "filter", "remark")) {
+                    "help", "exit", "edit", "rate", "filter", "remark", "injury")) {
                 assertTrue(((Label) help.getContent().lookup("#" + command + "Description")).isWrapText());
             }
         });

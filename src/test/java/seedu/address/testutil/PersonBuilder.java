@@ -5,6 +5,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -26,6 +27,7 @@ public class PersonBuilder {
     private SelectionStatus selectionStatus;
     private Rating rating = Rating.UNRATED;
     private Remark remark;
+    private InjuryStatus injuryStatus;
     private Set<Tag> tags = Set.of();
 
     /**
@@ -36,6 +38,7 @@ public class PersonBuilder {
         phone = new Phone(DEFAULT_PHONE);
         selectionStatus = SelectionStatus.PENDING;
         remark = new Remark("");
+        injuryStatus = InjuryStatus.FIT;
     }
 
     /**
@@ -47,6 +50,7 @@ public class PersonBuilder {
         selectionStatus = personToCopy.getSelectionStatus();
         rating = personToCopy.getRating();
         remark = personToCopy.getRemark();
+        injuryStatus = personToCopy.getInjuryStatus();
         tags = personToCopy.getTags();
     }
 
@@ -94,8 +98,14 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Sets the player's injury status. */
+    public PersonBuilder withInjuryStatus(InjuryStatus injuryStatus) {
+        this.injuryStatus = injuryStatus;
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, selectionStatus, rating, tags, remark);
+        return new Person(name, phone, selectionStatus, rating, tags, remark, injuryStatus);
     }
 
 }

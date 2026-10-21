@@ -46,7 +46,7 @@ public class RateCommand extends Command {
         Person player = displayed.get(index.getZeroBased());
         assert rating.isRated();
         Person ratedPlayer = new Person(player.getName(), player.getPhone(), player.getSelectionStatus(), rating,
-                player.getTags(), player.getRemark());
+                player.getTags(), player.getRemark(), player.getInjuryStatus());
         model.setPerson(player, ratedPlayer);
         logger.fine("Updated rating at displayed index " + index.getOneBased());
         return new CommandResult(String.format(MESSAGE_SUCCESS, player.getName(), rating));

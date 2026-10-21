@@ -15,6 +15,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.SelectionStatus;
 import seedu.address.testutil.PersonBuilder;
@@ -51,7 +52,8 @@ public class RemarkStorageTest {
     @Test
     public void saveAndReload_remarkRatingStatusAndTagEdits_preserveOtherFields() throws Exception {
         Person original = new PersonBuilder().withTags("Striker", "Captain")
-                .withSelectionStatus(SelectionStatus.KEPT).withRating("8").withRemark("Strong left foot").build();
+                .withSelectionStatus(SelectionStatus.KEPT).withRating("8").withRemark("Strong left foot")
+                .withInjuryStatus(InjuryStatus.INJURED).build();
         AddressBook team = new AddressBook();
         team.addPerson(original);
         Model model = new ModelManager(team, new UserPrefs());

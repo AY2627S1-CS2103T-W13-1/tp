@@ -12,6 +12,7 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -149,5 +150,19 @@ public class JsonAdaptedPersonTest {
         String text = "Good teamwork! 教练 says: \"keep\"\nWorks well under pressure.";
         Person player = new PersonBuilder(BENSON).withRemark(text).build();
         assertEquals(player, new JsonAdaptedPerson(player).toModelType());
+    }
+
+    @Test
+    public void toModelType_invalidInjuryStatus_throwsIllegalValueException() {
+        for (String value : new String[] {"", "yes", "injured extra"}) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, null, null, null, value);
+            assertThrows(IllegalValueException.class, InjuryStatus.MESSAGE_CONSTRAINTS, person::toModelType);
+        }
+    }
+
+    @Test
+    public void toModelType_missingInjuryStatus_defaultsToFit() throws Exception {
+        assertEquals(InjuryStatus.FIT,
+                new JsonAdaptedPerson(VALID_NAME, VALID_PHONE).toModelType().getInjuryStatus());
     }
 }

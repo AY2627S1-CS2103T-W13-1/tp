@@ -161,7 +161,8 @@ public class PersonTest {
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + ", selectionStatus=" + ALICE.getSelectionStatus() + ", tags=[], remark=" + ALICE.getRemark() + "}";
+                + ", selectionStatus=" + ALICE.getSelectionStatus() + ", tags=[], remark=" + ALICE.getRemark()
+                + ", injuryStatus=" + ALICE.getInjuryStatus() + "}";
         assertEquals(expected, ALICE.toString());
     }
 
@@ -178,6 +179,21 @@ public class PersonTest {
     @Test
     public void withRemark_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ALICE.withRemark(null));
+    }
+
+    @Test
+    public void injuryStatus_changesDataEqualityButPreservesIdentity() {
+        Person updated = new PersonBuilder(ALICE).withInjuryStatus(InjuryStatus.INJURED).build();
+        assertTrue(ALICE.isSamePerson(updated));
+        assertNotEquals(ALICE, updated);
+        assertEquals(updated, new PersonBuilder(updated).build());
+        assertEquals(updated.hashCode(), new PersonBuilder(updated).build().hashCode());
+        assertEquals(InjuryStatus.FIT, ALICE.getInjuryStatus());
+    }
+
+    @Test
+    public void withInjuryStatus_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withInjuryStatus(null));
     }
 
 }

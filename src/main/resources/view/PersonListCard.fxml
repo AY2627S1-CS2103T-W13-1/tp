@@ -35,6 +35,7 @@
       <Label fx:id="rating" styleClass="cell_small_label" text="Rating: Unrated" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
       <Label fx:id="remark" styleClass="cell_small_label" wrapText="true" minWidth="0" maxWidth="Infinity" />
+      <Label fx:id="injuryStatus" styleClass="cell_small_label" wrapText="true" />
       <FlowPane fx:id="tags" hgap="6" vgap="4" />
     </VBox>
   </GridPane>
