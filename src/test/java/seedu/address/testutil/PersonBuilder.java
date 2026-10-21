@@ -1,5 +1,6 @@
 package seedu.address.testutil;
 
+import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -14,6 +15,7 @@ public class PersonBuilder {
 
     private Name name;
     private Phone phone;
+    private InjuryStatus injuryStatus;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -21,6 +23,7 @@ public class PersonBuilder {
     public PersonBuilder() {
         name = new Name(DEFAULT_NAME);
         phone = new Phone(DEFAULT_PHONE);
+        injuryStatus = InjuryStatus.FIT;
     }
 
     /**
@@ -29,6 +32,7 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
+        injuryStatus = personToCopy.getInjuryStatus();
     }
 
     /**
@@ -47,8 +51,16 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the player's injury status.
+     */
+    public PersonBuilder withInjuryStatus(InjuryStatus injuryStatus) {
+        this.injuryStatus = injuryStatus;
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone);
+        return new Person(name, phone, injuryStatus);
     }
 
 }

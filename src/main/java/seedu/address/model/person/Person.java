@@ -16,13 +16,24 @@ public class Person {
     private final Name name;
     private final Phone phone;
 
+    // Player data fields
+    private final InjuryStatus injuryStatus;
+
+    /**
+     * Constructs a player with the default injury status.
+     */
+    public Person(Name name, Phone phone) {
+        this(name, phone, InjuryStatus.FIT);
+    }
+
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone) {
-        requireAllNonNull(name, phone);
+    public Person(Name name, Phone phone, InjuryStatus injuryStatus) {
+        requireAllNonNull(name, phone, injuryStatus);
         this.name = name;
         this.phone = phone;
+        this.injuryStatus = injuryStatus;
     }
 
     public Name getName() {
@@ -31,6 +42,10 @@ public class Person {
 
     public Phone getPhone() {
         return phone;
+    }
+
+    public InjuryStatus getInjuryStatus() {
+        return injuryStatus;
     }
 
     /**
@@ -63,13 +78,14 @@ public class Person {
         }
 
         return name.equals(otherPerson.name)
-                && phone.equals(otherPerson.phone);
+                && phone.equals(otherPerson.phone)
+                && injuryStatus.equals(otherPerson.injuryStatus);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone);
+        return Objects.hash(name, phone, injuryStatus);
     }
 
     @Override
@@ -77,6 +93,7 @@ public class Person {
         return new ToStringBuilder(this)
                 .add("name", name)
                 .add("phone", phone)
+                .add("injuryStatus", injuryStatus)
                 .toString();
     }
 
