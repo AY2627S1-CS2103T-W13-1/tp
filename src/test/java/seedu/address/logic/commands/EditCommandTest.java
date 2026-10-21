@@ -120,6 +120,47 @@ public class EditCommandTest {
     }
 
     @Test
+    public void execute_sharedJerseyNumber_successWithWarning() {
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        model.setPerson(secondPerson,
+                new PersonBuilder(secondPerson).withJerseyNumber(VALID_JERSEY_NUMBER_BOB).build());
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person editedPerson = new PersonBuilder(firstPerson).withJerseyNumber(VALID_JERSEY_NUMBER_BOB).build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withJerseyNumber(VALID_JERSEY_NUMBER_BOB).build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + String.format(Messages.MESSAGE_DUPLICATE_JERSEY_NUMBER, VALID_JERSEY_NUMBER_BOB,
+                        secondPerson.getName().fullName);
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(firstPerson, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_otherFieldEditedWithSharedJerseyNumber_noWarning() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+        Person firstWithJerseyNumber =
+                new PersonBuilder(firstPerson).withJerseyNumber(VALID_JERSEY_NUMBER_BOB).build();
+        model.setPerson(firstPerson, firstWithJerseyNumber);
+        model.setPerson(secondPerson,
+                new PersonBuilder(secondPerson).withJerseyNumber(VALID_JERSEY_NUMBER_BOB).build());
+        Person editedPerson = new PersonBuilder(firstWithJerseyNumber).withPhone(VALID_PHONE_BOB).build();
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build());
+
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(firstWithJerseyNumber, editedPerson);
+
+        assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_noFieldSpecifiedUnfilteredList_success() {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
