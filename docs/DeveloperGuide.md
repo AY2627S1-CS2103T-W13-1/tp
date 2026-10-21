@@ -123,7 +123,19 @@ How the parsing works:
 ### Model component
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
-<puml src="diagrams/ModelClassDiagram.puml" width="450" />
+The model is shown in two class views: contracts and player data. Repeated class
+names refer to the same classes in both views. Interface realization uses a dashed
+line with a hollow triangle pointing to the interface. Association arrowheads show
+navigability; multiplicities describe the number of objects at each end.
+Notation follows the [course UML reference sheet](https://nus-cs2103-ay2627-s1.github.io/website/admin/uml-reference-sheet.html).
+
+<iframe src="diagrams/ModelClassDiagram.html" title="CouchCoach model UML class diagrams"
+        width="100%" height="2100" style="border: 0;"></iframe>
+
+[Open the editable HTML diagram](diagrams/ModelClassDiagram.html).
+The corresponding PlantUML sources are
+[model contracts](diagrams/ModelClassDiagram.puml) and
+[player data](diagrams/ModelPlayerClassDiagram.puml).
 
 
 The `Model` component,
@@ -133,7 +145,23 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-Each `Person` (a player) holds only a `Name` and a `Phone`. `UniquePersonList` uses `Person#isSamePerson` to reject duplicates: two players are the same if their names match after ignoring case and repeated spaces. The phone number is not compared, because players such as siblings may share a parent's contact number.
+Each `Person` (a player) holds one `Name`, one `Phone`, and zero or more `Tag` values
+(introduced by the player-tags feature). These are ordinary associations: immutable
+values can be shared between player versions, so deleting one player does not imply
+deleting its value objects. `AddressBook` exclusively contains its `UniquePersonList`,
+which is shown using composition. The full roster and filtered view reference the
+same player objects; filtering does not create copies.
+
+`UniquePersonList` uses `Person#isSamePerson` to reject duplicates: two players are the
+same if their names match after ignoring case and repeated spaces. Phone numbers and
+tags do not affect identity, because players such as siblings may share a parent's
+contact number. Routine accessors, library collection wrappers, and unrelated methods
+are omitted from the diagrams. The static tag-validation operation is underlined.
+
+To edit the visual, change the inline SVG in `docs/diagrams/ModelClassDiagram.html`.
+Keep both PlantUML views synchronized with the HTML. When other v1.4 features merge,
+recheck `Person` and add their actual field classes and multiplicities to the player
+view; split out a further detail view if needed to keep each figure readable.
 
 
 ### Storage component
