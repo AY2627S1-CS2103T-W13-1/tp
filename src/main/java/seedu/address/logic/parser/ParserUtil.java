@@ -2,12 +2,18 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.tag.Tag;
 
 /**
  * Contains utility methods used for parsing strings in the various *Parser classes.
@@ -15,6 +21,25 @@ import seedu.address.model.person.Phone;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+
+    /**
+     * Parses a collection of labels into distinct tags, retaining their first spelling and order.
+     *
+     * @param labels The labels to validate and normalize.
+     * @return Distinct normalized tags.
+     * @throws ParseException If any label is invalid, including a blank label.
+     */
+    public static Set<Tag> parseTags(Collection<String> labels) throws ParseException {
+        requireNonNull(labels);
+        Set<Tag> tags = new LinkedHashSet<>();
+        for (String label : labels) {
+            if (!Tag.isValidTagName(label)) {
+                throw new ParseException(Tag.MESSAGE_CONSTRAINTS);
+            }
+            tags.add(new Tag(label));
+        }
+        return tags;
+    }
 
     /**
      * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
@@ -61,6 +86,20 @@ public class ParserUtil {
             throw new ParseException(Phone.MESSAGE_CONSTRAINTS);
         }
         return new Phone(normalizedPhone);
+    }
+
+    /**
+     * Parses an injury status, allowing surrounding whitespace and mixed case.
+     *
+     * @throws ParseException if the value is neither injured nor fit.
+     */
+    public static InjuryStatus parseInjuryStatus(String value) throws ParseException {
+        requireNonNull(value);
+        try {
+            return InjuryStatus.fromString(value.trim());
+        } catch (IllegalArgumentException e) {
+            throw new ParseException(InjuryStatus.MESSAGE_CONSTRAINTS, e);
+        }
     }
 
     /**

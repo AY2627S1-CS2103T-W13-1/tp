@@ -4,11 +4,13 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_JERSEY_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
@@ -20,6 +22,8 @@ import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.SelectionStatus;
+import seedu.address.model.tag.Tag;
 
 /**
  * Edits the details of an existing player in the team.
@@ -34,11 +38,11 @@ public class EditCommand extends Command {
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
-            + "[" + PREFIX_JERSEY_NUMBER + "JERSEY]\n"
+            + "[" + PREFIX_JERSEY_NUMBER + "JERSEY] "
+            + "[" + PREFIX_TAG + "TAG]... (a single empty t/ clears tags)\n"
             + "An empty " + PREFIX_JERSEY_NUMBER + " removes the jersey number.\n"
             + "Example: " + COMMAND_WORD + " 1 "
-            + PREFIX_PHONE + "91234567 "
-            + PREFIX_JERSEY_NUMBER + "10";
+            + PREFIX_PHONE + "91234567";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited player: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
@@ -48,8 +52,10 @@ public class EditCommand extends Command {
     private final EditPersonDescriptor editPersonDescriptor;
 
     /**
-     * @param index of the person in the filtered person list to edit
-     * @param editPersonDescriptor details to edit the person with
+     * Creates a command with a defensive copy of the requested edits.
+     *
+     * @param index The index in the displayed player list.
+     * @param editPersonDescriptor The player details to replace.
      */
     public EditCommand(Index index, EditPersonDescriptor editPersonDescriptor) {
         requireNonNull(index);
@@ -89,11 +95,15 @@ public class EditCommand extends Command {
 
         Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
         Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
+        // edit cannot change the selection status (keep, cut and pending do), so keep the existing one
+        SelectionStatus unchangedStatus = personToEdit.getSelectionStatus();
+
+        Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
         JerseyNumber updatedJerseyNumber = editPersonDescriptor.isJerseyNumberEdited()
                 ? editPersonDescriptor.getJerseyNumber().orElse(null)
                 : personToEdit.getJerseyNumber().orElse(null);
-
-        return new Person(updatedName, updatedPhone, updatedJerseyNumber);
+        return new Person(updatedName, updatedPhone, unchangedStatus, personToEdit.getRating(), updatedTags,
+                personToEdit.getRemark(), personToEdit.getInjuryStatus(), updatedJerseyNumber);
     }
 
     @Override
@@ -126,6 +136,7 @@ public class EditCommand extends Command {
     public static class EditPersonDescriptor {
         private Name name;
         private Phone phone;
+        private Set<Tag> tags;
         private JerseyNumber jerseyNumber;
         // Needed because a null jerseyNumber may mean either "not edited" or "remove the jersey number"
         private boolean isJerseyNumberEdited;
@@ -138,6 +149,7 @@ public class EditCommand extends Command {
         public EditPersonDescriptor(EditPersonDescriptor toCopy) {
             setName(toCopy.name);
             setPhone(toCopy.phone);
+            setTags(toCopy.tags);
             if (toCopy.isJerseyNumberEdited) {
                 setJerseyNumber(toCopy.jerseyNumber);
             }
@@ -147,7 +159,7 @@ public class EditCommand extends Command {
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone) || isJerseyNumberEdited;
+            return CollectionUtil.isAnyNonNull(name, phone, tags) || isJerseyNumberEdited;
         }
 
         public void setName(Name name) {
@@ -164,6 +176,24 @@ public class EditCommand extends Command {
 
         public Optional<Phone> getPhone() {
             return Optional.ofNullable(phone);
+        }
+
+        /**
+         * Copies the requested tags; null means preserve tags, and an empty set means clear them.
+         *
+         * @param tags The replacement tags, or null for no tag edit.
+         */
+        public void setTags(Set<Tag> tags) {
+            this.tags = tags == null ? null : Set.copyOf(tags);
+        }
+
+        /**
+         * Returns an unmodifiable replacement set if tags are being edited.
+         *
+         * @return Replacement tags, or an empty optional when tags are unchanged.
+         */
+        public Optional<Set<Tag>> getTags() {
+            return Optional.ofNullable(tags);
         }
 
         /**
@@ -199,6 +229,7 @@ public class EditCommand extends Command {
 
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
+                    && Objects.equals(tags, otherEditPersonDescriptor.tags)
                     && Objects.equals(jerseyNumber, otherEditPersonDescriptor.jerseyNumber)
                     && isJerseyNumberEdited == otherEditPersonDescriptor.isJerseyNumberEdited;
         }
@@ -208,6 +239,7 @@ public class EditCommand extends Command {
             return new ToStringBuilder(this)
                     .add("name", name)
                     .add("phone", phone)
+                    .add("tags", tags)
                     .add("jerseyNumber", jerseyNumber)
                     .add("isJerseyNumberEdited", isJerseyNumberEdited)
                     .toString();

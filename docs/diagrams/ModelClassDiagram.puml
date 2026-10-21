@@ -1,46 +1,28 @@
 @startuml
-!include style.puml
-skinparam arrowThickness 1.1
-skinparam arrowColor MODEL_COLOR
-skinparam classBackgroundColor MODEL_COLOR
+!pragma layout smetana
+!include ModelDiagramStyle.puml
 
-Package Model as ModelPackage <<Rectangle>>{
-Class "<<interface>>\nReadOnlyAddressBook" as ReadOnlyAddressBook
-Class "<<interface>>\nReadOnlyUserPrefs" as ReadOnlyUserPrefs
-Class "<<interface>>\nModel" as Model
-Class AddressBook
-Class ModelManager
-Class UserPrefs
-
-Class UniquePersonList
-Class Person
-Class Name
-Class Phone
-
-Class I #FFFFFF
+' View 1: contracts and model-owned data. Player internals are in the detail views.
+interface Model <<interface>> {
+    + updateFilteredPersonList(predicate): void
+}
+interface ReadOnlyAddressBook <<interface>>
+interface ReadOnlyUserPrefs <<interface>>
+class ModelManager {
+    + addPerson(person): void
+}
+class AddressBook {
+    + addPerson(person): void
+}
+class UserPrefs {
+    + setGuiSettings(settings): void
 }
 
-Class HiddenOutside #FFFFFF
-HiddenOutside ..> Model
-
-AddressBook .up.|> ReadOnlyAddressBook
-
-ModelManager .up.|> Model
-Model .right.> ReadOnlyUserPrefs
-Model .left.> ReadOnlyAddressBook
-ModelManager -left-> "1" AddressBook
-ModelManager -right-> "1" UserPrefs
-UserPrefs .up.|> ReadOnlyUserPrefs
-
-AddressBook *--> "1" UniquePersonList
-UniquePersonList --> "~* all" Person
-Person *--> Name
-Person *--> Phone
-
-Person -[hidden]up--> I
-UniquePersonList -[hidden]right-> I
-
-Name -[hidden]right-> Phone
-
-ModelManager --> "~* filtered" Person
+ModelManager ..|> Model
+AddressBook ..|> ReadOnlyAddressBook
+UserPrefs ..|> ReadOnlyUserPrefs
+Model ..> ReadOnlyAddressBook : uses
+Model ..> ReadOnlyUserPrefs : uses
+ModelManager "0..1" --> "1" AddressBook : addressBook
+ModelManager "0..1" --> "1" UserPrefs : userPrefs
 @enduml

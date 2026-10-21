@@ -1,0 +1,32 @@
+@startuml
+!pragma layout smetana
+!include ModelDiagramStyle.puml
+left to right direction
+
+' View 4: these immutable values are shared across player versions.
+class Person {
+    + withSelectionStatus(newStatus): Person
+    + withRemark(newRemark): Person
+    + withInjuryStatus(newStatus): Person
+}
+enum SelectionStatus <<enumeration>> {
+    PENDING
+    KEPT
+    CUT
+}
+class Rating {
+    - value: String
+    + isRated(): boolean
+}
+class Remark {
+    + value: String
+}
+enum InjuryStatus <<enumeration>> {
+    FIT
+    INJURED
+}
+Person "0..*" --> "1" SelectionStatus : selectionStatus
+Person "0..*" --> "1" Rating : rating
+Person "0..*" --> "1" Remark : remark
+Person "0..*" --> "1" InjuryStatus : injuryStatus
+@enduml
