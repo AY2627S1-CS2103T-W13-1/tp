@@ -7,6 +7,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Rating;
 import seedu.address.model.person.SelectionStatus;
 
 /**
@@ -19,16 +20,28 @@ class JsonAdaptedPerson {
     private final String name;
     private final String phone;
     private final String selectionStatus;
+    private final String rating;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      */
+    public JsonAdaptedPerson(String name, String phone) {
+        this(name, phone, null, null);
+    }
+
+    /** Constructs a stored player from a file without ratings. */
+    public JsonAdaptedPerson(String name, String phone, String selectionStatus) {
+        this(name, phone, selectionStatus, null);
+    }
+
+    /** Constructs a stored player; missing optional fields use their model defaults. */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
-            @JsonProperty("selectionStatus") String selectionStatus) {
+            @JsonProperty("selectionStatus") String selectionStatus, @JsonProperty("rating") String rating) {
         this.name = name;
         this.phone = phone;
         this.selectionStatus = selectionStatus;
+        this.rating = rating;
     }
 
     /**
@@ -38,6 +51,7 @@ class JsonAdaptedPerson {
         name = source.getName().fullName;
         phone = source.getPhone().value;
         selectionStatus = source.getSelectionStatus().name();
+        rating = source.getRating().isRated() ? source.getRating().toString() : null;
     }
 
     /**
@@ -67,7 +81,11 @@ class JsonAdaptedPerson {
 
         final SelectionStatus modelSelectionStatus = toModelSelectionStatus();
 
-        return new Person(modelName, modelPhone, modelSelectionStatus);
+        if (rating != null && !Rating.isValidRating(rating)) {
+            throw new IllegalValueException(Rating.MESSAGE_CONSTRAINTS);
+        }
+        final Rating modelRating = rating == null ? Rating.UNRATED : new Rating(rating);
+        return new Person(modelName, modelPhone, modelSelectionStatus, modelRating);
     }
 
     /**

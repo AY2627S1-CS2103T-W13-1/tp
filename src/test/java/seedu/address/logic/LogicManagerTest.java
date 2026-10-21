@@ -71,6 +71,36 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_ratingAndStatusChanges_preserveBothFieldsOnReload() throws Exception {
+        model.addPerson(new PersonBuilder().build());
+        logic.execute("keep 1");
+        logic.execute("rate 1 8");
+        logic.execute("edit 1 p/12345678");
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Person kept = saved.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertEquals("8", kept.getRating().toString());
+        assertEquals("Kept", kept.getSelectionStatus().toString());
+        logic.execute("cut 1");
+        Person cut = saved.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertEquals("8", cut.getRating().toString());
+        assertEquals("Cut", cut.getSelectionStatus().toString());
+        logic.execute("pending 1");
+        Person pending = saved.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertEquals("8", pending.getRating().toString());
+        assertEquals("Pending", pending.getSelectionStatus().toString());
+    }
+
+    @Test
+    public void execute_rateThenReload_preservesRating() throws Exception {
+        model.addPerson(new PersonBuilder().build());
+        logic.execute("rate 1 8");
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+        logic.execute("edit 1 p/12345678");
+        assertEquals("8", saved.readAddressBook().orElseThrow().getPersonList().get(0).getRating().toString());
+    }
+
+    @Test
     public void execute_validCommand_success() throws Exception {
         String listCommand = ListCommand.COMMAND_WORD;
         assertCommandSuccess(listCommand, ListCommand.MESSAGE_SUCCESS, model);

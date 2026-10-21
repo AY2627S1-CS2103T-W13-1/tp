@@ -88,7 +88,7 @@ public class EditCommand extends Command {
         // edit cannot change the selection status (keep, cut and pending do), so keep the existing one
         SelectionStatus unchangedStatus = personToEdit.getSelectionStatus();
 
-        return new Person(updatedName, updatedPhone, unchangedStatus);
+        return new Person(updatedName, updatedPhone, unchangedStatus, personToEdit.getRating());
     }
 
     @Override

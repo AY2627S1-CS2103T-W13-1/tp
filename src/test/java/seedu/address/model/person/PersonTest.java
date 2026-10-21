@@ -17,6 +17,16 @@ import seedu.address.testutil.PersonBuilder;
 public class PersonTest {
 
     @Test
+    public void withSelectionStatus_ratedPlayer_preservesRating() {
+        Person rated = new Person(ALICE.getName(), ALICE.getPhone(), new Rating("8"));
+        assertEquals(SelectionStatus.PENDING, rated.getSelectionStatus());
+        Person kept = rated.withSelectionStatus(SelectionStatus.KEPT);
+        assertEquals(new Rating("8"), kept.getRating());
+        assertEquals(SelectionStatus.KEPT, kept.getSelectionStatus());
+        assertEquals(SelectionStatus.PENDING, rated.getSelectionStatus());
+    }
+
+    @Test
     public void isSamePerson() {
         // same object -> returns true
         assertTrue(ALICE.isSamePerson(ALICE));

@@ -36,6 +36,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label phone;
     @FXML
+    private Label rating;
+    @FXML
     private Label selectionStatus;
 
     /**
@@ -47,6 +49,7 @@ public class PersonCard extends UiPart<Region> {
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
+        rating.setText("Rating: " + person.getRating() + (person.getRating().isRated() ? "/10" : ""));
         selectionStatus.setText(person.getSelectionStatus().toString());
         selectionStatus.getStyleClass().add(STATUS_STYLE_CLASS_PREFIX
                 + person.getSelectionStatus().name().toLowerCase(Locale.ROOT));

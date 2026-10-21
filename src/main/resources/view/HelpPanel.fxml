@@ -68,6 +68,11 @@
                GridPane.columnIndex="0" GridPane.rowIndex="7" GridPane.valignment="TOP" />
         <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.valignment="TOP" />
+        <Label fx:id="rateSyntax" text="rate INDEX RATING"
+               GridPane.columnIndex="0" GridPane.rowIndex="8" GridPane.valignment="TOP" />
+        <Label fx:id="rateDescription" text="Set a player's rating (whole number 0 to 10)&#10;e.g. rate 1 8"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="8" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />
