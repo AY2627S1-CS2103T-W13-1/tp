@@ -87,7 +87,18 @@ public class PersonTest {
     @Test
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
-                + "}";
+                + ", remark=" + ALICE.getRemark() + "}";
         assertEquals(expected, ALICE.toString());
     }
+
+    @Test
+    public void remark_changesDataEqualityButPreservesIdentity() {
+        Person updated = new PersonBuilder(ALICE).withRemark("Strong left foot").build();
+        assertTrue(ALICE.isSamePerson(updated));
+        assertNotEquals(ALICE, updated);
+        assertEquals(updated, new PersonBuilder(updated).build());
+        assertEquals(updated.hashCode(), new PersonBuilder(updated).build().hashCode());
+        assertEquals(new Remark(""), ALICE.getRemark());
+    }
+
 }

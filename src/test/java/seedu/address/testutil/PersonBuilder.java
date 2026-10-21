@@ -3,6 +3,7 @@ package seedu.address.testutil;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Remark;
 
 /**
  * A utility class to help with building Person objects.
@@ -14,6 +15,7 @@ public class PersonBuilder {
 
     private Name name;
     private Phone phone;
+    private Remark remark;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -21,6 +23,7 @@ public class PersonBuilder {
     public PersonBuilder() {
         name = new Name(DEFAULT_NAME);
         phone = new Phone(DEFAULT_PHONE);
+        remark = new Remark("");
     }
 
     /**
@@ -29,6 +32,7 @@ public class PersonBuilder {
     public PersonBuilder(Person personToCopy) {
         name = personToCopy.getName();
         phone = personToCopy.getPhone();
+        remark = personToCopy.getRemark();
     }
 
     /**
@@ -47,8 +51,16 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the player's remark.
+     */
+    public PersonBuilder withRemark(String remark) {
+        this.remark = new Remark(remark);
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone);
+        return new Person(name, phone, remark);
     }
 
 }

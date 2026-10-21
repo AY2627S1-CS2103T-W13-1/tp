@@ -7,6 +7,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Remark;
 
 /**
  * Jackson-friendly version of {@link Person}.
@@ -17,14 +18,24 @@ class JsonAdaptedPerson {
 
     private final String name;
     private final String phone;
+    private final String remark;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      */
+    public JsonAdaptedPerson(String name, String phone) {
+        this(name, phone, null);
+    }
+
+    /**
+     * Constructs an adapted player, accepting a missing remark in older data files.
+     */
     @JsonCreator
-    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone) {
+    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
+                             @JsonProperty("remark") String remark) {
         this.name = name;
         this.phone = phone;
+        this.remark = remark;
     }
 
     /**
@@ -33,6 +44,7 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(Person source) {
         name = source.getName().fullName;
         phone = source.getPhone().value;
+        remark = source.getRemark().toString();
     }
 
     /**
@@ -60,7 +72,9 @@ class JsonAdaptedPerson {
         }
         final Phone modelPhone = new Phone(phone);
 
-        return new Person(modelName, modelPhone);
+        final Remark modelRemark = new Remark(remark == null ? "" : remark);
+
+        return new Person(modelName, modelPhone, modelRemark);
     }
 
 }

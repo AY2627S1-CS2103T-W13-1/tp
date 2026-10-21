@@ -16,13 +16,24 @@ public class Person {
     private final Name name;
     private final Phone phone;
 
+    // Player data fields
+    private final Remark remark;
+
+    /**
+     * Constructs a player with the default remark.
+     */
+    public Person(Name name, Phone phone) {
+        this(name, phone, new Remark(""));
+    }
+
     /**
      * Every field must be present and not null.
      */
-    public Person(Name name, Phone phone) {
-        requireAllNonNull(name, phone);
+    public Person(Name name, Phone phone, Remark remark) {
+        requireAllNonNull(name, phone, remark);
         this.name = name;
         this.phone = phone;
+        this.remark = remark;
     }
 
     public Name getName() {
@@ -31,6 +42,10 @@ public class Person {
 
     public Phone getPhone() {
         return phone;
+    }
+
+    public Remark getRemark() {
+        return remark;
     }
 
     /**
@@ -63,13 +78,14 @@ public class Person {
         }
 
         return name.equals(otherPerson.name)
-                && phone.equals(otherPerson.phone);
+                && phone.equals(otherPerson.phone)
+                && remark.equals(otherPerson.remark);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone);
+        return Objects.hash(name, phone, remark);
     }
 
     @Override
@@ -77,6 +93,7 @@ public class Person {
         return new ToStringBuilder(this)
                 .add("name", name)
                 .add("phone", phone)
+                .add("remark", remark)
                 .toString();
     }
 
