@@ -21,6 +21,7 @@ import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.SetStatusCommand;
+import seedu.address.logic.commands.SquadCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
@@ -108,6 +109,17 @@ public class AddressBookParserTest {
         SetStatusCommand command = (SetStatusCommand) parser.parseCommand(
                 SetStatusCommand.COMMAND_WORD_PENDING + " " + INDEX_FIRST_PERSON.getOneBased());
         assertEquals(new SetStatusCommand(INDEX_FIRST_PERSON, SelectionStatus.PENDING), command);
+    }
+
+    @Test
+    public void parseCommand_squad() throws Exception {
+        assertTrue(parser.parseCommand(SquadCommand.COMMAND_WORD) instanceof SquadCommand);
+        assertTrue(parser.parseCommand(SquadCommand.COMMAND_WORD + " 3") instanceof SquadCommand);
+    }
+
+    @Test
+    public void parseCommand_squadWrongCase_throwsParseException() {
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("Squad"));
     }
 
     @Test

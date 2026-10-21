@@ -61,7 +61,7 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `squad`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -208,6 +208,22 @@ Examples:
 * `find Tan` followed by `cut 1` marks the 1st player in the results of the `find` command as cut.
 * `pending 1` changes the 1st player in the displayed list back to pending.
 
+### Viewing your squad: `squad`
+
+Shows only the players you have marked as kept, so you can see your squad at a glance.
+
+Format: `squad`
+
+* The players are shown in the same order as in `list`.
+* The result box shows how many players are in your squad, e.g. `3 players in your squad.`
+* If you have not kept anyone yet, the list is empty and the result box tells you how to keep a player.
+* `squad` shows your whole squad, even if you ran `find` before it.
+* While you are viewing your squad, a player you `cut` or mark as `pending` disappears from the list, as they are no longer in your squad.
+* Use `list` to see all players again.
+
+Examples:
+* `keep 1` followed by `keep 3` and then `squad` shows the two players you kept.
+
 ### Clearing all players: `clear`
 
 Deletes all players from the team.
@@ -227,7 +243,7 @@ Format: `exit`
 
 ### Saving the data
 
-CouchCoach saves your data automatically after every change (`add`, `edit`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `help` and `exit` do not change your data, so they do not save.
+CouchCoach saves your data automatically after every change (`add`, `edit`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `squad`, `help` and `exit` do not change your data, so they do not save.
 
 If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
 
@@ -278,4 +294,5 @@ Action     | Format, Examples
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`
 **List**   | `list`
 **Pending** | `pending INDEX`<br> e.g., `pending 3`
+**Squad**  | `squad`
 **Help**   | `help`
