@@ -16,13 +16,26 @@ public class Person {
     private final Name name;
     private final Phone phone;
 
+    // Data fields
+    private final SelectionStatus selectionStatus;
+
     /**
+     * Creates a player who has not been kept or cut yet.
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone) {
-        requireAllNonNull(name, phone);
+        this(name, phone, SelectionStatus.PENDING);
+    }
+
+    /**
+     * Creates a player with the given selection status.
+     * Every field must be present and not null.
+     */
+    public Person(Name name, Phone phone, SelectionStatus selectionStatus) {
+        requireAllNonNull(name, phone, selectionStatus);
         this.name = name;
         this.phone = phone;
+        this.selectionStatus = selectionStatus;
     }
 
     public Name getName() {
@@ -31,6 +44,17 @@ public class Person {
 
     public Phone getPhone() {
         return phone;
+    }
+
+    public SelectionStatus getSelectionStatus() {
+        return selectionStatus;
+    }
+
+    /**
+     * Returns a copy of this player with the given selection status and all other details unchanged.
+     */
+    public Person withSelectionStatus(SelectionStatus newStatus) {
+        return new Person(name, phone, newStatus);
     }
 
     /**
@@ -63,13 +87,14 @@ public class Person {
         }
 
         return name.equals(otherPerson.name)
-                && phone.equals(otherPerson.phone);
+                && phone.equals(otherPerson.phone)
+                && selectionStatus == otherPerson.selectionStatus;
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone);
+        return Objects.hash(name, phone, selectionStatus);
     }
 
     @Override
@@ -77,6 +102,7 @@ public class Person {
         return new ToStringBuilder(this)
                 .add("name", name)
                 .add("phone", phone)
+                .add("selectionStatus", selectionStatus)
                 .toString();
     }
 
