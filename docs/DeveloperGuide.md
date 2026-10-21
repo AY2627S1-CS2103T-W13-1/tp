@@ -133,7 +133,7 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
-Each `Person` (a player) holds only a `Name` and a `Phone`. `UniquePersonList` uses `Person#isSamePerson` to reject duplicates: two players are the same if their names match after ignoring case and repeated spaces. The phone number is not compared, because players such as siblings may share a parent's contact number.
+Each `Person` (a player) holds a `Name`, a `Phone` and an optional `JerseyNumber`. `UniquePersonList` uses `Person#isSamePerson` to reject duplicates: two players are the same if their names match after ignoring case and repeated spaces. The phone number is not compared, because players such as siblings may share a parent's contact number. The jersey number is not compared either: `add` and `edit` accept a shared jersey number, and only warn the coach about it.
 
 
 ### Storage component
@@ -145,6 +145,7 @@ Each `Person` (a player) holds only a `Name` and a `Phone`. `UniquePersonList` u
 The `Storage` component,
 * can save both the team's player data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* saves each player as a `JsonAdaptedPerson`, which holds every field as a `String` and checks each one when converting it back into a `Person`. An optional field such as the jersey number is left out of the file when the player has none, so data files saved before the field existed still load.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
