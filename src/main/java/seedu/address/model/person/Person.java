@@ -15,18 +15,29 @@ public class Person {
     // Identity fields
     private final Name name;
     private final Phone phone;
+    private final Rating rating;
 
     /**
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone) {
-        requireAllNonNull(name, phone);
+        this(name, phone, Rating.UNRATED);
+    }
+
+    /** Constructs a player with a rating. */
+    public Person(Name name, Phone phone, Rating rating) {
+        requireAllNonNull(name, phone, rating);
         this.name = name;
         this.phone = phone;
+        this.rating = rating;
     }
 
     public Name getName() {
         return name;
+    }
+
+    public Rating getRating() {
+        return rating;
     }
 
     public Phone getPhone() {
@@ -63,13 +74,14 @@ public class Person {
         }
 
         return name.equals(otherPerson.name)
-                && phone.equals(otherPerson.phone);
+                && phone.equals(otherPerson.phone)
+                && rating.equals(otherPerson.rating);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone);
+        return Objects.hash(name, phone, rating);
     }
 
     @Override

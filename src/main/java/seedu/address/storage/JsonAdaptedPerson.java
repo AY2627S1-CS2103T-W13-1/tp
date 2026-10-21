@@ -7,6 +7,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
+import seedu.address.model.person.Rating;
 
 /**
  * Jackson-friendly version of {@link Person}.
@@ -17,14 +18,22 @@ class JsonAdaptedPerson {
 
     private final String name;
     private final String phone;
+    private final String rating;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
      */
+    public JsonAdaptedPerson(String name, String phone) {
+        this(name, phone, null);
+    }
+
+    /** Constructs a stored player; a missing rating represents an unrated player. */
     @JsonCreator
-    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone) {
+    public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
+                             @JsonProperty("rating") String rating) {
         this.name = name;
         this.phone = phone;
+        this.rating = rating;
     }
 
     /**
@@ -33,6 +42,7 @@ class JsonAdaptedPerson {
     public JsonAdaptedPerson(Person source) {
         name = source.getName().fullName;
         phone = source.getPhone().value;
+        rating = source.getRating().isRated() ? source.getRating().toString() : null;
     }
 
     /**
@@ -60,7 +70,11 @@ class JsonAdaptedPerson {
         }
         final Phone modelPhone = new Phone(phone);
 
-        return new Person(modelName, modelPhone);
+        if (rating != null && !Rating.isValidRating(rating)) {
+            throw new IllegalValueException(Rating.MESSAGE_CONSTRAINTS);
+        }
+        final Rating modelRating = rating == null ? Rating.UNRATED : new Rating(rating);
+        return new Person(modelName, modelPhone, modelRating);
     }
 
 }
