@@ -52,6 +52,7 @@
         "storage-component": "Storage component",
         "common-classes": "Common classes",
         "implementation": "Implementation",
+        "player-ratings-us12": "Player ratings (US12)",
         "selection-status-feature": "Selection status feature",
         "custom-player-tags-us08": "Custom player tags (US08)",
         "filtering-players-by-tag-us16": "Filtering players by tag (US16)",
