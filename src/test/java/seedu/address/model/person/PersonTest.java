@@ -83,6 +83,25 @@ public class PersonTest {
     }
 
     @Test
+    public void hasSameJerseyNumber() {
+        Person aliceWithTen = new PersonBuilder(ALICE).withJerseyNumber("10").build();
+
+        // same jersey number -> returns true
+        assertTrue(aliceWithTen.hasSameJerseyNumber(new PersonBuilder(BOB).withJerseyNumber("10").build()));
+
+        // different jersey number -> returns false
+        assertFalse(aliceWithTen.hasSameJerseyNumber(new PersonBuilder(BOB).withJerseyNumber("11").build()));
+
+        // one or both without a jersey number -> returns false
+        assertFalse(aliceWithTen.hasSameJerseyNumber(BOB));
+        assertFalse(BOB.hasSameJerseyNumber(aliceWithTen));
+        assertFalse(ALICE.hasSameJerseyNumber(BOB));
+
+        // null -> returns false
+        assertFalse(aliceWithTen.hasSameJerseyNumber(null));
+    }
+
+    @Test
     public void equals() {
         // same values -> returns true
         Person aliceCopy = new PersonBuilder(ALICE).build();

@@ -44,6 +44,20 @@ public class AddCommandIntegrationTest {
     }
 
     @Test
+    public void execute_sharedJerseyNumber_successWithWarning() {
+        Person teammate = new PersonBuilder().withName("Lim Wei Jie").withJerseyNumber("10").build();
+        model.addPerson(teammate);
+        Person validPerson = new PersonBuilder().withJerseyNumber("10").build();
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(validPerson);
+
+        String expectedMessage = String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson))
+                + String.format(Messages.MESSAGE_DUPLICATE_JERSEY_NUMBER, "10", "Lim Wei Jie");
+        assertCommandSuccess(new AddCommand(validPerson), model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_newPerson_appendedToEndOfList() throws Exception {
         Person validPerson = new PersonBuilder().build();
 
