@@ -13,6 +13,7 @@ import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.SquadCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.AddressBookParser;
@@ -77,6 +78,7 @@ public class LogicManager implements Logic {
     private static boolean isReadOnly(Command command) {
         return command instanceof FindCommand
                 || command instanceof FilterCommand
+                || command instanceof SortCommand
                 || command instanceof ListCommand
                 || command instanceof HelpCommand
                 || command instanceof SquadCommand

@@ -97,6 +97,12 @@
                text="Mark a player injured or fit again; ignores case&#10;e.g. injury 1 i/injured or injury 1 i/fit"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="12" GridPane.valignment="TOP" />
+        <Label fx:id="sortSyntax" text="sort rating [asc|desc]"
+               GridPane.columnIndex="0" GridPane.rowIndex="13" GridPane.valignment="TOP" />
+        <Label fx:id="sortDescription"
+               text="Sort displayed players by rating; highest first by default&#10;Unrated players come last. Use list to reset.&#10;e.g. sort rating desc"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="13" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />
