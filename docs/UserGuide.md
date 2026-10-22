@@ -83,14 +83,16 @@ Format: `help`
 
 Adds a player to the team.
 
-Format: `add n/NAME p/PHONE [t/TAG]...`
+Format: `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...`
 
-* Both `NAME` and `PHONE` must be given, in any order.
+* Both `NAME` and `PHONE` must be given, in any order. `JERSEY` and `TAG` are optional.
 * `NAME` can contain only letters, digits, spaces, and the characters `-` `'` `/` `.`, and can be at most 100 characters long.
 * `NAME` is saved with the capitalisation you type. Extra spaces at the start and end are removed, and repeated spaces inside the name are reduced to one.
 * `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces and hyphens are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567`.
+* `JERSEY` must be a whole number from 0 to 99. A leading zero is dropped, e.g. `j/07` is saved as `7`.
 * A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan wei ming` counts as the same player as `Tan Wei Ming`. Phone numbers are not compared, so two players may share a contact number.
-* If `n/` or `p/` is given more than once, only the last one is used, e.g. `add n/Amy n/Bob p/91234567` adds `Bob`.
+* Players may share a jersey number, but the result box then warns you and names the other players with that number, e.g. `Warning: jersey number 7 is also used by Bernice Yu.` The player is still added.
+* If `n/`, `p/` or `j/` is given more than once, only the last one is used, e.g. `add n/Amy n/Bob p/91234567` adds `Bob`.
 * The new player appears at the bottom of the list. If the list was filtered by `find` or `filter`, the full list is shown again.
 
 <box type="tip" seamless>
@@ -100,6 +102,7 @@ Format: `add n/NAME p/PHONE [t/TAG]...`
 
 Examples:
 * `add n/Tan Wei Ming p/91234567`
+* `add n/Lim Wei Jie p/98765432 j/10`
 * `add p/+6598765432 n/Nur'ain Binte Hassan`
 * `add n/Muthu s/o Ramasamy p/8123 4567`
 
@@ -217,17 +220,21 @@ Examples:
 
 Edits an existing player in the team.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [t/TAG]...`
+Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`
 
 * Edits the player at the specified `INDEX`. The index refers to the index number shown in the displayed player list. The index **must be a positive whole number** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
-* Existing values will be updated to the input values. Names and phone numbers follow the same rules as in `add`.
-* `n/` and `p/` can each be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
+* Existing values will be updated to the input values. Names, phone numbers and jersey numbers follow the same rules as in `add`.
+* `n/`, `p/` and `j/` can each be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
+* Omit `j/` to keep the player's current jersey number. Type `j/` with nothing after it to remove the jersey number. An empty `j/` works only with `edit`; `add` rejects it.
+* If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
 * Repeat `t/TAG` to replace all of the player's tags. Omit `t/` to keep them. Use a single empty `t/` to clear them; combining empty and non-empty tags is rejected.
 
 Examples:
 *  `edit 1 p/91234567` Edits the phone number of the 1st player to be `91234567`.
 *  `edit 2 n/Lim Wei Jie` Edits the name of the 2nd player to be `Lim Wei Jie`.
+*  `edit 3 j/23` Sets the jersey number of the 3rd player to be `23`.
+*  `edit 3 j/` Removes the jersey number of the 3rd player.
 
 ### Finding players by name: `find`
 
@@ -415,11 +422,11 @@ Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE [t/TAG]...` <br> e.g., `add n/Tan Wei Ming p/91234567`
+**Add**    | `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...` <br> e.g., `add n/Tan Wei Ming p/91234567 j/10`
 **Clear**  | `clear`
 **Cut**    | `cut INDEX`<br> e.g., `cut 3`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`
 **Exit**   | `exit`
 **Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/Striker t/Captain`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`

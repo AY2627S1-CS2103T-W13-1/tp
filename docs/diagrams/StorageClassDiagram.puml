@@ -16,7 +16,11 @@ Class JsonUserPrefsStorage
 package "AddressBook Storage" #F4F6F6{
 Class JsonAddressBookStorage
 Class JsonSerializableAddressBook
-Class JsonAdaptedPerson
+Class JsonAdaptedPerson {
+  name : String
+  phone : String
+  jerseyNumber : String [0..1]
+}
 }
 
 }
@@ -30,5 +34,12 @@ StorageManager -down-> "1" JsonAddressBookStorage
 
 JsonAddressBookStorage ..> JsonSerializableAddressBook
 JsonSerializableAddressBook --> "*" JsonAdaptedPerson
+
+show JsonAdaptedPerson fields
+
+note right of JsonAdaptedPerson
+  jerseyNumber is left out of the
+  file when the player has none
+end note
 
 @enduml

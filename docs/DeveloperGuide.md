@@ -151,7 +151,8 @@ The `Model` component,
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
 Each `Person` (a player) holds one `Name`, one `Phone`, one `SelectionStatus`, one
-`Rating`, one `Remark`, one `InjuryStatus`, and zero or more `Tag` values. Empty remarks
+`Rating`, one `Remark`, one `InjuryStatus`, zero or one `JerseyNumber`, and zero or more
+`Tag` values. Empty remarks
 and unrated ratings are present value objects, so their multiplicity is still `1`.
 These are ordinary associations: immutable
 values can be shared between player versions, so deleting one player does not imply
@@ -160,9 +161,10 @@ which is shown using composition. The full roster and filtered view reference th
 same player objects; filtering does not create copies.
 
 `UniquePersonList` uses `Person#isSamePerson` to reject duplicates: two players are the
-same if their names match after ignoring case and repeated spaces. Phone numbers and
-tags do not affect identity, because players such as siblings may share a parent's
-contact number. Routine accessors, library collection wrappers, and unrelated methods
+same if their names match after ignoring case and repeated spaces. Phone numbers,
+jersey numbers and tags do not affect identity: players such as siblings may share a
+parent's contact number, and `add` and `edit` accept a shared jersey number, only
+warning the coach about it. Routine accessors, library collection wrappers, and unrelated methods
 are omitted from the diagrams. The static tag-validation operation is underlined.
 
 Edit the PlantUML sources, then run `python3 docs/scripts/generate_model_diagrams.py`
@@ -174,8 +176,8 @@ also includes the editable source text. The shared legend lists only relationshi
 used across the four views.
 
 The assessment view reflects the merged selection, rating, remarks, and injury features.
-Jersey numbers are not present in `Person` yet; reconcile that field after its feature
-merges. The [rating and sorting UML](diagrams/player-rating-sorting-uml.html)
+Jersey numbers are now an optional field of `Person`, but these diagrams do not show
+them yet; reconcile that field in the model diagrams. The [rating and sorting UML](diagrams/player-rating-sorting-uml.html)
 provides the separate command-level design view.
 
 
@@ -183,11 +185,17 @@ provides the separate command-level design view.
 
 **API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
 
-<puml src="diagrams/StorageClassDiagram.puml" width="550" />
+<pic src="images/StorageClassDiagram.png" width="800" alt="Class diagram of the Storage component" />
+
+The image is drawn from [`StorageClassDiagram.svg`](diagrams/StorageClassDiagram.svg). After editing the SVG, regenerate the PNG at twice its size, e.g. with Chrome:
+`chrome --headless --force-device-scale-factor=2 --window-size=960,600 --screenshot=docs/images/StorageClassDiagram.png docs/diagrams/StorageClassDiagram.svg`.
 
 The `Storage` component,
 * can save both the team's player data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
+* saves each player as a `JsonAdaptedPerson`, which holds every field as a `String` and checks each one when converting it back into a `Person`.
+* reads a field that is missing from the file as absent, so data files saved before a field existed still load. For example, a player from a v1.3 file has no jersey number.
+* writes the jersey number only for a player who has one; for a player without one, the field is left out of the file.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
 ### Common classes
