@@ -5,10 +5,12 @@ import java.util.List;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.InjuryStatus;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -31,6 +33,8 @@ class JsonAdaptedPerson {
     private final List<String> tags;
     private final String remark;
     private final String injuryStatus;
+    @JsonInclude(JsonInclude.Include.NON_NULL) // a player without a jersey number is saved without the field
+    private final String jerseyNumber;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
@@ -69,11 +73,20 @@ class JsonAdaptedPerson {
     }
 
     /** Creates an adapted player, accepting missing injury status in older data files. */
+    public JsonAdaptedPerson(String name, String phone, String selectionStatus, String rating,
+                             List<String> tags, String remark, String injuryStatus) {
+        this(name, phone, selectionStatus, rating, tags, remark, injuryStatus, null);
+    }
+
+    /**
+     * Creates an adapted player, accepting a missing jersey number in older data files.
+     * {@code jerseyNumber} is null for a player without one, including every player saved by v1.3.
+     */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("selectionStatus") String selectionStatus, @JsonProperty("rating") String rating,
             @JsonProperty("tags") List<String> tags, @JsonProperty("remark") String remark,
-            @JsonProperty("injuryStatus") String injuryStatus) {
+            @JsonProperty("injuryStatus") String injuryStatus, @JsonProperty("jerseyNumber") String jerseyNumber) {
         this.name = name;
         this.phone = phone;
         this.selectionStatus = selectionStatus;
@@ -81,6 +94,7 @@ class JsonAdaptedPerson {
         this.tags = tags == null ? List.of() : tags;
         this.remark = remark;
         this.injuryStatus = injuryStatus;
+        this.jerseyNumber = jerseyNumber;
     }
 
     /**
@@ -93,6 +107,7 @@ class JsonAdaptedPerson {
         injuryStatus = source.getInjuryStatus().toString();
         selectionStatus = source.getSelectionStatus().name();
         rating = source.getRating().isRated() ? source.getRating().toString() : null;
+        jerseyNumber = source.getJerseyNumber().map(JerseyNumber::toString).orElse(null);
         tags = source.getTags().stream().map(Object::toString).sorted(String.CASE_INSENSITIVE_ORDER).toList();
     }
 
@@ -134,8 +149,14 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(InjuryStatus.MESSAGE_CONSTRAINTS);
         }
         final Remark modelRemark = new Remark(remark == null ? "" : remark);
+
+        if (jerseyNumber != null && !JerseyNumber.isValidJerseyNumber(jerseyNumber)) {
+            throw new IllegalValueException(JerseyNumber.MESSAGE_CONSTRAINTS);
+        }
+        final JerseyNumber modelJerseyNumber = jerseyNumber == null ? null : new JerseyNumber(jerseyNumber);
+
         return new Person(modelName, modelPhone, modelSelectionStatus, modelRating, toModelTags(),
-                modelRemark, modelInjuryStatus);
+                modelRemark, modelInjuryStatus, modelJerseyNumber);
     }
 
     /**

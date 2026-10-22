@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_JERSEY_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
@@ -17,6 +18,7 @@ import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.Model;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -36,7 +38,9 @@ public class EditCommand extends Command {
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
+            + "[" + PREFIX_JERSEY_NUMBER + "JERSEY] "
             + "[" + PREFIX_TAG + "TAG]... (a single empty t/ clears tags)\n"
+            + "An empty " + PREFIX_JERSEY_NUMBER + " removes the jersey number.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567";
 
@@ -95,8 +99,11 @@ public class EditCommand extends Command {
         SelectionStatus unchangedStatus = personToEdit.getSelectionStatus();
 
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
+        JerseyNumber updatedJerseyNumber = editPersonDescriptor.isJerseyNumberEdited()
+                ? editPersonDescriptor.getJerseyNumber().orElse(null)
+                : personToEdit.getJerseyNumber().orElse(null);
         return new Person(updatedName, updatedPhone, unchangedStatus, personToEdit.getRating(), updatedTags,
-                personToEdit.getRemark(), personToEdit.getInjuryStatus());
+                personToEdit.getRemark(), personToEdit.getInjuryStatus(), updatedJerseyNumber);
     }
 
     @Override
@@ -130,6 +137,9 @@ public class EditCommand extends Command {
         private Name name;
         private Phone phone;
         private Set<Tag> tags;
+        private JerseyNumber jerseyNumber;
+        // Needed because a null jerseyNumber may mean either "not edited" or "remove the jersey number"
+        private boolean isJerseyNumberEdited;
 
         public EditPersonDescriptor() {}
 
@@ -140,13 +150,16 @@ public class EditCommand extends Command {
             setName(toCopy.name);
             setPhone(toCopy.phone);
             setTags(toCopy.tags);
+            if (toCopy.isJerseyNumberEdited) {
+                setJerseyNumber(toCopy.jerseyNumber);
+            }
         }
 
         /**
          * Returns true if at least one field is edited.
          */
         public boolean isAnyFieldEdited() {
-            return CollectionUtil.isAnyNonNull(name, phone, tags);
+            return CollectionUtil.isAnyNonNull(name, phone, tags) || isJerseyNumberEdited;
         }
 
         public void setName(Name name) {
@@ -183,6 +196,26 @@ public class EditCommand extends Command {
             return Optional.ofNullable(tags);
         }
 
+        /**
+         * Sets the jersey number to change to. A null {@code jerseyNumber} removes the player's jersey number.
+         */
+        public void setJerseyNumber(JerseyNumber jerseyNumber) {
+            this.jerseyNumber = jerseyNumber;
+            isJerseyNumberEdited = true;
+        }
+
+        /**
+         * Returns the jersey number to change to, which is empty if the jersey number is to be removed
+         * or is not edited. Use {@link #isJerseyNumberEdited()} to tell the two apart.
+         */
+        public Optional<JerseyNumber> getJerseyNumber() {
+            return Optional.ofNullable(jerseyNumber);
+        }
+
+        public boolean isJerseyNumberEdited() {
+            return isJerseyNumberEdited;
+        }
+
         @Override
         public boolean equals(Object other) {
             if (other == this) {
@@ -196,7 +229,9 @@ public class EditCommand extends Command {
 
             return Objects.equals(name, otherEditPersonDescriptor.name)
                     && Objects.equals(phone, otherEditPersonDescriptor.phone)
-                    && Objects.equals(tags, otherEditPersonDescriptor.tags);
+                    && Objects.equals(tags, otherEditPersonDescriptor.tags)
+                    && Objects.equals(jerseyNumber, otherEditPersonDescriptor.jerseyNumber)
+                    && isJerseyNumberEdited == otherEditPersonDescriptor.isJerseyNumberEdited;
         }
 
         @Override
@@ -205,6 +240,8 @@ public class EditCommand extends Command {
                     .add("name", name)
                     .add("phone", phone)
                     .add("tags", tags)
+                    .add("jerseyNumber", jerseyNumber)
+                    .add("isJerseyNumberEdited", isJerseyNumberEdited)
                     .toString();
         }
     }

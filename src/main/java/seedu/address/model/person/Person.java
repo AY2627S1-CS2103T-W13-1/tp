@@ -5,6 +5,7 @@ import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -26,6 +27,7 @@ public class Person {
     private final Set<Tag> tags;
     private final Remark remark;
     private final InjuryStatus injuryStatus;
+    private final JerseyNumber jerseyNumber; // null if the player has no jersey number
 
     /**
      * Creates a player who has not been kept or cut yet.
@@ -36,6 +38,15 @@ public class Person {
      */
     public Person(Name name, Phone phone) {
         this(name, phone, SelectionStatus.PENDING, Rating.UNRATED, Set.of());
+    }
+
+    /**
+     * Creates a pending, unrated player with the given jersey number, no tags and an empty remark.
+     * {@code jerseyNumber} may be null if the player has no jersey number.
+     */
+    public Person(Name name, Phone phone, JerseyNumber jerseyNumber) {
+        this(name, phone, SelectionStatus.PENDING, Rating.UNRATED, Set.of(), new Remark(""), InjuryStatus.FIT,
+                jerseyNumber);
     }
 
     /** Creates a pending, unrated player with the given injury status, no tags and an empty remark. */
@@ -101,9 +112,18 @@ public class Person {
         this(name, phone, selectionStatus, rating, tags, remark, InjuryStatus.FIT);
     }
 
-    /** Creates a player with all fields present and a defensive copy of the supplied tags. */
+    /** Creates a player without a jersey number, defensively copying the supplied tags. */
     public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating, Set<Tag> tags,
                   Remark remark, InjuryStatus injuryStatus) {
+        this(name, phone, selectionStatus, rating, tags, remark, injuryStatus, null);
+    }
+
+    /**
+     * Creates a player with all fields, defensively copying the supplied tags.
+     * Every field and tag must be non-null, except {@code jerseyNumber}, which is null if the player has none.
+     */
+    public Person(Name name, Phone phone, SelectionStatus selectionStatus, Rating rating, Set<Tag> tags,
+                  Remark remark, InjuryStatus injuryStatus, JerseyNumber jerseyNumber) {
         requireAllNonNull(name, phone, selectionStatus, rating, tags, remark, injuryStatus);
         requireAllNonNull(tags);
         this.name = name;
@@ -112,6 +132,7 @@ public class Person {
         this.rating = rating;
         this.remark = remark;
         this.injuryStatus = injuryStatus;
+        this.jerseyNumber = jerseyNumber;
         this.tags = Collections.unmodifiableSet(new LinkedHashSet<>(tags));
     }
 
@@ -129,7 +150,7 @@ public class Person {
 
     /** Returns a copy with the given injury status and all other player details unchanged. */
     public Person withInjuryStatus(InjuryStatus newInjuryStatus) {
-        return new Person(name, phone, selectionStatus, rating, tags, remark, newInjuryStatus);
+        return new Person(name, phone, selectionStatus, rating, tags, remark, newInjuryStatus, jerseyNumber);
     }
 
     public Remark getRemark() {
@@ -138,7 +159,19 @@ public class Person {
 
     /** Returns a copy with the given remark and all other player details unchanged. */
     public Person withRemark(Remark newRemark) {
-        return new Person(name, phone, selectionStatus, rating, tags, newRemark, injuryStatus);
+        return new Person(name, phone, selectionStatus, rating, tags, newRemark, injuryStatus, jerseyNumber);
+    }
+
+    public Optional<JerseyNumber> getJerseyNumber() {
+        return Optional.ofNullable(jerseyNumber);
+    }
+
+    /**
+     * Returns a copy with the given jersey number and all other player details unchanged.
+     * A null {@code newJerseyNumber} gives a copy without a jersey number.
+     */
+    public Person withJerseyNumber(JerseyNumber newJerseyNumber) {
+        return new Person(name, phone, selectionStatus, rating, tags, remark, injuryStatus, newJerseyNumber);
     }
 
     public Rating getRating() {
@@ -153,7 +186,7 @@ public class Person {
      * Returns a copy of this player with the given selection status and all other details unchanged.
      */
     public Person withSelectionStatus(SelectionStatus newStatus) {
-        return new Person(name, phone, newStatus, rating, tags, remark, injuryStatus);
+        return new Person(name, phone, newStatus, rating, tags, remark, injuryStatus, jerseyNumber);
     }
 
     /**
@@ -200,13 +233,14 @@ public class Person {
                 && rating.equals(otherPerson.rating)
                 && tags.equals(otherPerson.tags)
                 && remark.equals(otherPerson.remark)
-                && injuryStatus == otherPerson.injuryStatus;
+                && injuryStatus == otherPerson.injuryStatus
+                && Objects.equals(jerseyNumber, otherPerson.jerseyNumber);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, selectionStatus, rating, tags, remark, injuryStatus);
+        return Objects.hash(name, phone, selectionStatus, rating, tags, remark, injuryStatus, jerseyNumber);
     }
 
     @Override
@@ -218,6 +252,7 @@ public class Person {
                 .add("tags", tags)
                 .add("remark", remark)
                 .add("injuryStatus", injuryStatus)
+                .add("jerseyNumber", jerseyNumber)
                 .toString();
     }
 

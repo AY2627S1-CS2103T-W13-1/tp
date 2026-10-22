@@ -1,6 +1,8 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
@@ -12,7 +14,9 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.person.InjuryStatus;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -28,6 +32,39 @@ public class JsonAdaptedPersonTest {
     private static final String VALID_NAME = BENSON.getName().toString();
     private static final String VALID_PHONE = BENSON.getPhone().toString();
     private static final String VALID_STATUS = BENSON.getSelectionStatus().name();
+
+    @Test
+    public void toModelType_withJerseyNumber_returnsPerson() throws Exception {
+        Person player = new PersonBuilder(BENSON).withJerseyNumber("10").build();
+        assertEquals(player, new JsonAdaptedPerson(player).toModelType());
+    }
+
+    @Test
+    public void toModelType_nullJerseyNumber_returnsPersonWithoutJerseyNumber() throws Exception {
+        // players saved by v1.3 have no jersey number field
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, null, null, null, null, null);
+        assertEquals(BENSON, person.toModelType());
+    }
+
+    @Test
+    public void toModelType_invalidJerseyNumber_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, null, null, null, null, null, "100");
+        assertThrows(IllegalValueException.class, JerseyNumber.MESSAGE_CONSTRAINTS, person::toModelType);
+    }
+
+    @Test
+    public void jsonRoundTrip_jerseyNumber_savedOnlyWhenPresent() throws Exception {
+        // a leading zero is dropped before saving, and the number reloads unchanged
+        Person numberedPlayer = new PersonBuilder(BENSON).withJerseyNumber("07").build();
+        String numberedJson = JsonUtil.toJsonString(new JsonAdaptedPerson(numberedPlayer));
+        assertTrue(numberedJson.matches("(?s).*\"jerseyNumber\"\\s*:\\s*\"7\".*"));
+        assertEquals(numberedPlayer, JsonUtil.fromJsonString(numberedJson, JsonAdaptedPerson.class).toModelType());
+
+        // a player without a jersey number is saved without the field
+        String unnumberedJson = JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON));
+        assertFalse(unnumberedJson.contains("jerseyNumber"));
+        assertEquals(BENSON, JsonUtil.fromJsonString(unnumberedJson, JsonAdaptedPerson.class).toModelType());
+    }
 
     @Test
     public void toModelType_rating_roundTripsAndRejectsInvalidScores() throws Exception {

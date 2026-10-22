@@ -32,12 +32,13 @@ public class HelpPanelTest {
             Map<String, String> expectedText = Map.ofEntries(
                     Map.entry("helpHeading", "CouchCoach commands:"),
                     Map.entry("helpHint", "Type 'list' to see your players again."),
-                    Map.entry("addSyntax", "add n/NAME p/PHONE\n[t/TAG]..."),
-                    Map.entry("addDescription", "Add a player with optional tags\n"
-                            + "e.g. add n/Tan Wei Ming p/91234567 t/Striker"),
-                    Map.entry("editSyntax", "edit INDEX [n/NAME]\n[p/PHONE] [t/TAG]..."),
+                    Map.entry("addSyntax", "add n/NAME p/PHONE\n[j/JERSEY] [t/TAG]..."),
+                    Map.entry("addDescription", "Add a player with an optional jersey number and tags\n"
+                            + "e.g. add n/Tan Wei Ming p/91234567 j/10 t/Striker"),
+                    Map.entry("editSyntax", "edit INDEX [n/NAME]\n[p/PHONE] [j/JERSEY]\n[t/TAG]..."),
                     Map.entry("editDescription", "Edit the displayed player; tags replace existing tags\n"
-                            + "A single empty t/ clears tags; omit t/ to keep them\ne.g. edit 1 t/Striker t/Captain"),
+                            + "A single empty t/ clears tags; omit t/ to keep them\n"
+                            + "An empty j/ removes the jersey number\ne.g. edit 1 t/Striker t/Captain"),
                     Map.entry("filterSyntax", "filter t/TAG [t/TAG]..."),
                     Map.entry("filterDescription", "Show players with any requested tag\n"
                             + "Matches complete labels, ignores capitalisation\ne.g. filter t/Striker t/Trial Group 2"),

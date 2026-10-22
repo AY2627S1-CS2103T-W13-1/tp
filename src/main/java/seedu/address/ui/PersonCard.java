@@ -37,6 +37,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label phone;
     @FXML
+    private Label jerseyNumber;
+    @FXML
     private Label rating;
     @FXML
     private Label remark;
@@ -56,6 +58,10 @@ public class PersonCard extends UiPart<Region> {
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
         phone.setText(person.getPhone().value);
+        // hide the line entirely, rather than leaving a blank one, for a player without a jersey number
+        jerseyNumber.setText(person.getJerseyNumber().map(number -> "Jersey #" + number).orElse(""));
+        jerseyNumber.setVisible(person.getJerseyNumber().isPresent());
+        jerseyNumber.setManaged(jerseyNumber.isVisible());
         remark.setText("Remark: " + person.getRemark().value);
         remark.setVisible(!person.getRemark().value.isEmpty());
         remark.setManaged(remark.isVisible());

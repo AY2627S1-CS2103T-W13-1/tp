@@ -1,14 +1,18 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.commands.CommandTestUtil.INVALID_JERSEY_NUMBER_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_NAME_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_PHONE_DESC;
+import static seedu.address.logic.commands.CommandTestUtil.JERSEY_NUMBER_DESC_AMY;
+import static seedu.address.logic.commands.CommandTestUtil.JERSEY_NUMBER_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.PREAMBLE_NON_EMPTY;
 import static seedu.address.logic.commands.CommandTestUtil.PREAMBLE_WHITESPACE;
+import static seedu.address.logic.commands.CommandTestUtil.VALID_JERSEY_NUMBER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
@@ -22,6 +26,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -53,6 +58,26 @@ public class AddCommandParserTest {
 
         // parameters in reverse order
         assertParseSuccess(parser, PHONE_DESC_BOB + NAME_DESC_BOB, new AddCommand(BOB));
+    }
+
+    @Test
+    public void parse_optionalJerseyNumberPresent_success() {
+        Person expectedPerson = new PersonBuilder(BOB).withJerseyNumber(VALID_JERSEY_NUMBER_BOB).build();
+
+        assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + JERSEY_NUMBER_DESC_BOB,
+                new AddCommand(expectedPerson));
+
+        // jersey number first
+        assertParseSuccess(parser, JERSEY_NUMBER_DESC_BOB + NAME_DESC_BOB + PHONE_DESC_BOB,
+                new AddCommand(expectedPerson));
+
+        // multiple jersey numbers, last one used
+        assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + JERSEY_NUMBER_DESC_AMY + JERSEY_NUMBER_DESC_BOB,
+                new AddCommand(expectedPerson));
+
+        // leading zero dropped
+        assertParseSuccess(parser, " n/Tan Wei Ming p/91234567 j/07", new AddCommand(new PersonBuilder()
+                .withName("Tan Wei Ming").withPhone("91234567").withJerseyNumber("7").build()));
     }
 
     @Test
@@ -154,6 +179,14 @@ public class AddCommandParserTest {
         // two invalid values, only the name error is reported
         assertParseFailure(parser, INVALID_NAME_DESC + INVALID_PHONE_DESC, Name.MESSAGE_CONSTRAINTS);
         assertParseFailure(parser, INVALID_PHONE_DESC + INVALID_NAME_DESC, Name.MESSAGE_CONSTRAINTS);
+
+        // invalid jersey number
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + INVALID_JERSEY_NUMBER_DESC,
+                JerseyNumber.MESSAGE_CONSTRAINTS);
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " j/seven", JerseyNumber.MESSAGE_CONSTRAINTS);
+
+        // jersey number prefix with no value
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " j/", JerseyNumber.MESSAGE_CONSTRAINTS);
 
         // non-empty preamble
         assertParseFailure(parser, PREAMBLE_NON_EMPTY + NAME_DESC_BOB + PHONE_DESC_BOB,

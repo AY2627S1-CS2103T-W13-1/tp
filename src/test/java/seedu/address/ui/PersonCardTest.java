@@ -32,6 +32,28 @@ public class PersonCardTest {
     }
 
     @Test
+    public void constructor_withJerseyNumber_showsJerseyNumber() throws Exception {
+        runOnFxThread(() -> {
+            Label jerseyNumber = lookupLabel(new PersonCard(new PersonBuilder().withJerseyNumber("10").build(), 1),
+                    "#jerseyNumber");
+
+            assertEquals("Jersey #10", jerseyNumber.getText());
+            assertTrue(jerseyNumber.isVisible());
+            assertTrue(jerseyNumber.isManaged());
+        });
+    }
+
+    @Test
+    public void constructor_withoutJerseyNumber_hidesJerseyNumber() throws Exception {
+        runOnFxThread(() -> {
+            Label jerseyNumber = lookupLabel(new PersonCard(new PersonBuilder().build(), 1), "#jerseyNumber");
+
+            assertFalse(jerseyNumber.isVisible());
+            assertFalse(jerseyNumber.isManaged());
+        });
+    }
+
+    @Test
     public void constructor_tagsAppearAlphabeticallyAndWrap() throws Exception {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().withTags("Striker", "Captain").build(), 1);

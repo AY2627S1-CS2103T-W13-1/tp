@@ -6,6 +6,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import seedu.address.model.person.InjuryStatus;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -29,6 +30,7 @@ public class PersonBuilder {
     private Remark remark;
     private InjuryStatus injuryStatus;
     private Set<Tag> tags = Set.of();
+    private JerseyNumber jerseyNumber;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -52,6 +54,7 @@ public class PersonBuilder {
         remark = personToCopy.getRemark();
         injuryStatus = personToCopy.getInjuryStatus();
         tags = personToCopy.getTags();
+        jerseyNumber = personToCopy.getJerseyNumber().orElse(null);
     }
 
     /**
@@ -104,8 +107,24 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the {@code JerseyNumber} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withJerseyNumber(String jerseyNumber) {
+        this.jerseyNumber = new JerseyNumber(jerseyNumber);
+        return this;
+    }
+
+    /**
+     * Removes the {@code JerseyNumber} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withoutJerseyNumber() {
+        this.jerseyNumber = null;
+        return this;
+    }
+
     public Person build() {
-        return new Person(name, phone, selectionStatus, rating, tags, remark, injuryStatus);
+        return new Person(name, phone, selectionStatus, rating, tags, remark, injuryStatus, jerseyNumber);
     }
 
 }

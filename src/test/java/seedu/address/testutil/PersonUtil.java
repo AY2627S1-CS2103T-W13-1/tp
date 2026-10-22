@@ -1,5 +1,6 @@
 package seedu.address.testutil;
 
+import static seedu.address.logic.parser.CliSyntax.PREFIX_JERSEY_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 
@@ -26,6 +27,8 @@ public class PersonUtil {
         StringBuilder sb = new StringBuilder();
         sb.append(PREFIX_NAME + person.getName().fullName + " ");
         sb.append(PREFIX_PHONE + person.getPhone().value + " ");
+        person.getJerseyNumber().ifPresent(jerseyNumber ->
+                sb.append(PREFIX_JERSEY_NUMBER).append(jerseyNumber).append(" "));
         return sb.toString();
     }
 
@@ -36,6 +39,11 @@ public class PersonUtil {
         StringBuilder sb = new StringBuilder();
         descriptor.getName().ifPresent(name -> sb.append(PREFIX_NAME).append(name.fullName).append(" "));
         descriptor.getPhone().ifPresent(phone -> sb.append(PREFIX_PHONE).append(phone.value).append(" "));
+        if (descriptor.isJerseyNumberEdited()) {
+            // an empty value removes the jersey number
+            sb.append(PREFIX_JERSEY_NUMBER).append(descriptor.getJerseyNumber().map(String::valueOf).orElse(""))
+                    .append(" ");
+        }
         return sb.toString();
     }
 }

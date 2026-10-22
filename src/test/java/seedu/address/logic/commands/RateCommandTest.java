@@ -52,6 +52,15 @@ public class RateCommandTest {
     }
 
     @Test
+    public void execute_playerWithJerseyNumber_keepsJerseyNumber() throws Exception {
+        ModelManager model = new ModelManager();
+        Person amy = new PersonBuilder().withJerseyNumber("10").build();
+        model.addPerson(amy);
+        new RateCommand(Index.fromOneBased(1), new Rating("8")).execute(model);
+        assertEquals(List.of(new PersonBuilder(amy).withRating("8").build()), model.getAddressBook().getPersonList());
+    }
+
+    @Test
     public void execute_outOfBounds_doesNotChangePlayer() {
         ModelManager model = new ModelManager();
         Person amy = new PersonBuilder().build();

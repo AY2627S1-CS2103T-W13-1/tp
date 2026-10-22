@@ -111,6 +111,16 @@ public class PersonTest {
         // different selection status -> returns false
         editedAlice = new PersonBuilder(ALICE).withSelectionStatus(SelectionStatus.KEPT).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // jersey number added -> returns false
+        editedAlice = new PersonBuilder(ALICE).withJerseyNumber("10").build();
+        assertFalse(ALICE.equals(editedAlice));
+
+        // different jersey number -> returns false
+        assertFalse(editedAlice.equals(new PersonBuilder(ALICE).withJerseyNumber("11").build()));
+
+        // same jersey number -> returns true
+        assertTrue(editedAlice.equals(new PersonBuilder(ALICE).withJerseyNumber("10").build()));
     }
 
     @Test
@@ -127,6 +137,38 @@ public class PersonTest {
         // different selection status -> returns different hashcode
         assertNotEquals(ALICE.hashCode(),
                 new PersonBuilder(ALICE).withSelectionStatus(SelectionStatus.CUT).build().hashCode());
+
+        // jersey number added -> returns different hashcode
+        assertNotEquals(ALICE.hashCode(), new PersonBuilder(ALICE).withJerseyNumber("10").build().hashCode());
+    }
+
+    @Test
+    public void getJerseyNumber() {
+        assertTrue(ALICE.getJerseyNumber().isEmpty());
+        assertEquals(new JerseyNumber("10"),
+                new PersonBuilder(ALICE).withJerseyNumber("10").build().getJerseyNumber().get());
+    }
+
+    @Test
+    public void withJerseyNumber_newOrRemovedNumber_keepsOtherFields() {
+        Person keptAlice = new PersonBuilder(ALICE).withSelectionStatus(SelectionStatus.KEPT).withRating("8")
+                .withTags("Striker").withRemark("Strong left foot").build();
+
+        Person numberedAlice = keptAlice.withJerseyNumber(new JerseyNumber("10"));
+        assertEquals(new PersonBuilder(keptAlice).withJerseyNumber("10").build(), numberedAlice);
+
+        // null removes the jersey number
+        assertEquals(keptAlice, numberedAlice.withJerseyNumber(null));
+    }
+
+    @Test
+    public void withOtherFields_jerseyNumberKept() {
+        Person numberedAlice = new PersonBuilder(ALICE).withJerseyNumber("10").build();
+        JerseyNumber expected = new JerseyNumber("10");
+
+        assertEquals(expected, numberedAlice.withSelectionStatus(SelectionStatus.KEPT).getJerseyNumber().get());
+        assertEquals(expected, numberedAlice.withRemark(new Remark("Fast")).getJerseyNumber().get());
+        assertEquals(expected, numberedAlice.withInjuryStatus(InjuryStatus.INJURED).getJerseyNumber().get());
     }
 
     @Test
@@ -162,7 +204,7 @@ public class PersonTest {
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", selectionStatus=" + ALICE.getSelectionStatus() + ", tags=[], remark=" + ALICE.getRemark()
-                + ", injuryStatus=" + ALICE.getInjuryStatus() + "}";
+                + ", injuryStatus=" + ALICE.getInjuryStatus() + ", jerseyNumber=null}";
         assertEquals(expected, ALICE.toString());
     }
 
