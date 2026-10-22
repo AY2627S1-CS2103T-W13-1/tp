@@ -1,0 +1,64 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant "c:RateCommand" as RateCommand LOGIC_COLOR
+end box
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+end box
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+' Successful execution of rate 1 8; the displayed list contains at least one player.
+' Command construction, value validation and getters are summarized in notes.
+activate LogicManager
+LogicManager -> AddressBookParser : parseCommand("rate 1 8")
+activate AddressBookParser
+note over AddressBookParser
+  Delegates to RateCommandParser.parse(" 1 8").
+  Parses the displayed index and validates rating 8.
+  Returns a RateCommand for one-based index 1 and rating 8.
+end note
+AddressBookParser --> LogicManager : c
+deactivate AddressBookParser
+
+LogicManager -> RateCommand : execute(m)
+activate RateCommand
+RateCommand -> Model : getFilteredPersonList()
+activate Model
+Model --> RateCommand : displayed
+deactivate Model
+note over RateCommand
+  Checks the index, selects displayed.get(0), and creates
+  ratedPlayer with rating 8. Preserves name, phone,
+  selection status, tags, remark, injury and jersey number.
+end note
+RateCommand -> Model : setPerson(player, ratedPlayer)
+activate Model
+Model --> RateCommand
+deactivate Model
+RateCommand --> LogicManager : result
+deactivate RateCommand
+
+LogicManager -> Model : getAddressBook()
+activate Model
+Model --> LogicManager : addressBook
+deactivate Model
+LogicManager -> Storage : saveAddressBook(addressBook)
+activate Storage
+Storage --> LogicManager
+deactivate Storage
+deactivate LogicManager
+
+note over LogicManager, Storage
+  The result is returned after saving succeeds.
+  An invalid displayed index throws CommandException before replacement.
+  A save failure reports that the in-memory change could not be saved.
+  The current filter is retained; a rating sort may move the updated player.
+end note
+@enduml
