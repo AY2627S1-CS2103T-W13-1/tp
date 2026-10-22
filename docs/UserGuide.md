@@ -93,7 +93,7 @@ Format: `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...`
 * A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan wei ming` counts as the same player as `Tan Wei Ming`. Phone numbers are not compared, so two players may share a contact number.
 * Players may share a jersey number, but the result box then warns you and names the other players with that number, e.g. `Warning: jersey number 7 is also used by Bernice Yu.` The player is still added.
 * If `n/`, `p/` or `j/` is given more than once, only the last one is used, e.g. `add n/Amy n/Bob p/91234567` adds `Bob`.
-* The new player appears at the bottom of the list. If the list was filtered by `find` or `filter`, the full list is shown again.
+* The new player appears at the bottom of the list, or at their sorted position if rating sorting is active. If the list was filtered by `find` or `filter`, the full list is shown again.
 
 <box type="tip" seamless>
 
@@ -140,12 +140,36 @@ Shows every player and clears any filter from a previous `find` or `filter` comm
 
 Format: `list`
 
-Players appear in the order they were added, numbered from 1. The result box shows
+This command also clears rating sorting. Players appear in the order they were added, numbered from 1. The result box shows
 `Listed all players`, even when the team is empty. This command does not change player data.
 Any text after `list` is ignored, so `list all` has the same effect as `list`.
 
 Indices refer to positions in the currently displayed list and can change after deletion.
 Run `list` again before using an index if you need to see the full team.
+
+### Sorting players by rating: `sort`
+
+Orders the displayed players by their performance rating.
+
+Format: `sort rating [asc|desc]`
+
+* `sort rating` and `sort rating desc` show the highest rating first.
+* `sort rating asc` shows the lowest rating first. **Unrated** players appear last
+  in both directions; a score of `0` still appears before unrated players.
+* Players with the same rating keep their original insertion order.
+* Sorting keeps the current `find` filter. Later searches use the active sort order too.
+* Indices are renumbered to match the sorted display. `rate`, `edit` and `delete` use
+  these displayed indices. Check the list again after a rating change, as the player may move.
+* The active sort remains when adding or editing players; new players appear at their
+  sorted position. `add` and `edit` still clear the search filter as usual.
+* `list` clears the filter and sorting, restoring the full team in insertion order.
+* Sorting an empty team is allowed. Invalid fields, directions or extra arguments are
+  rejected without changing the current list.
+* Sorting changes no saved player data and does not save. After a restart the list
+  returns to insertion order.
+
+Example: after `rate 1 3` and `rate 2 9`, `sort rating` shows the player rated 9 before
+those rated 3 or Unrated. `sort rating asc` puts the player rated 3 first.
 
 ### Rating a player: `rate`
 
@@ -251,7 +275,7 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
 * Slashes and other allowed name punctuation are part of a word: `find s/o` matches
   `Muthu s/o Ramasamy`. No tagged parameters are used; `find n/Wei` searches for the literal word `n/Wei`.
 * Each search searches the whole team, including players hidden by an earlier search.
-* Results keep their order in the full list and are numbered from 1. After `find`, `delete 1`
+* Results follow the active rating sort, or insertion order when no sort is active and are numbered from 1. After `find`, `delete 1`
   deletes the first displayed match. The search filter remains active after deletion.
 * Use `list` to restore the full team list.
 * Searching changes neither player records nor the saved data file.
@@ -381,7 +405,7 @@ Format: `exit`
 
 ### Saving the data
 
-CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `squad`, `help` and `exit` do not change your data, so they do not save.
+CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `sort`, `squad`, `help` and `exit` do not change your data, so they do not save.
 
 If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
 
@@ -431,6 +455,7 @@ Action     | Format, Examples
 **Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/Striker t/Captain`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Injury** | `injury INDEX i/STATUS`<br> e.g., `injury 1 i/injured`; mark fit again with `injury 1 i/fit`
+**Sort**   | `sort rating [asc|desc]`<br> e.g., `sort rating desc`
 **Rate**   | `rate INDEX RATING`<br> e.g., `rate 1 8`
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Strong left foot`; clear with `remark 1 r/`
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`

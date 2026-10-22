@@ -66,6 +66,9 @@ public class HelpPanelTest {
                     Map.entry("remarkDescription", "Set or replace a player remark; empty r/ clears it\n"
                             + "Use r/ only once; a second r/ after a space is rejected\n"
                             + "e.g. remark 1 r/Strong left foot"),
+                    Map.entry("sortSyntax", "sort rating [asc|desc]"),
+                    Map.entry("sortDescription", "Sort displayed players by rating; highest first by default\n"
+                            + "Unrated players come last. Use list to reset.\ne.g. sort rating desc"),
                     Map.entry("helpFooter", "Your data is saved automatically after every change."));
 
             expectedText.forEach((id, text) -> {
@@ -73,7 +76,7 @@ public class HelpPanelTest {
                 assertEquals(text, label.getText());
             });
             for (String command : List.of("add", "list", "find", "delete", "status", "squad",
-                    "help", "exit", "edit", "rate", "filter", "remark", "injury")) {
+                    "help", "exit", "edit", "rate", "filter", "remark", "injury", "sort")) {
                 assertTrue(((Label) help.getContent().lookup("#" + command + "Description")).isWrapText());
             }
         });

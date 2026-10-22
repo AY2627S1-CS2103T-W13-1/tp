@@ -188,6 +188,20 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_sort_doesNotSaveAndListRestoresOrder() throws Exception {
+        Person low = new PersonBuilder().withName("Low Player").withRating("0").build();
+        Person high = new PersonBuilder().withName("High Player").withRating("10").build();
+        model.addPerson(low);
+        model.addPerson(high);
+        logic = createLogicWithFailingSave();
+        logic.execute("sort rating");
+        assertEquals(List.of(high, low), logic.getFilteredPersonList());
+        assertEquals(List.of(low, high), model.getAddressBook().getPersonList());
+        logic.execute("list");
+        assertEquals(List.of(low, high), logic.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_rateThenReload_preservesRating() throws Exception {
         model.addPerson(new PersonBuilder().build());
         logic.execute("rate 1 8");
