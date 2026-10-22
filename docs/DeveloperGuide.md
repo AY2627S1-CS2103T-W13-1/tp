@@ -208,6 +208,32 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Player ratings (US12)
+
+`RateCommandParser` parses `rate INDEX RATING` into a `RateCommand`. It validates the
+positive displayed index and a whole-number rating from 0 to 10. The command checks
+that the index exists in the displayed list before changing the model.
+
+The sequence below follows successful execution of `rate 1 8`:
+
+<puml src="diagrams/RateSequenceDiagram.puml" alt="Sequence of parsing, player replacement and saving for the rate 1 8 command" />
+
+`RateCommand` replaces the selected immutable `Person` with a copy containing the new
+rating. Name, phone, selection status, tags, remark, injury status and jersey number
+are preserved. The current filter stays active; an active rating sort may move the
+player and change displayed indices.
+
+After command execution, `LogicManager` saves the team through `Storage` before
+returning the result. An invalid displayed index raises `CommandException` before
+replacement. If saving fails, the update remains in memory and the coach receives
+the save-failure message.
+
+The diagram summarizes parser internals and object creation. Its editable source is
+[RateSequenceDiagram.puml](diagrams/RateSequenceDiagram.puml). The
+[default-style HTML view](diagrams/RateSequenceDiagram.html) is generated from that
+source with `python3 docs/scripts/generate_rate_sequence.py`; use `--check` to verify
+that the HTML is up to date. Presentation settings are kept in the HTML template.
+
 ### Selection status feature
 
 #### Implementation
