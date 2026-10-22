@@ -16,6 +16,7 @@ end box
 
 ' Successful execution of rate 1 8; the displayed list contains at least one player.
 ' Command construction, value validation and getters are summarized in notes.
+[-> LogicManager : execute("rate 1 8")
 activate LogicManager
 LogicManager -> AddressBookParser : parseCommand("rate 1 8")
 activate AddressBookParser
@@ -53,6 +54,7 @@ LogicManager -> Storage : saveAddressBook(addressBook)
 activate Storage
 Storage --> LogicManager
 deactivate Storage
+[<-- LogicManager : result
 deactivate LogicManager
 
 note over LogicManager, Storage
