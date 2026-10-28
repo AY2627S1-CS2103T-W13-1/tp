@@ -5,7 +5,7 @@ skinparam arrowThickness 1.1
 skinparam arrowColor LOGIC_COLOR_T4
 skinparam classBackgroundColor LOGIC_COLOR
 
-package Logic {
+package "Logic" as LogicPackage {
     interface Logic
     class LogicManager
     class AddressBookParser
