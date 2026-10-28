@@ -61,8 +61,9 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `squad`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for `help`, `list`, `squad`, and `exit` are ignored.<br>
   For example, `help 123` is interpreted as `help`.
+  The destructive `clear` command must be entered on its own; extra text is rejected.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -391,6 +392,9 @@ Examples:
 Deletes all players from the team.
 
 Format: `clear`
+
+Use `clear` on its own. Extra arguments, such as `clear 1` or `clear everything`, show a usage error and leave all players unchanged.
+To remove one player, use `delete INDEX` instead.
 
 <box type="warning" seamless>
 
