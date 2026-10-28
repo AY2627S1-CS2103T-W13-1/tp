@@ -2,15 +2,16 @@ package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
+import static seedu.address.model.person.HasSelectionStatusPredicate.IS_KEPT;
 
 import java.util.Comparator;
+import java.util.Locale;
+import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.Model;
-import seedu.address.model.person.HasSelectionStatusPredicate;
 import seedu.address.model.person.Person;
-import seedu.address.model.person.SelectionStatus;
 
 /** Sorts the displayed players by rating without changing their saved order. */
 public class SortCommand extends Command {
@@ -34,19 +35,27 @@ public class SortCommand extends Command {
         SQUAD
     }
 
+    /** The order of rated players; unrated players always appear last. */
+    public enum Direction {
+        /** Order ratings from lowest to highest. */
+        ASCENDING,
+        /** Order ratings from highest to lowest. */
+        DESCENDING
+    }
+
     private static final Logger logger = LogsCenter.getLogger(SortCommand.class);
 
-    private final boolean ascending;
+    private final Direction direction;
     private final Scope scope;
 
     /** Creates a sort that preserves the current view. */
-    public SortCommand(boolean ascending) {
-        this(ascending, Scope.CURRENT);
+    public SortCommand(Direction direction) {
+        this(direction, Scope.CURRENT);
     }
 
     /** Creates a rating sort with the requested direction and view scope. */
-    public SortCommand(boolean ascending, Scope scope) {
-        this.ascending = ascending;
+    public SortCommand(Direction direction, Scope scope) {
+        this.direction = requireNonNull(direction);
         this.scope = requireNonNull(scope);
     }
 
@@ -55,24 +64,23 @@ public class SortCommand extends Command {
         requireNonNull(model);
         updateScope(model);
         model.setPersonComparator(createRatingComparator());
-        logger.fine("Sorted displayed players by rating, ascending=" + ascending + ", scope=" + scope);
-        String direction = ascending ? "ascending" : "descending";
-        String feedback = String.format(MESSAGE_SUCCESS, direction);
+        logger.fine("Sorted displayed players by rating, direction=" + direction + ", scope=" + scope);
+        String directionLabel = direction.name().toLowerCase(Locale.ROOT);
+        String feedback = String.format(MESSAGE_SUCCESS, directionLabel);
         if (scope != Scope.CURRENT) {
             String players = scope == Scope.ALL ? "all players" : "kept players";
-            feedback = String.format(MESSAGE_SCOPED_SUCCESS, players, direction);
+            feedback = String.format(MESSAGE_SCOPED_SUCCESS, players, directionLabel);
         }
         return new CommandResult(feedback);
     }
 
     /** Selects a complete roster or squad when explicitly requested. */
     private void updateScope(Model model) {
-        switch (scope) {
-            case ALL -> model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-            case SQUAD -> model.updateFilteredPersonList(new HasSelectionStatusPredicate(SelectionStatus.KEPT));
-            case CURRENT -> { } // Retain the current name, tag, or selection filter.
-            default -> throw new AssertionError("Unsupported sort scope: " + scope);
+        if (scope == Scope.CURRENT) {
+            return;
         }
+        Predicate<Person> predicate = scope == Scope.ALL ? PREDICATE_SHOW_ALL_PERSONS : IS_KEPT;
+        model.updateFilteredPersonList(predicate);
     }
 
     /** Returns an ordering with unrated players last in either direction. */
@@ -81,7 +89,7 @@ public class SortCommand extends Command {
             assert player.getRating().isRated();
             return player.getRating().getScore();
         });
-        if (!ascending) {
+        if (direction == Direction.DESCENDING) {
             scoreComparator = scoreComparator.reversed();
         }
         Comparator<Person> ratedComparator = scoreComparator;
@@ -97,7 +105,12 @@ public class SortCommand extends Command {
 
     @Override
     public boolean equals(Object other) {
-        return other == this || other instanceof SortCommand otherCommand
-                && ascending == otherCommand.ascending && scope == otherCommand.scope;
+        if (other == this) {
+            return true;
+        }
+        if (!(other instanceof SortCommand otherCommand)) {
+            return false;
+        }
+        return direction == otherCommand.direction && scope == otherCommand.scope;
     }
 }

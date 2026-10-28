@@ -63,7 +63,7 @@ public class MainWindowTest {
             enterCommand("sort rating squad");
             assertTrue(model.getFilteredPersonList().isEmpty());
             assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
-            enterCommand("sort rating all asc");
+            enterCommand("sort rating asc all");
             assertEquals(getTypicalPersons(), model.getFilteredPersonList());
         });
     }

@@ -10,6 +10,9 @@ import seedu.address.commons.util.ToStringBuilder;
  * Tests that a {@code Person} has the given {@code SelectionStatus}.
  */
 public class HasSelectionStatusPredicate implements Predicate<Person> {
+    /** Accepts every kept player, shared by squad viewing and scoped sorting. */
+    public static final HasSelectionStatusPredicate IS_KEPT = new HasSelectionStatusPredicate(SelectionStatus.KEPT);
+
     private final SelectionStatus status;
 
     /**

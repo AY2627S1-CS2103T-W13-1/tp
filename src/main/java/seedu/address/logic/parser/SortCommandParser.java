@@ -2,33 +2,51 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 import seedu.address.logic.commands.SortCommand;
+import seedu.address.logic.commands.SortCommand.Direction;
 import seedu.address.logic.commands.SortCommand.Scope;
 import seedu.address.logic.parser.exceptions.ParseException;
 
-/** Parses a rating sort field, optional scope, and optional direction in any letter case. */
+/** Parses rating sorts with optional scope and direction in either order and any letter case. */
 public class SortCommandParser implements Parser<SortCommand> {
+    private static final Set<String> VALID_OPTIONS = Set.of("all", "squad", "asc", "desc");
+
     @Override
     public SortCommand parse(String args) throws ParseException {
         String[] parts = args.trim().toLowerCase(Locale.ROOT).split("\\s+");
-        if (parts.length > 3 || !"rating".equals(parts[0])) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
+        boolean hasExtraWords = parts.length > 3;
+        boolean hasInvalidField = !"rating".equals(parts[0]);
+        if (hasExtraWords || hasInvalidField) {
+            throw invalidFormat();
         }
-        Scope scope = Scope.CURRENT;
-        int directionIndex = 1;
-        if (parts.length > 1 && "all".equals(parts[1])) {
-            scope = Scope.ALL;
-            directionIndex++;
-        } else if (parts.length > 1 && "squad".equals(parts[1])) {
-            scope = Scope.SQUAD;
-            directionIndex++;
+        List<String> options = List.of(parts).subList(1, parts.length);
+        boolean hasUnknownOptions = !VALID_OPTIONS.containsAll(options);
+        boolean hasRepeatedOptions = new HashSet<>(options).size() != options.size();
+        boolean hasConflictingScopes = options.contains("all") && options.contains("squad");
+        boolean hasConflictingDirections = options.contains("asc") && options.contains("desc");
+        if (hasUnknownOptions || hasRepeatedOptions || hasConflictingScopes || hasConflictingDirections) {
+            throw invalidFormat();
         }
-        if (parts.length > directionIndex + 1 || parts.length > directionIndex
-                && !"asc".equals(parts[directionIndex]) && !"desc".equals(parts[directionIndex])) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
+        Direction direction = options.contains("asc") ? Direction.ASCENDING : Direction.DESCENDING;
+        return new SortCommand(direction, parseScope(options));
+    }
+
+    private Scope parseScope(List<String> options) {
+        if (options.contains("all")) {
+            return Scope.ALL;
         }
-        return new SortCommand(parts.length > directionIndex && "asc".equals(parts[directionIndex]), scope);
+        if (options.contains("squad")) {
+            return Scope.SQUAD;
+        }
+        return Scope.CURRENT;
+    }
+
+    private ParseException invalidFormat() {
+        return new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE));
     }
 }

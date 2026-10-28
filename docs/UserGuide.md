@@ -168,7 +168,7 @@ Format: `sort rating [all|squad] [asc|desc]`
 * Without a scope, sorting keeps the current view, including a `find`, `filter` or `squad` filter.
 * `sort rating all` replaces any filter with the full roster, then sorts it.
 * `sort rating squad asc` replaces any filter with all kept players, then sorts them lowest first.
-  Put the scope before the direction. Both explicit scopes include players hidden by an earlier search.
+  Scope and direction can appear in either order, e.g. `sort rating asc all`. Both explicit scopes include players hidden by an earlier search.
 * Later searches and `squad` use the active sort order. The scope selects a view once;
   subsequent view-changing commands can replace it as usual.
 * Indices are renumbered to match the sorted display. `rate`, `edit` and `delete` use
