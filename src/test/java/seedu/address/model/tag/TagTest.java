@@ -57,6 +57,13 @@ public class TagTest {
     }
 
     @Test
+    public void getValidationError_emptyLabel_pointsToTagClearingCommand() {
+        assertEquals(Optional.of("A tag cannot be empty. "
+                + "To remove all of a player's tags, use \"tag INDEX t/\" with no other tags."),
+                Tag.getValidationError(""));
+    }
+
+    @Test
     public void getValidationError_eachProblem_namesTheProblem() {
         assertEquals(Optional.of(Tag.MESSAGE_EMPTY), Tag.getValidationError("  "));
         String tooLong = "a".repeat(Tag.MAX_LENGTH + 1);

@@ -243,7 +243,7 @@ out-of-range digits before integer parsing, including padded values such as `010
 
 * `EditPersonDescriptor` records whether `j/` was given in `isJerseyNumberEdited`, as a `null` jersey number can mean either "not given" or "remove it". `EditCommandParser#parseJerseyNumberForEdit()` turns an empty `j/` into `null`, which removes the jersey number.
 * The duplicate-name check runs only when the new name belongs to another player (`!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)`), so a coach can change the capitalisation or spacing of a player's own name.
-* `EditCommand` builds the edited player from the old one, so the selection status, rating, remark and injury status are always kept, and so are the tags and jersey number unless `t/` or `j/` is given. If the result equals the old player, the command reports that nothing changed instead of replacing it.
+* `EditCommand` builds the edited player from the old one, so the selection status, rating, remark and injury status are always kept, and so are the tags. The jersey number is kept unless `j/` is given. `TagCommand` reuses the edit descriptor internally to replace tags. If the result equals the old player, the command reports that nothing changed instead of replacing it.
 * The jersey number warning is checked only when the edit includes `j/`, and the similar-name warning only when the name actually changes. This stops edits to other details from repeating a warning the coach has already seen.
 * `Model#setPerson()` replaces the player without resetting the filtered list, so the coach can keep editing search results by the same indices.
 
@@ -367,11 +367,18 @@ its zero-to-many association with tags. Tags are shared values rather than part 
 player identity: duplicate detection remains based on the normalized player name.
 `Tag` validates and normalizes labels and compares them ignoring case.
 
-`AddCommandParser` collects all `t/` values through `ParserUtil.parseTags`.
-`EditCommandParser` distinguishes an omitted tag prefix (preserve tags), supplied
-labels (replace the set), and a single empty prefix (clear the set). Empty labels
-mixed with other labels are invalid. The edit descriptor and player defensively
-copy their sets. `JsonAdaptedPerson` writes tag strings and accepts missing/null
+`AddCommandParser` collects initial `t/` values through `ParserUtil.parseTags`.
+`TagCommandParser` parses `tag INDEX t/TAG [t/TAG]...`: supplied labels replace the set,
+and a single empty prefix clears it. Missing prefixes and empty labels mixed with
+other labels are invalid. `EditCommandParser` rejects tag prefixes with migration guidance
+before changing any fields; its public syntax only accepts name, phone, and jersey edits.
+
+`TagCommand` delegates to an `EditCommand` containing only a tag replacement descriptor.
+This shares immutable player replacement, field preservation, no-change/removal feedback,
+and filter handling instead of duplicating that behaviour. The descriptor defensively
+copies the requested set, and `LogicManager` saves successful tag updates as player changes.
+The current filter and sort remain active; removing a matching tag may hide the player.
+`JsonAdaptedPerson` writes tag strings and accepts missing/null
 `tags` from older records as an empty collection; invalid/null entries are rejected.
 `PersonCard` displays tags alphabetically in a wrapping `FlowPane`.
 
@@ -1248,19 +1255,20 @@ Use a disposable data folder. Start with `add n/Tag Tester p/123 t/Striker t/Tri
 | --- | --- |
 | Inspect the new card and result box. | Both tags appear, alphabetically, without hiding name or phone. |
 | `edit 1 p/456` | Tags remain. |
-| `edit 1 t/Captain t/captain` | Previous tags are replaced by one Captain tag. |
-| `edit 1 t/` | Tags are cleared; name and phone remain. |
-| `edit 1 t/` again | Successful idempotent clearing. |
-| `edit 1 t/` followed by `edit 1 t/Trial   Group 2` | One tag, Trial Group 2, with collapsed whitespace. |
-| `add n/Invalid p/456 t/`, `edit 1 t/Bad!`, `edit 1 t/ t/Striker` | Tag constraint error; records and displayed list unchanged. |
+| `tag 1 t/Captain t/captain` | Previous tags are replaced by one Captain tag; feedback says `Updated tags for Tag Tester: Captain`. |
+| `tag 1 t/` | Tags are cleared; name and phone remain. Feedback names the player and says `tags cleared`. |
+| `tag 1 t/` again | Successful idempotent clearing. |
+| `edit 1 p/789 t/Captain` | Guidance to use `tag`; neither the phone nor tags change, and the file remains unchanged. |
+| `tag 1 t/` followed by `tag 1 t/Trial   Group 2` | One tag, Trial Group 2, with collapsed whitespace. |
+| `add n/Invalid p/456 t/`, `tag 1 t/Bad!`, `tag 1 t/ t/Striker` | Tag constraint error; records and displayed list unchanged. |
 | Try 30-character and 31-character tags. | The first succeeds; the second is rejected with the tag constraint error. |
-| `find Tag`, then `edit 1 t/Striker` | The displayed player is edited; the full team is restored. |
+| `find Tag`, then `tag 1 t/Striker` | The displayed player is updated; the name search remains active. |
 | Restart, then inspect cards and JSON. | Tags persist. A legacy record with no tags field still loads. |
-| Open `help` at normal and minimum window width. | Add/edit syntax, examples, and tag-clearing guidance remain readable. |
-| `edit 1 t/Striker`, `keep 1`, then `rate 1 10` | The same player shows Striker, Kept, and Rating: 10/10 together. |
+| Open `help` at normal and minimum window width. | Add/edit/tag syntax, examples, and tag-clearing guidance remain readable. |
+| `tag 1 t/Striker`, `keep 1`, then `rate 1 10` | The same player shows Striker, Kept, and Rating: 10/10 together. |
 | `squad`, then `rate 1 0` | The kept player remains visible with Striker and Rating: 0/10. |
-| `edit 1 t/Captain`, then `edit 1 p/456` | Kept and Rating: 0/10 remain; the Captain tag survives the phone edit. |
-| `edit 1 t/`, then restart | Only tags are cleared; the player remains kept and rated 0/10. |
+| `tag 1 t/Captain`, then `edit 1 p/456` | Kept and Rating: 0/10 remain; the Captain tag survives the phone edit. |
+| `tag 1 t/`, then restart | Only tags are cleared; the player remains kept and rated 0/10. |
 | `cut 1`, then `squad`; use `list` to inspect the player again | The cut player leaves the squad; their rating and other details remain. |
 
 Run the existing add, edit, find, delete and saving regressions as well. Back up data
@@ -1283,7 +1291,7 @@ Charlie with Captain, in that order. Confirm tags are visible on their cards.
 | `filter t/`, `filter`, `filter Striker`, `filter t/Bad!`, `Filter t/Striker` | Error; previous list and player data unchanged. |
 | Use tags of 30 and 31 characters. | A valid 30-character label is searched; 31 is rejected. |
 | `filter t/Captain`, then `delete 1` | Amy is deleted; Charlie remains numbered 1, Bob stays hidden. |
-| `edit 1 t/Striker` after the previous step | Charlie's tags change; full roster returns. |
+| `tag 1 t/Striker` after the previous step | Charlie's tags change; the Captain filter remains, so Charlie disappears. |
 | `filter t/Goalkeeper`, then add a new player. | Full roster returns, with the new player last. |
 | `help`, then `filter t/Goalkeeper` | Player panel returns showing Bob. Help includes filter syntax and examples. |
 | `list` after any filter | Full roster restored in its original order. |

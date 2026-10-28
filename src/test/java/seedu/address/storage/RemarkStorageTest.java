@@ -62,11 +62,12 @@ public class RemarkStorageTest {
         Person remarked = new PersonBuilder(original).withRemark("Improved passing").build();
         Person rated = new PersonBuilder(remarked).withRating("9").build();
         Person cut = new PersonBuilder(rated).withSelectionStatus(SelectionStatus.CUT).build();
-        Person edited = new PersonBuilder(cut).withName("Updated Player").withPhone("98765432")
+        Person tagged = new PersonBuilder(cut).withTags("Goalkeeper").build();
+        Person edited = new PersonBuilder(tagged).withName("Updated Player").withPhone("98765432")
                 .withTags("Goalkeeper").build();
         List<String> commands = List.of("remark 1 r/Improved passing", "rate 1 9", "cut 1",
-                "edit 1 n/Updated Player p/98765432 t/Goalkeeper", "remark 1 r/");
-        List<Person> expectedPlayers = List.of(remarked, rated, cut, edited,
+                "tag 1 t/Goalkeeper", "edit 1 n/Updated Player p/98765432", "remark 1 r/");
+        List<Person> expectedPlayers = List.of(remarked, rated, cut, tagged, edited,
                 new PersonBuilder(edited).withRemark("").build());
 
         for (int i = 0; i < commands.size(); i++) {
