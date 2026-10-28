@@ -1,0 +1,110 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":AddCommandParser" as AddCommandParser LOGIC_COLOR
+participant "c:AddCommand" as AddCommand LOGIC_COLOR
+participant "<<class>>\nDuplicateJerseyNumberChecker" as JerseyChecker LOGIC_COLOR
+participant "<<class>>\nSimilarNameChecker" as NameChecker LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:Model" as Model MODEL_COLOR
+end box
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("add n/Amy Tan p/91234567 j/7")
+activate LogicManager
+
+LogicManager -> AddressBookParser : parseCommand("add n/Amy Tan p/91234567 j/7")
+activate AddressBookParser
+
+create AddCommandParser
+AddressBookParser -> AddCommandParser
+activate AddCommandParser
+
+AddCommandParser --> AddressBookParser
+deactivate AddCommandParser
+
+AddressBookParser -> AddCommandParser : parse(" n/Amy Tan p/91234567 j/7")
+activate AddCommandParser
+
+note right of AddCommandParser
+  Parses and normalises the name, phone
+  and jersey number, then creates the
+  new player p (pending, unrated, fit)
+end note
+
+create AddCommand
+AddCommandParser -> AddCommand : AddCommand(p)
+activate AddCommand
+
+AddCommand --> AddCommandParser
+deactivate AddCommand
+
+AddCommandParser --> AddressBookParser : c
+deactivate AddCommandParser
+'Hidden arrow to position the destroy marker below the end of the activation bar.
+AddCommandParser -[hidden]-> AddressBookParser
+destroy AddCommandParser
+
+AddressBookParser --> LogicManager : c
+deactivate AddressBookParser
+
+LogicManager -> AddCommand : execute(m)
+activate AddCommand
+
+AddCommand -> Model : hasPerson(p)
+activate Model
+
+Model --> AddCommand : false
+deactivate Model
+
+AddCommand -> Model : addPerson(p)
+activate Model
+
+Model --> AddCommand
+deactivate Model
+
+AddCommand -> JerseyChecker : getWarning(m, p)
+activate JerseyChecker
+
+JerseyChecker -> Model : getAddressBook()
+activate Model
+
+Model --> JerseyChecker : whole team
+deactivate Model
+
+JerseyChecker --> AddCommand : jersey warning or ""
+deactivate JerseyChecker
+
+AddCommand -> NameChecker : getWarning(m, p)
+activate NameChecker
+
+NameChecker -> Model : getAddressBook()
+activate Model
+
+Model --> NameChecker : whole team
+deactivate Model
+
+NameChecker --> AddCommand : name warning or ""
+deactivate NameChecker
+
+AddCommand --> LogicManager : result
+deactivate AddCommand
+
+LogicManager -> Storage : saveAddressBook(addressBook)
+activate Storage
+
+Storage --> LogicManager
+deactivate Storage
+
+[<--LogicManager : result
+deactivate LogicManager
+@enduml
