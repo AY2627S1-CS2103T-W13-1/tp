@@ -19,25 +19,34 @@
       <padding>
         <Insets top="5" right="5" bottom="5" left="15" />
       </padding>
-      <HBox spacing="0.5" alignment="CENTER_LEFT">
-        <Label fx:id="id" styleClass="cell_big_label">
+      <!-- A GridPane, unlike an HBox, sizes this row for a wrapped name, so a long name wraps instead of hiding the badges -->
+      <GridPane>
+        <Label fx:id="id" styleClass="cell_big_label" GridPane.valignment="TOP">
           <minWidth>
             <!-- Ensures that the label text is never truncated -->
             <Region fx:constant="USE_PREF_SIZE" />
           </minWidth>
         </Label>
-        <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
-        <Label fx:id="selectionStatus" styleClass="selection-status">
-          <HBox.margin>
-            <Insets left="10" />
-          </HBox.margin>
+        <Label fx:id="name" text="\$first" styleClass="cell_big_label" wrapText="true" GridPane.columnIndex="1"
+               GridPane.valignment="TOP" />
+        <Label fx:id="selectionStatus" styleClass="selection-status" GridPane.columnIndex="2" GridPane.valignment="TOP">
+          <minWidth>
+            <Region fx:constant="USE_PREF_SIZE" />
+          </minWidth>
+          <GridPane.margin>
+            <Insets top="2" left="10" />
+          </GridPane.margin>
         </Label>
-        <Label fx:id="injuryBadge" styleClass="injury-badge" text="Injured">
-          <HBox.margin>
-            <Insets left="6" />
-          </HBox.margin>
+        <Label fx:id="injuryBadge" styleClass="injury-badge" text="Injured" GridPane.columnIndex="3"
+               GridPane.valignment="TOP">
+          <minWidth>
+            <Region fx:constant="USE_PREF_SIZE" />
+          </minWidth>
+          <GridPane.margin>
+            <Insets top="2" left="6" />
+          </GridPane.margin>
         </Label>
-      </HBox>
+      </GridPane>
       <Label fx:id="rating" styleClass="cell_small_label" text="Rating: Unrated" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
       <Label fx:id="jerseyNumber" styleClass="cell_small_label" text="\$jerseyNumber" />

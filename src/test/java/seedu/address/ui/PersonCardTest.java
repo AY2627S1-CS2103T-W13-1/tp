@@ -10,8 +10,12 @@ import java.util.List;
 
 import org.junit.jupiter.api.Test;
 
+import javafx.collections.FXCollections;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Region;
+import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.SelectionStatus;
 import seedu.address.testutil.PersonBuilder;
@@ -87,6 +91,28 @@ public class PersonCardTest {
             assertEquals("4. ", lookupLabel(card, "#id").getText());
             assertEquals(ALICE.getName().fullName, lookupLabel(card, "#name").getText());
             assertEquals(ALICE.getPhone().value, lookupLabel(card, "#phone").getText());
+        });
+    }
+
+    @Test
+    public void layout_longNameInNarrowList_wrapsNameAndKeepsBadgesReadable() throws Exception {
+        runOnFxThread(() -> {
+            Person player = new PersonBuilder()
+                    .withName("Maximilian Alexander Christopher Montgomery Wellington Fitzgerald Smythe")
+                    .withSelectionStatus(SelectionStatus.KEPT).withInjuryStatus(InjuryStatus.INJURED).build();
+            Region root = new PersonListPanel(FXCollections.observableArrayList(player)).getRoot();
+            new Scene(root, 450, 600);
+            root.resize(450, 600);
+            root.applyCss();
+            root.layout();
+
+            for (String badgeSelector : List.of("#selectionStatus", "#injuryBadge")) {
+                Label badge = (Label) root.lookup(badgeSelector);
+                assertTrue(badge.getWidth() >= badge.prefWidth(-1) - 0.5);
+            }
+            Label name = (Label) root.lookup("#name");
+            assertTrue(name.getHeight() > 1.5 * name.getFont().getSize());
+            assertTrue(name.getHeight() >= name.prefHeight(name.getWidth()) - 0.5);
         });
     }
 
