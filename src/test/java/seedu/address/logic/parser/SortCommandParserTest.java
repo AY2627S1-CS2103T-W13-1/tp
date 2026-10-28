@@ -30,6 +30,19 @@ public class SortCommandParserTest {
     }
 
     @Test
+    public void parse_explicitScope_returnsScopeAndDirection() throws Exception {
+        SortCommandParser parser = new SortCommandParser();
+        assertEquals(new SortCommand(false, SortCommand.Scope.ALL), parser.parse("rating all"));
+        assertEquals(new SortCommand(true, SortCommand.Scope.ALL), parser.parse("rating ALL ASC"));
+        assertEquals(new SortCommand(false, SortCommand.Scope.SQUAD), parser.parse("rating squad desc"));
+        assertEquals(new SortCommand(true, SortCommand.Scope.SQUAD), parser.parse("rating Squad Asc"));
+        for (String input : List.of("rating current", "rating squad up", "rating all squad",
+                "rating asc all", "rating squad asc extra")) {
+            assertThrows(ParseException.class, () -> parser.parse(input));
+        }
+    }
+
+    @Test
     public void parse_invalidInput_throwsParseException() {
         for (String input : List.of("", "asc", "name", "ratings", "rating up", "rating ascending",
                 "rating asc extra")) {

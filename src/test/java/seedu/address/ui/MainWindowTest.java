@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -54,6 +56,44 @@ public class MainWindowTest {
     private TextField commandField;
     private TextArea resultDisplay;
     private StackPane playerArea;
+
+    @Test
+    public void execute_sortEmptySquadThroughCommandBox_showsEmptyList() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("sort rating squad");
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            enterCommand("sort rating all asc");
+            assertEquals(getTypicalPersons(), model.getFilteredPersonList());
+        });
+    }
+
+    @Test
+    public void execute_sortScopesThroughCommandBox_changesViewWithoutSaving() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("clear");
+            enterCommand("add n/Amy p/123");
+            enterCommand("add n/Bob p/456");
+            enterCommand("rate 1 0");
+            enterCommand("rate 2 10");
+            enterCommand("keep 1");
+            Path savedFile = testDirectory.resolve("players.json");
+            byte[] originalFile = assertDoesNotThrow(() -> Files.readAllBytes(savedFile));
+            enterCommand("squad");
+            enterCommand("sort rating all");
+            assertEquals("Bob", model.getFilteredPersonList().getFirst().getName().fullName);
+            assertEquals(2, model.getFilteredPersonList().size());
+            enterCommand("sort rating squad asc");
+            assertEquals("Amy", model.getFilteredPersonList().getFirst().getName().fullName);
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand("sort rating squad up");
+            assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand("list");
+            assertEquals("Amy", model.getFilteredPersonList().getFirst().getName().fullName);
+            assertArrayEquals(originalFile, assertDoesNotThrow(() -> Files.readAllBytes(savedFile)));
+        });
+    }
 
     @Test
     public void execute_filterThroughCommandBox_matchingErrorsAndHelp() throws Exception {

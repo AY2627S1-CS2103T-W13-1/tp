@@ -11,11 +11,13 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.SortCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Rating;
+import seedu.address.model.person.SelectionStatus;
 import seedu.address.testutil.PersonBuilder;
 
 public class SortCommandTest {
@@ -23,6 +25,37 @@ public class SortCommandTest {
     private final Person high = new PersonBuilder().withName("High Tan").withRating("10").build();
     private final Person tied = new PersonBuilder().withName("Tied Tan").withRating("10").build();
     private final Person unrated = new PersonBuilder().withName("Unrated Lee").build();
+
+    @Test
+    public void execute_explicitScope_replacesFilterAndPreservesRoster() {
+        ModelManager model = createModel();
+        Person keptLow = low.withSelectionStatus(SelectionStatus.KEPT);
+        Person keptHigh = high.withSelectionStatus(SelectionStatus.KEPT);
+        model.setPerson(low, keptLow);
+        model.setPerson(high, keptHigh);
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Low")));
+        List<Person> roster = List.copyOf(model.getAddressBook().getPersonList());
+
+        new SortCommand(false, SortCommand.Scope.SQUAD).execute(model);
+        assertEquals(List.of(keptHigh, keptLow), model.getFilteredPersonList());
+        new SortCommand(true, SortCommand.Scope.ALL).execute(model);
+        assertEquals(List.of(keptLow, keptHigh, tied, unrated), model.getFilteredPersonList());
+        new SquadCommand().execute(model);
+        assertEquals(List.of(keptLow, keptHigh), model.getFilteredPersonList());
+        assertEquals(roster, model.getAddressBook().getPersonList());
+        assertFalse(new SortCommand(false).equals(new SortCommand(false, SortCommand.Scope.ALL)));
+        assertThrows(NullPointerException.class, () -> new SortCommand(false, null));
+    }
+
+    @Test
+    public void execute_emptySquadAndRoster_success() {
+        ModelManager model = createModel();
+        new SortCommand(false, SortCommand.Scope.SQUAD).execute(model);
+        assertEquals(List.of(), model.getFilteredPersonList());
+        model.setAddressBook(new AddressBook());
+        new SortCommand(true, SortCommand.Scope.ALL).execute(model);
+        assertEquals(List.of(), model.getFilteredPersonList());
+    }
 
     @Test
     public void equals_comparesSortDirection() {
