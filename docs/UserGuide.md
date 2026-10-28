@@ -433,7 +433,8 @@ Format: `exit`
 
 CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `sort`, `squad`, `help` and `exit` do not change your data, so they do not save.
 
-If a change cannot be saved (e.g. the data path is occupied by a directory or is read-only),
+If a change cannot be saved (e.g. the data file or its folder is read-only, the disk is full,
+or a directory occupies the data file path),
 the result box shows the applied command's feedback followed by a warning that the change
 could not be saved. The change is still shown in CouchCoach, but it is not on disk yet.
 The command box clears because the operation has already happened. **Do not repeat the
@@ -441,7 +442,7 @@ original command**: for example, repeating `delete 1` would delete the next play
 
 Fixing the problem does not save the change by itself, and `exit` does not save either. To save it:
 
-1. Fix the problem, e.g. remove the directory occupying the data file path or make it writable again.
+1. Fix the problem, e.g. make the data file or its folder writable, free up disk space, or remove the directory occupying the data file path.
 1. Enter `save` to write the current team without changing any players or their displayed order.
 1. Check for `Saved the current team to disk.` before you exit. If saving still fails, fix
    the problem and retry `save`; unsaved changes remain in memory until you close CouchCoach.

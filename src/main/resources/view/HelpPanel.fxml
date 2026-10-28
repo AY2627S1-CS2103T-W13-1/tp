@@ -106,19 +106,19 @@
                text="Delete all players; cannot be undone&#10;No confirmation. Use clear on its own; extra text is rejected."
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="12" GridPane.valignment="TOP" />
-        <Label fx:id="helpSyntax" text="help"
-               GridPane.columnIndex="0" GridPane.rowIndex="13" GridPane.valignment="TOP" />
-        <Label fx:id="helpDescription" text="Show this summary" wrapText="true" minWidth="0"
-               GridPane.columnIndex="1" GridPane.rowIndex="13" GridPane.valignment="TOP" />
-        <Label fx:id="exitSyntax" text="exit"
-               GridPane.columnIndex="0" GridPane.rowIndex="14" GridPane.valignment="TOP" />
-        <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
-               GridPane.columnIndex="1" GridPane.rowIndex="14" GridPane.valignment="TOP" />
         <Label fx:id="saveSyntax" text="save"
-               GridPane.columnIndex="0" GridPane.rowIndex="15" GridPane.valignment="TOP" />
+               GridPane.columnIndex="0" GridPane.rowIndex="13" GridPane.valignment="TOP" />
         <Label fx:id="saveDescription"
                text="Save the current team without changing players&#10;After a save failure, fix the problem and use save&#10;Do not repeat the original command"
                wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="13" GridPane.valignment="TOP" />
+        <Label fx:id="helpSyntax" text="help"
+               GridPane.columnIndex="0" GridPane.rowIndex="14" GridPane.valignment="TOP" />
+        <Label fx:id="helpDescription" text="Show this summary" wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="14" GridPane.valignment="TOP" />
+        <Label fx:id="exitSyntax" text="exit"
+               GridPane.columnIndex="0" GridPane.rowIndex="15" GridPane.valignment="TOP" />
+        <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="15" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
