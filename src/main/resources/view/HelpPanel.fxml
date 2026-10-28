@@ -63,10 +63,10 @@
                text="Show players with any requested tag, the injury&#10;status, or both. Tags match complete labels, ignoring&#10;capitalisation. e.g. filter t/Striker i/injured"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.valignment="TOP" />
-        <Label fx:id="sortSyntax" text="sort rating [asc|desc]"
+        <Label fx:id="sortSyntax" text="sort rating [all|squad]&#10;[asc|desc]"
                GridPane.columnIndex="0" GridPane.rowIndex="6" GridPane.valignment="TOP" />
         <Label fx:id="sortDescription"
-               text="Sort displayed players by rating; highest first by default&#10;Unrated players come last. Use list to reset.&#10;e.g. sort rating desc"
+               text="Sort the current view, all players, or the kept squad&#10;Highest first by default; unrated players last. Use list to reset.&#10;e.g. sort rating squad desc"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="6" GridPane.valignment="TOP" />
         <!-- Selection -->
