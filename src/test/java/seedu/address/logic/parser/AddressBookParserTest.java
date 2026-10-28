@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
+import static seedu.address.logic.Messages.getErrorMessageForDuplicatePrefixes;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
@@ -40,6 +42,39 @@ public class AddressBookParserTest {
         Person person = new PersonBuilder().build();
         AddCommand command = (AddCommand) parser.parseCommand(PersonUtil.getAddCommand(person));
         assertEquals(new AddCommand(person), command);
+    }
+
+    @Test
+    public void parseCommand_tabSeparatedPrefixes_matchesSpaceSeparatedCommands() throws Exception {
+        assertEquals(parser.parseCommand("add n/Amy p/91234567 t/Striker"),
+                parser.parseCommand("add\tn/Amy\tp/91234567\tt/Striker"));
+        assertEquals(parser.parseCommand("edit 1 p/98765432"),
+                parser.parseCommand("edit 1\tp/98765432"));
+        assertEquals(parser.parseCommand("filter t/Striker t/Captain"),
+                parser.parseCommand("filter\tt/Striker \tt/Captain"));
+    }
+
+    @Test
+    public void parseCommand_tabSeparatedDuplicatePrefix_rejected() {
+        assertThrows(ParseException.class, () -> parser.parseCommand("add\tn/Amy\tn/Bob\tp/91234567"));
+    }
+
+    @Test
+    public void parseCommand_nonBreakingSpaceSeparatedPrefixes_matchesSpaceSeparatedCommands() throws Exception {
+        assertEquals(parser.parseCommand("add n/NB Player p/91112222"),
+                parser.parseCommand("add n/NB Player\u00a0p/91112222"));
+        assertEquals(parser.parseCommand("add n/Amy p/91234567 t/Striker"),
+                parser.parseCommand("\u00a0add\u00a0n/Amy\u00a0p/91234567\u00a0t/Striker\u00a0"));
+        assertEquals(parser.parseCommand("edit 1 p/98765432"),
+                parser.parseCommand("edit 1\u00a0p/98765432"));
+        assertEquals(parser.parseCommand("filter t/Striker t/Captain"),
+                parser.parseCommand("filter\u00a0t/Striker \u00a0\tt/Captain"));
+    }
+
+    @Test
+    public void parseCommand_nonBreakingSpaceSeparatedDuplicatePrefix_rejected() {
+        assertThrows(ParseException.class, getErrorMessageForDuplicatePrefixes(PREFIX_NAME), () ->
+                parser.parseCommand("add n/Amy\u00a0n/Bob\u00a0p/91234567"));
     }
 
     @Test

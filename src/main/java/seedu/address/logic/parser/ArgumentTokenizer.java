@@ -60,7 +60,7 @@ public class ArgumentTokenizer {
     /**
      * Returns the index of the first occurrence of {@code prefix} in
      * {@code argsString} starting from index {@code fromIndex}. An occurrence
-     * is valid if there is a whitespace before {@code prefix}. Returns -1 if no
+     * is valid if there is a space, tab or non-breaking space before {@code prefix}. Returns -1 if no
      * such occurrence can be found.
      *
      * E.g if {@code argsString} = "e/hip/900", {@code prefix} = "p/" and
@@ -70,9 +70,14 @@ public class ArgumentTokenizer {
      * {@code fromIndex} = 0, this method returns 5.
      */
     private static int findPrefixPosition(String argsString, String prefix, int fromIndex) {
-        int prefixIndex = argsString.indexOf(" " + prefix, fromIndex);
-        return prefixIndex == -1 ? -1
-                : prefixIndex + 1; // +1 as offset for whitespace
+        for (int separatorIndex = fromIndex; separatorIndex < argsString.length(); separatorIndex++) {
+            char separator = argsString.charAt(separatorIndex);
+            if ((separator == ' ' || separator == '\t' || separator == '\u00a0')
+                    && argsString.startsWith(prefix, separatorIndex + 1)) {
+                return separatorIndex + 1;
+            }
+        }
+        return -1;
     }
 
     /**
@@ -119,9 +124,22 @@ public class ArgumentTokenizer {
         Prefix prefix = currentPrefixPosition.getPrefix();
 
         int valueStartPos = currentPrefixPosition.getStartPosition() + prefix.getPrefix().length();
-        String value = argsString.substring(valueStartPos, nextPrefixPosition.getStartPosition());
+        int valueEndPos = nextPrefixPosition.getStartPosition();
+        while (valueStartPos < valueEndPos && isArgumentPadding(argsString.charAt(valueStartPos))) {
+            valueStartPos++;
+        }
+        while (valueEndPos > valueStartPos && isArgumentPadding(argsString.charAt(valueEndPos - 1))) {
+            valueEndPos--;
+        }
+        return argsString.substring(valueStartPos, valueEndPos);
+    }
 
-        return value.trim();
+    /**
+     * Preserves the trimming of {@link String#trim()} and also trims pasted non-breaking spaces.
+     * Internal characters in an argument value are left unchanged.
+     */
+    private static boolean isArgumentPadding(char character) {
+        return character <= ' ' || character == '\u00a0';
     }
 
     /**

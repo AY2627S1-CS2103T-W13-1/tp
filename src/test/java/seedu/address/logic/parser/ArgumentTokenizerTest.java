@@ -137,6 +137,43 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_emptyPrefixAndEmptyArgs_emptyPreamble() {
+        assertPreambleEmpty(ArgumentTokenizer.tokenize("", new Prefix("")));
+    }
+
+    @Test
+    public void tokenize_tabSeparators_preservesValuesAndRepeatedPrefixes() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
+                "1\tp/first\tinside\t-t one \t-t two\t-t", pSlash, dashT);
+        assertPreamblePresent(arguments, "1");
+        assertArgumentPresent(arguments, pSlash, "first\tinside");
+        assertArgumentPresent(arguments, dashT, "one", "two", "");
+    }
+
+    @Test
+    public void tokenize_joinedPrefixesBeforeTabSeparator_keepsJoinedText() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize("joinedp/value\tp/realp/value", pSlash);
+        assertPreamblePresent(arguments, "joinedp/value");
+        assertArgumentPresent(arguments, pSlash, "realp/value");
+    }
+
+    @Test
+    public void tokenize_nonBreakingSpaceSeparators_preservesValuesAndRepeatedPrefixes() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
+                "1\u00a0 \tp/\u00a0first\u00a0inside \u00a0\t-t one\u00a0-t two\u00a0-t\u00a0", pSlash, dashT);
+        assertPreamblePresent(arguments, "1");
+        assertArgumentPresent(arguments, pSlash, "first\u00a0inside");
+        assertArgumentPresent(arguments, dashT, "one", "two", "");
+    }
+
+    @Test
+    public void tokenize_lineBreakBeforePrefix_doesNotSplitValue() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" p/first\n-tsecond", pSlash, dashT);
+        assertArgumentPresent(arguments, pSlash, "first\n-tsecond");
+        assertArgumentAbsent(arguments, dashT);
+    }
+
+    @Test
     public void equalsMethod() {
         Prefix aaa = new Prefix("aaa");
 
