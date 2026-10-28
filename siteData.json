@@ -149,7 +149,10 @@
       "src": "index.md",
       "title": "",
       "headings": {
-        "couchcoach": "CouchCoach"
+        "couchcoach": "CouchCoach",
+        "what-you-can-do": "What you can do",
+        "get-started": "Get started",
+        "acknowledgements": "Acknowledgements"
       },
       "headingKeywords": {}
     },
