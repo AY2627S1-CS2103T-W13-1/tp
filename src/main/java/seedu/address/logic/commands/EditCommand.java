@@ -4,7 +4,6 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_JERSEY_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
-import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
 
 import java.util.List;
 import java.util.Objects;
@@ -32,14 +31,14 @@ public class EditCommand extends Command {
 
     public static final String COMMAND_WORD = "edit";
 
+    /** Syntax guidance for the name, phone, and jersey editing command. */
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Edits the details of the player identified "
             + "by the index number used in the displayed player list. "
             + "Existing values will be overwritten by the input values.\n"
             + "Parameters: INDEX (must be a positive integer) "
             + "[" + PREFIX_NAME + "NAME] "
             + "[" + PREFIX_PHONE + "PHONE] "
-            + "[" + PREFIX_JERSEY_NUMBER + "JERSEY] "
-            + "[" + PREFIX_TAG + "TAG]... (a single empty t/ clears tags)\n"
+            + "[" + PREFIX_JERSEY_NUMBER + "JERSEY]\n"
             + "An empty " + PREFIX_JERSEY_NUMBER + " removes the jersey number.\n"
             + "Example: " + COMMAND_WORD + " 1 "
             + PREFIX_PHONE + "91234567";

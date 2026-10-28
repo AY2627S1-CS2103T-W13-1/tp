@@ -62,16 +62,17 @@ public class InjuryStatusStorageTest {
         Person remarked = new PersonBuilder(original).withRemark("Strong left foot").build();
         Person injured = new PersonBuilder(remarked).withInjuryStatus(InjuryStatus.INJURED).build();
         Person replaced = new PersonBuilder(injured).withRemark("Improved passing").build();
-        Person edited = new PersonBuilder(replaced).withName("Updated Player").withPhone("98765432")
+        Person tagged = new PersonBuilder(replaced).withTags("Goalkeeper").build();
+        Person edited = new PersonBuilder(tagged).withName("Updated Player").withPhone("98765432")
                 .withTags("Goalkeeper").build();
         Person fit = new PersonBuilder(edited).withInjuryStatus(InjuryStatus.FIT).build();
         Person injuredAgain = new PersonBuilder(fit).withInjuryStatus(InjuryStatus.INJURED).build();
         Person cleared = new PersonBuilder(injuredAgain).withRemark("").build();
         Person editedAgain = new PersonBuilder(cleared).withPhone("91234567").build();
         List<String> commands = List.of("remark 1 r/Strong left foot", "injury 1 i/injured",
-                "remark 1 r/Improved passing", "edit 1 n/Updated Player p/98765432 t/Goalkeeper",
+                "remark 1 r/Improved passing", "tag 1 t/Goalkeeper", "edit 1 n/Updated Player p/98765432",
                 "injury 1 i/fit", "injury 1 i/injured", "remark 1 r/", "edit 1 p/91234567");
-        List<Person> expectedPlayers = List.of(remarked, injured, replaced, edited, fit, injuredAgain,
+        List<Person> expectedPlayers = List.of(remarked, injured, replaced, tagged, edited, fit, injuredAgain,
                 cleared, editedAgain);
 
         for (int i = 0; i < commands.size(); i++) {

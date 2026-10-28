@@ -13,7 +13,7 @@ class "<<interface>>\nModel" as Model
 
 FilterCommandParser ..> FilterCommand : <<create>>
 FilterCommandParser ..> TagsContainAnyPredicate : <<create>>
-FilterCommand --> "1" TagsContainAnyPredicate : predicate
+FilterCommand --> "0..1" TagsContainAnyPredicate : tagPredicate
 FilterCommand ..> Model : updates view
 TagsContainAnyPredicate ..|> Predicate
 TagsContainAnyPredicate ..> Person : tests

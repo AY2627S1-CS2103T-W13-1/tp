@@ -17,7 +17,7 @@ else ([any other command type])
   else ([IOException])
     :Throw a CommandException with
     the save-failure message;
-    note right: The change stays in the Model,\nbut the file keeps its old contents
+    note right: The change stays in the Model,\nbut the file may be unchanged,\nempty or partially written
   endif
 endif
 stop
