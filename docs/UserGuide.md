@@ -55,7 +55,7 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
 **Launching CouchCoach:**
 
 * CouchCoach keeps your team in a `data` folder inside the terminal's current folder (the _working directory_), not necessarily next to the JAR. Launch it from the same folder every time, or it will not find your team. See [Editing the data file](#editing-the-data-file) for details.
-* CouchCoach must be able to save files in the folder you launch it from. If you launch it from a folder you cannot write to, it closes straight away, prints an error in the terminal, and no window appears. Move the JAR to a folder you own, e.g. in your home folder, and launch it from there.
+* CouchCoach saves your team in the folder you launch it from, so launch it from a folder you can write to, e.g. one in your home folder. If you launch it from a folder you cannot write to, CouchCoach still opens, but every change shows a warning that it could not be saved, and the change is lost when you exit. Close CouchCoach, move the JAR to a folder you own, and launch it from there.
 * Double-clicking `couchcoach.jar` may also start CouchCoach on some computers, but it may then use a different Java version or a different working folder. Use the terminal command above so that the same team loads each time.
 </box>
 

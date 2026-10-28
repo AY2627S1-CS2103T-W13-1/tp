@@ -1493,6 +1493,7 @@ Prepare a fresh disposable team with `clear`, `list`, `add n/Amy p/123` and `add
 | Enter `save extra`. | Format error; data and view stay unchanged and no write is attempted. |
 | Enter `list`, close and relaunch from the same folder. | Amy remains Kept and Bob remains Cut; both appear in insertion order. |
 | Delete the disposable `data` folder while the app is open, then enter `pending 2`. | The folder and file are recreated, and Bob's pending status is saved normally. |
+| Close the app. Copy the JAR into a new empty folder, make that folder read-only (e.g. `chmod a-w FOLDER` on macOS/Linux), then launch from it. Enter `keep 1`. | The window opens with the sample team; the terminal notes that the log file could not be created. Alex becomes **Kept** and the feedback appends the same save warning. No file appears in the folder. Make the folder writable again before deleting it. |
 
 Also test a destructive command on a fresh copy of the fixture: block storage, enter `delete 1` once, then restore storage and enter `save`. Amy is removed once, Bob remains, and the restored file contains only Bob. Repeating `delete 1` would incorrectly remove Bob, which is why recovery uses `save`.
 
