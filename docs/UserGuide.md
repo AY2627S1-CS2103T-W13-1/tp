@@ -53,7 +53,7 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `edit INDEX [n/NAME] [p/PHONE] [t/TAG]...` can be used as `edit 1 n/Tan Wei Ming` or as `edit 1 p/91234567`.
+  For example, `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]` can be used as `edit 1 n/Tan Wei Ming` or as `edit 1 p/91234567`.
 
 * Items followed by `...` can appear zero or more times.<br>
   For example, `find KEYWORD [MORE_KEYWORDS]...` can be used as `find wei` or as `find wei ming`.
@@ -111,12 +111,18 @@ Examples:
 
 ### Categorising players with tags (US08)
 
-Add your own labels for a position, role, season, or trial group with `t/TAG`:
+Use `tag` to replace or clear an existing player's tags.
+
+Format: `tag INDEX t/TAG [t/TAG]...`
+
+`INDEX` is the current displayed player's positive index. Supply at least one `t/`.
+A single empty `t/` clears all tags; combining an empty label with other labels is invalid.
+Tags can also be supplied when creating a player with `add`:
 
 * `add n/Amy Tan p/91234567 t/Striker t/Trial Group 2` adds Amy with two tags.
-* `edit 1 t/Goalkeeper t/Captain` replaces the first displayed player's tags with these two labels.
+* `tag 1 t/Goalkeeper t/Captain` replaces the first displayed player's tags with these two labels.
 * `edit 1 p/98765432` changes the phone while keeping existing tags.
-* `edit 1 t/` removes all tags from the first displayed player.
+* `tag 1 t/` removes all tags from the first displayed player.
 
 Each tag must start with a letter or digit, and can contain letters (including accented and
 non-English letters), digits, spaces, and the symbols `-` `&` `/` `_` `+` `'` `.`, e.g. `U18 & Under`,
@@ -124,7 +130,7 @@ non-English letters), digits, spaces, and the symbols `-` `&` `/` `_` `+` `'` `.
 rejected, as it is usually a typo. A tag can contain up to 30 characters after surrounding spaces are
 trimmed and repeated internal whitespace is collapsed. For example, `t/ Trial   Group 2`
 is saved as `Trial Group 2`. Blank labels are invalid except for the single clearing
-`edit ... t/` form. An invalid tag rejects the whole command, and the error names the problem,
+`tag INDEX t/` form. An invalid tag rejects the whole command, and the error names the problem,
 e.g. the tag that is too long or the character that is not allowed.
 
 Repeat `t/` for multiple tags. Duplicate labels are combined ignoring capitalisation,
@@ -134,7 +140,12 @@ player detection: the same name is still rejected even if tags differ.
 
 Tags are saved automatically and restored when you restart. Older data files without
 a `tags` field load with no tags. Tag edits use the displayed list's index and keep the
-current search or filter, just like other edits.
+current search, tag/injury filter, squad view and active sorting. If the updated tags no
+longer match the current tag filter, the player disappears from that view. Use `list` to see everyone.
+
+Existing `edit INDEX t/...` commands are rejected with guidance to use `tag`; even a mixed
+name/phone/jersey-and-tag edit changes nothing. Use separate `edit` and `tag` commands.
+Successful updates report the edited player's details, or say no changes were made.
 
 Changing tags, names, or phone numbers keeps the player's selection status and rating.
 The `keep`, `cut`, `pending`, and `rate` commands keep existing tags. `squad` displays
@@ -258,7 +269,7 @@ Examples:
 
 Edits an existing player in the team.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`
+Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`
 
 * Edits the player at the specified `INDEX`. The index refers to the index number shown in the displayed player list. The index **must be a positive whole number** 1, 2, 3, ...
 * At least one of the optional fields must be provided.
@@ -268,9 +279,10 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`
 * `edit` cannot change a remark or injury status. Use `remark` or `injury` instead.
 * Omit `j/` to keep the player's current jersey number. Type `j/` with nothing after it to remove the jersey number. An empty `j/` works only with `edit`; `add` rejects it.
 * If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
-* Repeat `t/TAG` to replace all of the player's tags. Omit `t/` to keep them. Use a single empty `t/` to clear them; combining empty and non-empty tags is rejected.
+* Tags are retained. Use `tag INDEX t/TAG...` to replace them, or `tag INDEX t/` to clear them.
+  Supplying `t/` to `edit` rejects the whole command and shows the new syntax.
 * The displayed list stays as it is, so you can keep editing the results of a `find` or `filter` with their numbers unchanged. If the edited player no longer matches the search, e.g. after a name change, they drop out of the displayed list; use `list` to see everyone.
-* The result box shows the player's new details, and notes any jersey number or tags you removed. If the values you typed are the same as the current ones, it says no changes were made.
+* The result box shows the player's new details, and notes any jersey number you removed. If the values you typed are the same as the current ones, it says no changes were made.
 
 Examples:
 *  `edit 1 p/91234567` Edits the phone number of the 1st player to be `91234567`.
@@ -431,7 +443,7 @@ Format: `exit`
 
 ### Saving the data
 
-CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `sort`, `squad`, `help` and `exit` do not change your data, so they do not save.
+CouchCoach saves your data automatically after every change (`add`, `edit`, `tag`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `sort`, `squad`, `help` and `exit` do not change your data, so they do not save.
 
 If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
 
@@ -452,7 +464,7 @@ Advanced users are welcome to update data directly by editing that data file.
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` or `clear`), which replaces it, so back up the file before editing it.<br>
+If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `tag`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` or `clear`), which replaces it, so back up the file before editing it.<br>
 A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
 Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
@@ -480,11 +492,12 @@ Action     | Format, Examples
 **Clear**  | `clear`
 **Cut**    | `cut INDEX`<br> e.g., `cut 3`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`
 **Exit**   | `exit`
 **Filter** | `filter [t/TAG]... [i/STATUS]`<br> e.g., `filter t/Striker t/Captain`, `filter i/injured`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Injury** | `injury INDEX i/STATUS`<br> e.g., `injury 1 i/injured`; mark fit again with `injury 1 i/fit`
+**Tag**    | `tag INDEX t/TAG [t/TAG]...`<br> e.g., `tag 1 t/Striker`, `tag 1 t/`
 **Sort**   | `sort rating [asc|desc]`<br> e.g., `sort rating desc`
 **Rate**   | `rate INDEX RATING`<br> e.g., `rate 1 8`; remove with `rate 1 unrated`
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Strong left foot`; clear with `remark 1 r/`
