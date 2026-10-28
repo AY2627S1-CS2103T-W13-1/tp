@@ -40,7 +40,7 @@
       "src": "DeveloperGuide.md",
       "title": "Developer Guide",
       "headings": {
-        "ab-3-developer-guide": "AB-3 Developer Guide",
+        "couchcoach-developer-guide": "CouchCoach Developer Guide",
         "value-proposition": "Value proposition",
         "acknowledgements": "Acknowledgements",
         "setting-up-getting-started": "Setting up, getting started",
@@ -59,8 +59,7 @@
         "selection-status-feature": "Selection status feature",
         "custom-player-tags-us08": "Custom player tags (US08)",
         "filtering-players-by-tag-us16": "Filtering players by tag (US16)",
-        "proposed-undo-redo-feature": "[Proposed] Undo/redo feature",
-        "proposed-data-archiving": "[Proposed] Data archiving",
+        "name-search-implementation-f3-us04": "Name search implementation (F3 / US04)",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
         "appendix-requirements": "Appendix: Requirements",
         "product-scope": "Product scope",
