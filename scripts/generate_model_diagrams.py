@@ -12,11 +12,11 @@ DIAGRAMS = DOCS / "diagrams"
 RENDERER = DOCS / "node_modules/@markbind/core/src/plugins/default/plantuml.jar"
 VIEWS = [
     ("ModelClassDiagram", "Model contracts and owned data",
-     "ModelManager implements Model and references the roster and preferences through their contracts."),
-    ("ModelPlayerClassDiagram", "Roster and filtered view",
-     "The roster and filtered view reference the same player objects."),
-    ("ModelIdentityClassDiagram", "Player identity and tags",
-     "Each player references one name, one phone, and zero or more tags."),
+     "ModelManager implements Model; AddressBook and UserPrefs provide read-only interfaces."),
+    ("ModelPlayerClassDiagram", "Roster and displayed view",
+     "The roster and displayed view reference the same player objects."),
+    ("ModelIdentityClassDiagram", "Player identity, tags and jersey number",
+     "Each player references one name, one phone, zero or more tags, and an optional jersey number."),
     ("ModelAssessmentClassDiagram", "Player selection, rating, remarks, and injury",
      "Each player references one selection status, rating, remark, and injury status."),
 ]
@@ -65,7 +65,7 @@ details { margin: 12px 0; } pre { overflow-x: auto; padding: 12px; border: 1px s
 footer { margin-top: 32px; border-top: 1px solid #bfc0c0; }
 @media print { body { padding: 0; } details { display: none; } section { break-inside: avoid; } }
 </style></head><body><main>
-<p>CouchCoach · UML class diagrams · v1.4 model</p><h1>The model, in four views</h1>
+<p>CouchCoach · UML class diagrams · v1.5 candidate model</p><h1>The model, in four views</h1>
 <p>Repeated class names refer to the same classes across views. Diagrams retain their native
 text size; scroll each figure horizontally on narrow screens. Expand a source below to edit
 or copy it, then save it to the matching .puml file and regenerate this HTML.</p>
