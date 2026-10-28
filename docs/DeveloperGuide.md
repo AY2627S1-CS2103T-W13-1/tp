@@ -236,6 +236,36 @@ The diagram summarizes parser internals and object creation. Its editable source
 source with `python3 docs/scripts/generate_rate_sequence.py`; use `--check` to verify
 that the HTML is up to date. Presentation settings are kept in the HTML template.
 
+### Rating sort scopes
+
+`SortCommandParser` accepts `sort rating [all|squad] [asc|desc]`, ignoring letter case
+for arguments. A missing scope maps to `Scope.CURRENT`, preserving the current predicate.
+`Scope.ALL` selects all players; `Scope.SQUAD` installs `HasSelectionStatusPredicate(KEPT)`.
+Explicit scope selection replaces rather than intersects a previous name/tag/injury filter.
+
+`SortCommand` applies its comparator to the model's displayed list. Rated players are ordered
+numerically and unrated players stay last in either direction. `ModelManager` breaks ties by
+source insertion order. The roster and saved file are unchanged, and later view commands may
+replace the chosen scope while retaining the comparator. `list` clears both filter and comparator.
+The existing no-scope syntax remains compatible with workflows that sort a search result.
+
+#### Manual checks for sort scope and squad ordering
+
+Use a disposable team: add Amy, Bob and Charlie in that order; rate Amy 0 and Bob 10;
+keep Amy and Charlie, leaving Bob pending and Charlie unrated.
+
+| Action | Expected result |
+| --- | --- |
+| `squad`, then `sort rating all` | Bob, Amy, Charlie; hidden pending players return and unrated Charlie is last. |
+| `find Bob`, then `sort rating squad asc` | Amy, Charlie; the full kept squad replaces the search. |
+| `sort rating`, then `squad` | Only kept players, retaining the active rating order. |
+| `sort rating squad up` or `sort rating asc all` | Usage error; data, current view and sorting are unchanged. |
+| `list` | Amy, Bob, Charlie in insertion order. |
+| Mark both kept players pending, then `sort rating squad` | Empty view without an error. |
+| Clear the team, then `sort rating all asc` | Empty view without an error. |
+
+Check the team file before and after read-only sort/view commands: its contents must not change.
+
 ### Selection status feature
 
 #### Implementation
