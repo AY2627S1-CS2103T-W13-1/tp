@@ -15,9 +15,10 @@ else ([any other command type])
   if () then ([save succeeds])
     :Return the result;
   else ([IOException])
-    :Throw a CommandException with
-    the save-failure message;
-    note right: The change stays in the Model,\nbut the file may be unchanged,\nempty or partially written
+    :Return applied-command feedback
+    with a save warning, or
+    SaveCommand.MESSAGE_FAILURE;
+    note right: The Model is not rolled back.\nThe command box clears.\nFix storage, then type 'save'.
   endif
 endif
 stop

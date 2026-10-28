@@ -52,6 +52,7 @@
         "storage-component": "Storage component",
         "common-classes": "Common classes",
         "implementation": "Implementation",
+        "shared-command-parsing-and-prefix-boundaries": "Shared command parsing and prefix boundaries",
         "jersey-number-normalization": "Jersey number normalization",
         "adding-players-jersey-numbers-and-duplicate-warnings": "Adding players, jersey numbers and duplicate warnings",
         "player-ratings-us12": "Player ratings (US12)",
@@ -59,6 +60,7 @@
         "selection-status-feature": "Selection status feature",
         "custom-player-tags-us08": "Custom player tags (US08)",
         "filtering-players-by-tag-us16": "Filtering players by tag (US16)",
+        "player-remarks-and-injury-status-us21-us13": "Player remarks and injury status (US21 / US13)",
         "name-search-implementation-f3-us04": "Name search implementation (F3 / US04)",
         "documentation-logging-testing-dev-ops": "Documentation, logging, testing, dev-ops",
         "appendix-requirements": "Appendix: Requirements",
@@ -76,6 +78,9 @@
         "finding-players-by-name-f3-us04": "Finding players by name (F3 / US04)",
         "deleting-a-player": "Deleting a player",
         "marking-selection-decisions-and-viewing-the-squad": "Marking selection decisions and viewing the squad",
+        "remarks-and-injury-status-us21-us13-manual-regression-checks": "Remarks and injury status (US21 / US13): manual regression checks",
+        "clearing-the-roster": "Clearing the roster",
+        "pasted-prefix-separators": "Pasted prefix separators",
         "viewing-help": "Viewing help",
         "saving-data": "Saving data",
         "jersey-number-zero-padding-manual-regression-checks": "Jersey number zero padding: manual regression checks",
@@ -88,7 +93,9 @@
       "src": "Documentation.md",
       "title": "Documentation guide",
       "headings": {
-        "documentation-guide": "Documentation Guide"
+        "documentation-guide": "Documentation Guide",
+        "building-and-previewing-the-site": "Building and previewing the site",
+        "style-guidance": "Style guidance"
       },
       "headingKeywords": {}
     },
@@ -127,6 +134,7 @@
         "couchcoach-user-guide": "CouchCoach User Guide",
         "quick-start": "Quick start",
         "features": "Features",
+        "understanding-the-window-and-player-numbers": "Understanding the window and player numbers",
         "viewing-help-help": "Viewing help: help",
         "adding-a-player-add": "Adding a player: add",
         "tagging-a-player-tag-us08": "Tagging a player: tag (US08)",
@@ -137,7 +145,7 @@
         "recording-a-player-observation-remark-us21": "Recording a player observation: remark (US21)",
         "editing-a-player-edit": "Editing a player: edit",
         "finding-players-by-name-find": "Finding players by name: find",
-        "filtering-players-by-tag-filter-us16": "Filtering players by tag: filter (US16)",
+        "filtering-players-by-tag-or-injury-status-filter-us16": "Filtering players by tag or injury status: filter (US16)",
         "deleting-a-player-delete": "Deleting a player: delete",
         "marking-a-player-as-kept-cut-or-pending-keep-cut-pending": "Marking a player as kept, cut or pending: keep, cut, pending",
         "viewing-your-squad-squad": "Viewing your squad: squad",
@@ -161,14 +169,6 @@
         "what-you-can-do": "What you can do",
         "get-started": "Get started",
         "acknowledgements": "Acknowledgements"
-      },
-      "headingKeywords": {}
-    },
-    {
-      "src": "team/johndoe.md",
-      "title": "John Doe's Project Portfolio Page",
-      "headings": {
-        "project-addressbook-level-3": "Project: AddressBook Level 3"
       },
       "headingKeywords": {}
     }
