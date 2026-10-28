@@ -137,7 +137,8 @@ public class MainWindowTest {
             enterCommand("find Trialist");
             enterCommand("edit 1 t/");
             assertPlayerPanelShown();
-            assertEquals(getTypicalPersons().size() + 1, model.getFilteredPersonList().size());
+            // edit keeps the search, so only the edited player is still shown
+            assertEquals(1, model.getFilteredPersonList().size());
             assertTrue(model.getFilteredPersonList().getLast().getTags().isEmpty());
             assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
         });
