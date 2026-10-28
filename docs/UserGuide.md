@@ -32,7 +32,7 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
 
    On Windows, use `cd %USERPROFILE%\CouchCoach` in Command Prompt instead of the first line.<br>
    A window like the one below should appear in a few seconds. The first time you run it, CouchCoach contains some sample players for you to try commands on. Type `clear` to remove them when you are ready to enter your own team.<br>
-   <pic src="images/Ui.png" alt="CouchCoach window showing a team of players with their status, rating, jersey number, tags and remarks" />
+   <pic src="images/Ui.png" width="450" alt="CouchCoach window showing a team of players with their status, rating, jersey number, tags and remarks" />
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to see a summary of all commands.<br>
    Some example commands you can try:
