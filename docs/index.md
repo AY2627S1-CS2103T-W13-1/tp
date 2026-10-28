@@ -21,7 +21,7 @@ A clipboard or spreadsheet gets slow once a trial has dozens of players: details
 * **Organise and search** with your own tags, such as positions or trial groups. Find players by name, or filter them by tag or injury status.
 * **Assess players** by rating them from 0 to 10, sorting by rating, noting observations as remarks, and marking injuries.
 * **Make selection decisions** by marking each player as kept, cut or pending, then viewing just your squad.
-* **Keep your data safe and private.** Every change is saved straight away to a file on your own computer. No account or internet connection is needed.
+* **Store your team locally.** Changes are saved automatically to a file on your own computer. If a save fails, the app warns you and lets you retry with `save`. No account or internet connection is needed.
 
 ## Get started
 
