@@ -11,7 +11,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 
-/** Parses a displayed player index and replacement tags or an explicit tag-clearing request. */
+/** Parses a displayed player index and tags to append or an explicit tag-clearing request. */
 public class TagCommandParser implements Parser<TagCommand> {
     /** Creates a parser for tag commands. */
     public TagCommandParser() {

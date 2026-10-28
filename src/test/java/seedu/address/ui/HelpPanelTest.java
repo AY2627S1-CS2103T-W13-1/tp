@@ -40,7 +40,7 @@ public class HelpPanelTest {
                             + "An empty j/ removes the jersey number\n"
                             + "Use tag to update tags. e.g. edit 1 j/23"),
                     Map.entry("tagSyntax", "tag INDEX t/TAG\n[t/TAG]..."),
-                    Map.entry("tagDescription", "Replace tags; a single empty t/ clears them\n"
+                    Map.entry("tagDescription", "Add tags; a single empty t/ clears all tags\n"
                             + "e.g. tag 1 t/Striker t/Captain"),
                     Map.entry("filterSyntax", "filter [t/TAG]...\n[i/STATUS]"),
                     Map.entry("filterDescription", "Show players with any requested tag, the injury\n"
