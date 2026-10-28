@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_JERSEY_NUMBER_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_NAME_DESC;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_PHONE_DESC;
@@ -54,17 +55,23 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_invalidPreamble_failure() {
-        // negative index
-        assertParseFailure(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
-
-        // zero index
-        assertParseFailure(parser, "0" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        // a whole number that is not a valid index is reported like an index beyond the list
+        assertParseFailure(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertParseFailure(parser, "0" + NAME_DESC_AMY, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertParseFailure(parser, "2147483648" + NAME_DESC_AMY, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
 
         // invalid arguments being parsed as preamble
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
 
         // invalid prefix being parsed as preamble
-        assertParseFailure(parser, "1 i/ string", MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "1 x/ string", MESSAGE_INVALID_FORMAT);
+    }
+
+    @Test
+    public void parse_remarkOrInjuryGiven_failure() {
+        String expectedMessage = String.format(ParserUtil.MESSAGE_DETAIL_NEEDS_OWN_COMMAND, EditCommand.COMMAND_WORD);
+        assertParseFailure(parser, "1 r/Changed", expectedMessage);
+        assertParseFailure(parser, "1" + NAME_DESC_AMY + " i/injured", expectedMessage);
     }
 
     @Test
