@@ -181,7 +181,7 @@ those rated 3 or Unrated. `sort rating asc` puts the player rated 3 first.
 
 ### Rating a player: `rate`
 
-Sets a player's performance rating and saves it automatically.
+Sets or removes a player's performance rating and saves it automatically.
 
 Format: `rate INDEX RATING`
 
@@ -189,6 +189,9 @@ Format: `rate INDEX RATING`
   including a list filtered by `find`.
 * `RATING` must be a whole number from **0 to 10**, inclusive. Decimal values, signs,
   leading zeros such as `08`, extra arguments and values outside this range are rejected.
+* To remove a rating, type `unrated` as `RATING`, in any letter case. The player becomes
+  **Unrated** again and appears with the unrated players when sorting. If the player is
+  already unrated, the result box says so and nothing changes.
 * New players and players saved before ratings were introduced start as **Unrated**.
   A rating of `0` is a real rating and is different from Unrated.
 * The rating appears on the player card and is retained when their name or phone is edited.
@@ -199,7 +202,8 @@ Examples:
 
 * `rate 1 8` gives the first displayed player a rating of 8/10.
 * `find Tan` followed by `rate 1 10` gives the first search result a rating of 10/10.
-* `rate 1 11` shows `Rating must be a whole number from 0 to 10.`
+* `rate 1 unrated` removes the first displayed player's rating.
+* `rate 1 11` shows `Rating must be a whole number from 0 to 10. To remove a rating, use: rate INDEX unrated`
 
 ### Marking a player's injury status: `injury` (US13)
 
@@ -479,7 +483,7 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Injury** | `injury INDEX i/STATUS`<br> e.g., `injury 1 i/injured`; mark fit again with `injury 1 i/fit`
 **Sort**   | `sort rating [asc|desc]`<br> e.g., `sort rating desc`
-**Rate**   | `rate INDEX RATING`<br> e.g., `rate 1 8`
+**Rate**   | `rate INDEX RATING`<br> e.g., `rate 1 8`; remove with `rate 1 unrated`
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Strong left foot`; clear with `remark 1 r/`
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`
 **List**   | `list`
