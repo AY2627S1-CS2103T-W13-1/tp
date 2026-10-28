@@ -113,7 +113,7 @@ Format: `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...`
 * If the new name looks like an existing player's name once spaces and punctuation are ignored, e.g. `TanWei Ming` and `Tan Wei Ming`, the player is still added, but the result box warns you so you can check it is not the same player.
 * Players may share a jersey number, e.g. when trialists wear training bibs. The player is still added, but the result box warns you and names every other player with that number, including players hidden by an earlier `find` or `filter`.
 * `n/`, `p/` and `j/` can each be given only once, e.g. `add n/Amy n/Bob p/91234567` is rejected, so that a typo does not save the wrong value.
-* `add` cannot set a remark or injury status. Add the player first, then use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-players-injury-status-injury-us13).
+* `add` cannot set a remark or injury status. Add the player first, then use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-player-s-injury-status-injury-us13).
 * CouchCoach has no email or address fields. Text such as `e/amy@x.com` is read as part of the value before it, so `add n/Amy p/91234567 e/amy@x.com` is rejected with the phone number rules.
 * A new player starts as **Pending**, **Unrated** and fit, with no remark.
 * After adding, CouchCoach shows the full team again, even if the list was filtered by `find`, `filter` or `squad`, so that you can see the new player. The new player appears at the bottom of the list. This is also true while the list is sorted by rating, as new players are unrated and unrated players are listed last.
@@ -296,7 +296,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`
 * Omit `j/` to keep the player's current jersey number. Type `j/` with nothing after it to remove the jersey number. An empty `j/` works only with `edit`; `add` rejects it.
 * If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`, naming players hidden by an earlier `find` or `filter` too. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
 * Repeat `t/TAG` to replace all of the player's tags. Omit `t/` to keep them. Use a single empty `t/` to clear them; combining empty and non-empty tags is rejected.
-* `edit` cannot change a remark or injury status. Use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-players-injury-status-injury-us13) instead.
+* `edit` cannot change a remark or injury status. Use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-player-s-injury-status-injury-us13) instead.
 * Details you do not edit stay as they are. In particular, editing never changes a player's selection status, rating, remark or injury status.
 * The displayed list stays as it is, so you can keep editing the results of a `find` or `filter` with their numbers unchanged. An active rating sort also stays. If the edited player no longer matches the search, e.g. after a name change, they drop out of the displayed list; use `list` to see everyone.
 * The result box shows the player's new details, and notes any jersey number or tags you removed. If the values you typed are the same as the current ones, including a phone number typed with different spacing, it says `No changes made: NAME already has these details.`
