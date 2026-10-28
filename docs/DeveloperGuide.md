@@ -1074,6 +1074,7 @@ Run these checks in a separate folder using disposable data. Prepare the team in
 
 ```text
 clear
+list
 add n/Tan Wei Ming p/91234567
 add n/Lim Wei Jie p/92345678
 add n/Nur Aisyah p/93456789
@@ -1195,6 +1196,7 @@ Launch the candidate JAR with Java 25 in a separate writable folder. Use only di
 
 ```text
 clear
+list
 add n/Other Player p/111
 add n/Tag Tester p/123 j/7 t/Striker t/Trial Group 2
 find Tag
@@ -1220,13 +1222,13 @@ The displayed list must contain only Tag Tester as 1; Other Player remains in th
 | Try `tag 99 t/Captain`, `tag 0 t/Captain`, and `tag t/Captain`. | Out-of-range index gives `The player index provided is invalid.`; malformed/missing indices show index/usage guidance. No data or view changes. |
 | `tag 1 t/123456789012345678901234567890` | A 30-character label is accepted. |
 | `tag 1 t/1234567890123456789012345678901` | Error names the 31-character label and 30-character limit; the old 30-character label remains. |
-| `tag 1 t/Défenseur t/U18 & Under t/Centre Back/Wing` | All three valid labels appear in alphabetical order and remain after reload. |
+| `tag 1 t/Défenseur t/U18 & Under t/Centre Back/Wing`, then exit, relaunch and run `find Tag`. | All three valid labels persist in alphabetical order. The restored name filter shows only Tag Tester as 1, ready for the next row. |
 | `tag 1 t/Striker`, then `filter t/Striker`, then `tag 1 t/Captain`. | Tag Tester disappears because the Striker filter remains active; the full roster is not restored. `list` shows Other Player and Tag Tester, with Captain on Tag Tester. |
 | `find Tag`, then `rate 1 9`, `cut 1`, `pending 1`, `keep 1`, `remark 1 r/Improved passing`, `injury 1 i/fit`, and `edit 1 j/9 p/789`. | After each command Captain remains; the changed field updates without dropping unrelated fields. The final player is kept, fit, rated 9, jersey 9, phone 789, with the new remark. |
 | `squad`, then `tag 1 t/Striker`. | Only Tag Tester is shown, still kept; changing tags retains the squad view and all assessment fields. |
 | `tag 1 t/`, then exit and relaunch from the same folder. | Tags remain cleared; all other fields persist. Both players return in insertion order because the view is not persisted. |
 
-For each rejected update, compare the data file contents and modification time before and after: neither should change. For successful updates, inspect the JSON and reload before accepting persistence as verified. Also run the sorted-index tag-update sequence under the filter tests below.
+For each rejected update, compare the data file contents and modification time before and after: neither should change. For successful updates, inspect the JSON and reload before accepting persistence as verified. After any reload during this sequence, run `find Tag` before continuing indexed commands: startup restores insertion order, so Other Player is otherwise 1 and Tag Tester is 2. Also run the sorted-index tag-update sequence under the filter tests below.
 
 With the app closed, back up the disposable JSON. In separate copies, omit the `tags` field and then set it to `null`: the player loads without tags. Restore the backup between cases. An invalid tag string or a null entry inside the tag array must instead trigger the unreadable-data warning. Do not modify the only copy of real data. Remove the disposable test folder after closing the app and restoring any renamed paths.
 
@@ -1236,6 +1238,7 @@ Use a fresh disposable folder, or clear only the disposable roster. Prepare play
 
 ```text
 clear
+list
 add n/Amy p/111 t/Striker t/Captain
 add n/Bob p/222 t/Goalkeeper
 add n/Charlie p/333 t/Captain
