@@ -4,11 +4,11 @@
   pageNav: 3
 ---
 
-# AB-3 Developer Guide
+# CouchCoach Developer Guide
 
 ## **Value proposition**
 
-Sports coaches find it troublesome to **keep track** of their players and their specific details, especially when they are ranking or cutting the team. Our product will provide a clear overview of all players, with fast lookup, custom categorisations, amend and remark functionality, and a system to evaluate player performance.
+CouchCoach helps coaches of any sports team keep player details and observations together while comparing players and deciding who to keep or cut. Fast name lookup, custom tags, ratings and selection views support that work through typed commands and a desktop player list. See [Product scope](#product-scope) for the intended users and boundaries.
 
 <!-- * Table of Contents -->
 <page-nav-print />
@@ -17,7 +17,9 @@ Sports coaches find it troublesome to **keep track** of their players and their 
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* CouchCoach adapts the application structure, code and documentation of [SE-EDU AddressBook Level 3](https://github.com/se-edu/addressbook-level3).
+* The application uses [JavaFX](https://openjfx.io/) for its desktop interface and [Jackson](https://github.com/FasterXML/jackson) for JSON storage. Tests use [JUnit 5](https://junit.org/junit5/).
+* The documentation site uses [MarkBind](https://markbind.org/) and its [PlantUML](https://plantuml.com/) support for diagrams.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -365,131 +367,33 @@ The status is saved in the data file as a `selectionStatus` field. Data files sa
 `Person` holds an immutable set of `Tag` values. The model class diagram above shows
 its zero-to-many association with tags. Tags are shared values rather than part of
 player identity: duplicate detection remains based on the normalized player name.
-`Tag` validates and normalizes labels and compares them ignoring case.
+`Tag` trims surrounding whitespace, collapses internal whitespace, validates the allowed characters and the 30-code-point length limit, and preserves display spelling. Equality and hashing use the same case-folded label, so case variants cannot become separate tags. Tags do not participate in player identity.
 
-`AddCommandParser` collects initial `t/` values through `ParserUtil.parseTags`.
-`TagCommandParser` parses `tag INDEX t/TAG [t/TAG]...`: supplied labels replace the set,
-and a single empty prefix clears it. Missing prefixes and empty labels mixed with
-other labels are invalid. `EditCommandParser` rejects tag prefixes with migration guidance
-before changing any fields; its public syntax only accepts name, phone, and jersey edits.
+`AddCommandParser` collects initial `t/` values through `ParserUtil.parseTags`. Its `LinkedHashSet` keeps the first spelling among case-insensitive duplicates. `TagCommandParser` parses `tag INDEX t/TAG [t/TAG]...`: supplied labels replace the entire set, and a single empty prefix clears it. Missing prefixes and empty labels mixed with other labels fail before any field changes. `EditCommandParser` rejects tag prefixes with migration guidance before changing any fields; its public syntax accepts only name, phone and jersey edits. Replacement makes the requested final categories explicit; it does not append labels or remove one label by name.
 
-`TagCommand` delegates to an `EditCommand` containing only a tag replacement descriptor.
-This shares immutable player replacement, field preservation, no-change/removal feedback,
-and filter handling instead of duplicating that behaviour. The descriptor defensively
-copies the requested set, and `LogicManager` saves successful tag updates as player changes.
-The current filter and sort remain active; removing a matching tag may hide the player.
-`JsonAdaptedPerson` writes tag strings and accepts missing/null
-`tags` from older records as an empty collection; invalid/null entries are rejected.
-`PersonCard` displays tags alphabetically in a wrapping `FlowPane`.
+`TagCommand` delegates player replacement to an `EditCommand` containing only a tag replacement descriptor, sharing field preservation and filter handling. `TagCommand.execute` and `EditCommand.execute` resolve the index against `Model#getFilteredPersonList`, which exposes the displayed, possibly sorted view. It creates a replacement `Person`, preserving fields omitted from the descriptor, including rating, selection status, remark, injury status and jersey number. The descriptor and player defensively copy tag sets so later caller changes cannot mutate a stored player. `Model#setPerson` replaces the roster entry without resetting the predicate or comparator. A player whose new tags no longer satisfy the active filter disappears; the remaining displayed indices change accordingly.
+
+The edit no-change check compares tag spellings as well as `Person` equality: case-only spelling changes must still be applied. `TagCommand` formats successful replacements as `Updated tags for NAME: LABELS` and removals as `NAME: tags cleared.`, retaining the shared `No changes made` result for an identical replacement. `LogicManager` saves after a successfully executed tag command, including a no-change result; parse and execution failures do not save. A save failure leaves the in-memory change applied and reports the save warning instead of ordinary edit feedback.
+
+`JsonAdaptedPerson` writes tag strings in case-insensitive alphabetical order and accepts missing/null `tags` from older records as an empty collection; invalid/null entries are rejected. `PersonCard` displays tags alphabetically in a wrapping `FlowPane`. Keeping tags as immutable values shared by parser, model and storage gives updates and filtering the same label rules without coupling identity to a coach's changing categories.
 
 ### Filtering players by tag (US16)
 
-`FilterCommandParser` accepts repeated `t/` arguments and reuses `ParserUtil.parseTags`.
-`TagsContainAnyPredicate` holds a defensive copy of the requested tags and matches
-any complete label using `Tag` equality. `FilterCommand` replaces the model's list
-predicate, so each filter searches the full roster. `LogicManager` treats it as read-only
-and skips saving, including when the data file is unreadable or unwritable.
+`FilterCommandParser` accepts repeated `t/` arguments and reuses `ParserUtil.parseTags`. It also accepts one optional `i/` injury status and requires at least one condition. `TagsContainAnyPredicate` holds a defensive copy of the requested tags and matches any complete label using `Tag` equality (OR). `FilterCommand#matches` combines that result with the optional injury status using AND. An injury-only filter needs no tag predicate. Invalid labels, an invalid/repeated injury status or unexpected preamble fail before the view changes.
+
+`FilterCommand` replaces the model's list predicate, so each filter searches the full roster rather than intersecting with an earlier name search, filter or squad view. `LogicManager` treats filtering as read-only and skips saving, including when the data file is unreadable or unwritable.
 
 <puml src="diagrams/TagFilterClassDiagram.puml" width="650" />
 
-The UML shows creation dependencies from the parser and the predicate's realization
-of `Predicate<Person>`. The predicate reads `Person` tags; the command changes only
-the filtered view through `Model`. Matches retain roster order, use displayed indices,
-and are replaced by `find` or `list`. Invalid arguments fail before the view changes.
+This partial UML shows the tag-matching path; the optional injury-status condition is omitted. The parser creates the command and optional tag predicate. The predicate realizes `Predicate<Person>` and reads player tags; the command changes the filtered view through `Model`.
 
-### \[Proposed\] Undo/redo feature
+`ModelManager` wraps the roster in a `FilteredList`, then a `SortedList`, and exposes an unmodifiable observable view. Changing the predicate retains the active rating comparator. Results therefore use rating order when sorting is active, otherwise insertion order, and are numbered from 1. `find`, `filter` and `squad` replace one another's predicate while retaining sorting; `list` clears both predicate and comparator. This separates a coach's view from persisted roster order and avoids changing records just to browse a group.
 
-#### Proposed Implementation
+### Name search implementation (F3 / US04)
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+`AddressBookParser` dispatches `find` to `FindCommandParser`, which rejects an empty argument string and splits plain keywords on whitespace. `NameContainsKeywordsPredicate` accepts a player if any keyword matches a whole whitespace-delimited word of the original name or a complete part separated by punctuation. It uses `StringUtil.containsWordIgnoreCase` for both representations. Thus both `Wei-Ming` and `Ming` match `Tan Wei-Ming`, while `Min` does not. Letters, combining marks and numbers stay together when punctuation is replaced by spaces; slashes in keywords remain literal, so `s/o` can match the original name.
 
-* `VersionedAddressBook#commit()` -- Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` -- Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` -- Restores a previously undone address book state from its history.
-
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
-
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
-
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
-
-<puml src="diagrams/UndoRedoState0.puml" alt="UndoRedoState0" />
-
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
-
-<puml src="diagrams/UndoRedoState1.puml" alt="UndoRedoState1" />
-
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
-
-<puml src="diagrams/UndoRedoState2.puml" alt="UndoRedoState2" />
-
-<box type="info" seamless>
-
-**Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
-</box>
-
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
-
-<puml src="diagrams/UndoRedoState3.puml" alt="UndoRedoState3" />
-
-
-<box type="info" seamless>
-
-**Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
-</box>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
-
-<puml src="diagrams/UndoSequenceDiagram-Logic.puml" alt="UndoSequenceDiagram-Logic" />
-
-<box type="info" seamless>
-
-**Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-</box>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
-
-<puml src="diagrams/UndoSequenceDiagram-Model.puml" alt="UndoSequenceDiagram-Model" />
-
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
-
-<box type="info" seamless>
-
-**Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-</box>
-
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-<puml src="diagrams/UndoRedoState4.puml" alt="UndoRedoState4" />
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …` command. This is the behavior that most modern desktop applications follow.
-
-<puml src="diagrams/UndoRedoState5.puml" alt="UndoRedoState5" />
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<puml src="diagrams/CommitActivityDiagram.puml" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
-
-### \[Proposed\] Data archiving
-
-_{Explain here how the data archiving feature will be implemented}_
-
+`FindCommand` calls `Model#updateFilteredPersonList`, using the same filtered/sorted view described above. Each new search covers the whole roster, ignores phone/tag/remark fields, shows each match once, and returns singular or plural match-count feedback. Zero matches is a successful empty view. `LogicManager` skips saving; invalid syntax leaves the previous view unchanged. Predicate-based matching keeps search independent of JavaFX cards and storage while allowing indexed commands to act on exactly the displayed results.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -517,37 +421,52 @@ _{Explain here how the data archiving feature will be implemented}_
 * prefers typing to mouse interactions
 * is reasonably comfortable using CLI apps
 
-**Value proposition**: 
+**Value proposition**:
 
-Sports coaches find it troublesome to **keep track** of their players and their specific details, especially when they are ranking or cutting the team. Our product will provide a clear overview of all players, with fast lookup, custom categorisations, amend and remark functionality, and a system to evaluate player performance.
+CouchCoach brings player contact details, jersey numbers, categories, observations, ratings and selection decisions into one local roster. Coaches can find a player quickly, review a tagged group and compare players before finalising their squad.
+
+**Boundaries**:
+
+* The product supports recording players and observations, organising the trial pool, comparing ratings and recording selection decisions, from intake through the final squad list.
+* It is a single-user desktop application for coaches of any sports team. Match-day tactics, training-plan design, contacting players and shared concurrent editing are outside the product scope.
+* Player records are saved locally. The current release does not implement undo/redo, data archiving, partial-string name search, emergency contacts, pagination, statistics or squad export. Historical brainstorms in the team notes are not promises of release functionality.
 
 ### User stories
 
 Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
 
-These 10 stories consolidate the key needs in the team's project notes and describe the intended product, including features beyond the MVP.
+The IDs and priorities below retain the [team notes](https://docs.google.com/document/d/1dSIQTzhhsTZZvvx7wB0HhxJKVrBdz_BInOlgk_0DiIQ/edit) identifiers used by feature sections and use cases. The notes also contain historical MVP specifications and unapproved proposals; the release coverage column describes the implemented subset. F1–F7 refer to the original MVP feature IDs, not a new numbering scheme for later features.
 
-| Priority | As a … | I want to … | So that I can … |
-|----------|--------|-------------|----------------|
-| `* * *` | coach | record each player's name, contact number, and jersey number | keep an identifiable record of each player and match them to my trial notes and videos |
-| `* * *` | coach | list all players | see everyone in the team at a glance |
-| `* * *` | coach | edit a player's details or delete their record | keep my records accurate when details change, mistakes are found, or players withdraw |
-| `* * *` | coach | find players by name | retrieve their details during a session without scanning the entire list |
-| `* * *` | coach | view a summary of command formats within the app | recall the syntax I need without leaving the app |
-| `* * *` | coach | have changes to player data saved automatically | resume work in a later session without re-entering changes or remembering to save manually |
-| `* * *` | coach | organise players using custom tags and filter the list by tag | focus on players in a particular position, role, or trial group |
-| `* * *` | coach | mark players as kept or cut and view the kept players | track my selection decisions and see the resulting squad |
-| `* *` | coach | give players numeric ratings, see who remains unrated, and sort players by rating | compare assessed players on a common scale while identifying those who still need evaluation |
-| `*` | coach | add free-text remarks to a player's record | retain qualitative observations that a numeric rating cannot express when making selection decisions |
+| ID | Priority | As a … | I want to … | So that I can … | Release coverage |
+| --- | --- | --- | --- | --- | --- |
+| US01 | `* * *` | coach | record a player's name and contact number | keep a record of everyone in the team | `add` (F1) |
+| US02 | `* * *` | coach | list all players | see everyone in the team at a glance | `list` (F2) |
+| US03 | `* * *` | coach | delete a player | remove withdrawn or mistaken entries | `delete` (F4) |
+| US04 | `* * *` | coach | find players by name | retrieve details without scanning the entire roster | Whole-word and punctuation-part `find` (F3) |
+| US05 | `* * *` | coach | view command formats inside the app | recall syntax without leaving the app | `help` (F5) |
+| US06 | `* * *` | coach | have player changes saved automatically | resume work without re-entering changes | Automatic local saving (F7), with a warning on failure |
+| US07 | `* * *` | coach | edit a player's details | correct mistakes without re-entering the record | `edit` |
+| US08 | `* * *` | coach | assign my own labels to players | organise positions, roles, seasons and trial groups | Tags through `add` and `tag` |
+| US09 | `* * *` | coach | record a player's jersey number | identify them from trial notes and videos | Optional jersey number through `add` and `edit` |
+| US10 | `* * *` | coach | mark players as kept, cut or pending | track and revise selection decisions | `keep`, `cut`, `pending` |
+| US11 | `* *` | coach | be warned about duplicate names | avoid duplicate player records | Exact duplicate rejection and similar-name warnings |
+| US12 | `* *` | coach | give players numeric ratings | compare assessed players on a common scale | `rate`, including removal with `unrated` |
+| US13 | `* *` | coach | mark a player as injured | distinguish injury from a selection decision | `injury` and injury filtering |
+| US14 | `* *` | coach | see which players remain unrated | notice players who still need evaluation | Unrated cards and placement after rated players when sorting; no dedicated unrated filter |
+| US16 | `* *` | coach | filter players by tag | focus on one group | `filter`, with OR across tags and optional injury condition |
+| US17 | `* *` | coach | sort players by an attribute | compare players in a useful order | Rating only; other attribute sorts are not implemented |
+| US18 | `* *` | coach | view the players I have kept | see the resulting squad | `squad` |
+| US21 | `*` | coach | add a free-text remark | retain qualitative observations alongside ratings | One replaceable remark per player |
+| US27 | `*` | coach | clear all player records | start a fresh roster | `clear` |
+
+The historical backlog also names US15 (partial-string search), US19 (emergency contacts), US20 (undo), US22 (remark timestamps), US23 (arbitrary combined criteria), US24 (pagination), US25 (statistics) and US26 (top-N shortlisting). These are unimplemented ideas, not committed release requirements. The supported tag-plus-injury combination does not implement arbitrary combinations of name search, squad and other filters. F6 supplies `exit` without a separate story ID in the notes.
 
 ### Use cases
 
 For all use cases below, the **System** is **CouchCoach** and the
 **Actor** is the **Coach**, unless specified otherwise.
 
-These use cases describe the intended product behaviour. UC01 is part of
-the MVP. UC02–UC06 describe planned features beyond the MVP and do not
-indicate that those features have already been implemented.
+These use cases describe player-management workflows. The original MVP covered deletion; editing, categorisation, ratings, selection decisions and remarks are now implemented too. Consult each feature's implementation and manual checks for supported syntax and limits.
 
 The following rules apply throughout:
 
@@ -557,11 +476,10 @@ The following rules apply throughout:
 * Duplicate-name detection is part of the MVP. Names are compared after
   trimming leading and trailing spaces, collapsing repeated internal spaces,
   and ignoring letter case. Players may share a contact number.
-* The proposed edit behaviour preserves the same name-uniqueness rule:
+* Editing preserves the same name-uniqueness rule:
   changing a player's name must not duplicate another player's name.
 * Rejected requests leave player data unchanged and do not trigger a save.
-* Successful data changes are saved automatically. The planned modifying
-  features below follow the same saving behaviour as MVP deletion. If saving
+* Successful data changes are saved automatically. If saving
   fails, the change remains applied in the current session, and CouchCoach
   warns that the change has not been saved and may be lost after closing.
 
@@ -715,9 +633,9 @@ The following rules apply throughout:
 1. Coach requests to find a player by name.
 2. CouchCoach displays the matching players.
 3. Coach identifies a player from the displayed list and supplies the custom
-   labels to assign to that player.
-4. CouchCoach applies the requested labels, saves the updated data, and
-   displays the player's updated categories.
+   labels that should replace that player's categories.
+4. CouchCoach replaces the categories, preserves the other player details,
+   saves the updated data and confirms the updated categories.
 
    Use case ends.
 
@@ -745,10 +663,29 @@ The following rules apply throughout:
 
       Use case resumes at step 3.
 
+* 3c. Coach requests to clear all categories instead of supplying labels.
+
+    * 3c1. CouchCoach removes all categories, preserves the other player details,
+      saves the updated data and confirms the removal.
+
+      Use case ends.
+
+* 3d. The requested categories and their spellings are unchanged.
+
+    * 3d1. CouchCoach reports that no details changed.
+
+      Use case ends, subject to the save-failure extension below.
+
 * 4a. CouchCoach cannot save the updated data.
 
     * 4a1. CouchCoach informs the Coach that the category changes were applied
       in the current session but could not be saved and may be lost after closing.
+
+      Use case ends.
+
+* 4b. The updated player no longer matches the active category filter.
+
+    * 4b1. CouchCoach keeps the filter and updates the displayed matches.
 
       Use case ends.
 
@@ -887,31 +824,35 @@ The following rules apply throughout:
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should respond to any command within 2 seconds when storing up to 1000 players, on a computer that meets the minimum requirements of its mainstream OS.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-4.  Should be usable by a single user on one computer; concurrent use of the same data by multiple users is not required.
-5.  Should work without an internet connection, and should not send player data to any remote server.
-6.  Should store player data locally in a _human-editable_ text file, without using a database management system.
-7.  Should save each successful change to player data to the data file before the result of that command is displayed, so that no confirmed change is lost if the app is closed afterwards.
-8.  Should be distributed as a single JAR file of at most 100MB that runs without an installer.
-9.  The GUI should display all content without clipping for standard screen resolutions of 1920x1080 and higher at screen scales of 100% and 125%, and all functions should remain usable for resolutions of 1280x720 and higher at a screen scale of 150%.
+These are acceptance targets, not claims that every platform, performance or display-scale combination has been measured. Record the OS, Java version, dataset and results when validating them. Automatic saving is functional behavior covered by US06 and the saving tests; a failed save cannot guarantee durable data.
+
+1. **Compatibility:** The packaged application should run on Windows, Linux and macOS with the supported Java 25 installation described in the User Guide. Verify startup and core commands on each platform; do not assume every newer Java release is compatible.
+1. **Responsiveness:** With up to 1000 valid player records loaded, each ordinary command should display its result within 2 seconds on a computer meeting its OS's minimum requirements. Measure from command submission to the updated result/list, excluding application startup and externally blocked disk I/O.
+1. **Keyboard usability:** After launching the app, a coach should be able to add, find, categorise, rate and select players, obtain help and exit through the command box without opening a menu. Check the documented normal workflow with keyboard input.
+1. **Single-user operation:** The application should be usable by one coach on one computer. Simultaneous processes editing the same data file are outside the supported operating conditions.
+1. **Offline operation and privacy:** Core roster-management commands should work with the network disconnected and should not transmit player data to a remote server. Opening external documentation links may require a connection.
+1. **Storage portability:** Player records should use a local, readable JSON text file without a database server. A valid saved roster should reload with its field values intact. Manual file editing still has to satisfy the model's validation rules.
+1. **Distribution:** The application should be delivered as one JAR of at most 100 MB and run without an application installer, once the required Java runtime is installed.
+1. **Display usability:** At 1920×1080 with 100% and 125% scaling, command entry, feedback and player details should remain readable without clipped controls. At 1280×720 with 150% scaling, commands and list scrolling should remain usable. Include long tags, names and remarks in these checks.
 
 ### Glossary
 
-* **Mainstream OS**: Windows, Linux, Unix, or macOS
 * **CLI (Command Line Interface)**: A text-based interface in which the user types commands to interact with the app
 * **GUI (Graphical User Interface)**: The visual interface of the app, which displays the player list and command results
 * **Coach**: The user of CouchCoach, who manages the players of a sports team
 * **Player**: A member or prospective member of the Coach's team whose details are recorded in CouchCoach
-* **Displayed list**: The list of players currently shown in the GUI, which contains either all players or only the players matching the most recent search or filter
-* **Index**: The position number of a player in the displayed list, starting from 1, used to identify that player in a command
+* **Roster**: All player records stored by CouchCoach, including players hidden by the current view
+* **Displayed list**: The roster view selected by the latest `list`, `find`, `filter` or `squad`, ordered by the active rating sort or insertion order. Help temporarily replaces the visible cards without changing the underlying player view
+* **Index**: A player's position in the displayed list, starting from 1. It can change after filtering, sorting or modifying players; it is not a permanent player identifier
 * **Duplicate name**: A player name that matches an existing player's name after trimming leading and trailing spaces, collapsing repeated internal spaces, and ignoring letter case
-* **Tag**: A custom label that the Coach assigns to a player to categorise them, such as by position, role, or trial group
-* **Rating**: A numeric score that the Coach assigns to a player to compare assessed players on a common scale; a player without a rating is _unrated_
-* **Selection status**: The Coach's selection decision for a player, which is either _kept_ (selected for the team) or _cut_ (not selected)
+* **Tag**: A custom player category, such as a position, role or trial group. Labels are normalized for whitespace and compared ignoring case; a tag is independent of selection or injury status
+* **OR matching**: A player matches if any requested name keyword or any requested tag matches; the player is still listed only once
+* **Rating**: An integer score from 0 to 10. _Unrated_ means no score has been assigned and is distinct from a score of 0
+* **Selection status**: A player's _pending_ (undecided), _kept_ (selected) or _cut_ (not selected) decision
+* **Squad**: The roster view containing all players whose selection status is kept
+* **Injury status**: A player's _fit_ or _injured_ status, independent of selection status and rating
 * **Remark**: A free-text note that the Coach records about a player to retain qualitative observations
-* **Human-editable**: Stored in a plain-text format that can be read and modified using a common text editor
+* **JSON**: The plain-text data format used for local player storage; changing it by hand requires valid syntax and valid player fields
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -1157,12 +1098,16 @@ as well as apostrophes, hyphens, and periods.
 | `Find wei` | Unknown-command error; previous displayed list unchanged. |
 | `find   wei   ming` | Same matches as the equivalent command with single spaces. |
 | `find tan` followed by `find nur` | Nur appears despite being hidden by the first search. |
+| `filter i/injured`, then `find nur` | Nur appears even if the injury filter was empty; the name search considers the full roster. |
+| `list`, `keep 3`, `squad`, then `find wei` | Tan and Lim appear even though neither is kept; `find` replaces the squad view. |
+| `list`, `rate 1 2`, `rate 2 9`, `sort rating`, then `find wei` | Lim is displayed as 1, Tan as 2; the search preserves the active descending sort. |
+| `tag 1 t/Captain` after the previous row, then `filter t/Captain` | Lim gains Captain and remains the sole match; Tan is unchanged. Filter replaces name search while retaining sorting. |
 | `list` after a search | All four players displayed in original order. |
 | `find wei`, then `delete 1` | Tan removed; Lim remains numbered 1; Nur and Muthu stay hidden. |
 | `delete 1` again | Lim removed; filtered panel empty even though Nur and Muthu remain in the team. |
 | `list`, `clear`, then `find wei` | Empty panel; `0 players listed!`; no failure on an empty team. |
 
-Before running successful and invalid searches, record the data file's contents and
+Recreate the four-player fixture above before the storage checks. Before running successful and invalid searches, record the data file's contents and
 modification time. Both must remain unchanged after every search. To check searches
 with unavailable storage, rename the data directory after the team is loaded and
 create a regular file named `data` in its place, blocking directory creation. Execute `find wei` and verify that
@@ -1170,12 +1115,9 @@ the normal search feedback still appears. Remove the temporary file and restore 
 directory before adding or deleting players. Relaunch after preparing Muthu's record
 and confirm that `find s/o` still finds it, checking that the slash survives storage.
 
-Implementation: `FindCommandParser` splits plain keywords on whitespace;
-`NameContainsKeywordsPredicate` uses case-insensitive whole-word OR matching over
-names. A keyword also matches a part of a word between punctuation, so `Ming` matches
-`Tan Wei-Ming`. Updating the model's filtered list replaces the previous predicate, so each
-search considers the full team. The existing JavaFX list cells supply displayed
-indices. `LogicManager` returns a successful find result without saving player data.
+After the table and storage checks, add disposable records `Tan Wei-Ming`, `Shaun O'Neil` and `Lim Jr.`. Verify `find Ming`, `find Neil` and `find Jr` find the appropriate records, while `find Min` does not. After all checks, close the app and remove the disposable folder.
+
+See [Name search implementation](#name-search-implementation-f3-us04) for the parsing and predicate design.
 
 ### Deleting a person
 
@@ -1249,54 +1191,86 @@ Use a disposable empty team and run these commands in order:
 
 ### Custom player tags (US08): manual regression checks
 
-Use a disposable data folder. Start with `add n/Tag Tester p/123 t/Striker t/Trial Group 2`.
+Launch the candidate JAR with Java 25 in a separate writable folder. Use only disposable data. Prepare a bystander before the tagged player so a filtered index differs from the roster index:
+
+```text
+clear
+add n/Other Player p/111
+add n/Tag Tester p/123 j/7 t/Striker t/Trial Group 2
+find Tag
+keep 1
+rate 1 8
+remark 1 r/Strong left foot
+injury 1 i/injured
+```
+
+The displayed list must contain only Tag Tester as 1; Other Player remains in the roster. Execute these rows in order. Unless a row says otherwise, Tag Tester remains the only displayed player, with jersey 7, rating 8, Kept, the remark and Injured. Check these fields after each successful tag update.
 
 | Action | Expected result |
 | --- | --- |
-| Inspect the new card and result box. | Both tags appear, alphabetically, without hiding name or phone. |
-| `edit 1 p/456` | Tags remain. |
-| `tag 1 t/Captain t/captain` | Previous tags are replaced by one Captain tag; feedback says `Updated tags for Tag Tester: Captain`. |
-| `tag 1 t/` | Tags are cleared; name and phone remain. Feedback names the player and says `tags cleared`. |
-| `tag 1 t/` again | Successful idempotent clearing. |
-| `edit 1 p/789 t/Captain` | Guidance to use `tag`; neither the phone nor tags change, and the file remains unchanged. |
-| `tag 1 t/` followed by `tag 1 t/Trial   Group 2` | One tag, Trial Group 2, with collapsed whitespace. |
-| `add n/Invalid p/456 t/`, `tag 1 t/Bad!`, `tag 1 t/ t/Striker` | Tag constraint error; records and displayed list unchanged. |
-| Try 30-character and 31-character tags. | The first succeeds; the second is rejected with the tag constraint error. |
-| `find Tag`, then `tag 1 t/Striker` | The displayed player is updated; the name search remains active. |
-| Restart, then inspect cards and JSON. | Tags persist. A legacy record with no tags field still loads. |
-| Open `help` at normal and minimum window width. | Add/edit/tag syntax, examples, and tag-clearing guidance remain readable. |
-| `tag 1 t/Striker`, `keep 1`, then `rate 1 10` | The same player shows Striker, Kept, and Rating: 10/10 together. |
-| `squad`, then `rate 1 0` | The kept player remains visible with Striker and Rating: 0/10. |
-| `tag 1 t/Captain`, then `edit 1 p/456` | Kept and Rating: 0/10 remain; the Captain tag survives the phone edit. |
-| `tag 1 t/`, then restart | Only tags are cleared; the player remains kept and rated 0/10. |
-| `cut 1`, then `squad`; use `list` to inspect the player again | The cut player leaves the squad; their rating and other details remain. |
+| Inspect the card and feedback, then `edit 1 p/456`. | Both tags appear alphabetically without hiding name/phone; the phone changes and the tags remain. Other Player is unchanged. |
+| `tag 1 t/Captain t/captain` | Old labels are replaced by one Captain label, retaining the first spelling. The name search remains active. |
+| `tag 1 t/CAPTAIN` | Spelling changes to CAPTAIN on the card and in feedback; this is an edit, not a no-change result. |
+| `tag 1 t/` | Tags disappear; feedback says `Tag Tester: tags cleared.` Other player fields remain. |
+| Repeat `tag 1 t/`. | `No changes made: Tag Tester already has these details.` The view and fields remain unchanged. A successful edit result still attempts a save. |
+| `tag 1 t/ Trial   Group 2` | One label, `Trial Group 2`, with collapsed whitespace and preserved capitalisation. |
+| `tag 1 t/Bad!` | Specific error naming `!`; tags and the previous view stay unchanged, and the file is not written. |
+| `edit 1 p/789 t/Captain` | Guidance to use `tag`; the phone stays 456, tags and the previous view stay unchanged, and the file is not written. |
+| Try `tag 1 t/ t/Striker`, then `tag 1 t/Striker t/`. | Each rejects the whole command with the empty-tag message; the label remains Trial Group 2. |
+| Try `tag 99 t/Captain`, `tag 0 t/Captain`, and `tag t/Captain`. | Out-of-range index gives `The player index provided is invalid.`; malformed/missing indices show index/usage guidance. No data or view changes. |
+| `tag 1 t/123456789012345678901234567890` | A 30-character label is accepted. |
+| `tag 1 t/1234567890123456789012345678901` | Error names the 31-character label and 30-character limit; the old 30-character label remains. |
+| `tag 1 t/Défenseur t/U18 & Under t/Centre Back/Wing` | All three valid labels appear in alphabetical order and remain after reload. |
+| `tag 1 t/Striker`, then `filter t/Striker`, then `tag 1 t/Captain`. | Tag Tester disappears because the Striker filter remains active; the full roster is not restored. `list` shows Other Player and Tag Tester, with Captain on Tag Tester. |
+| `find Tag`, then `rate 1 9`, `cut 1`, `pending 1`, `keep 1`, `remark 1 r/Improved passing`, `injury 1 i/fit`, and `edit 1 j/9 p/789`. | After each command Captain remains; the changed field updates without dropping unrelated fields. The final player is kept, fit, rated 9, jersey 9, phone 789, with the new remark. |
+| `squad`, then `tag 1 t/Striker`. | Only Tag Tester is shown, still kept; changing tags retains the squad view and all assessment fields. |
+| `tag 1 t/`, then exit and relaunch from the same folder. | Tags remain cleared; all other fields persist. Both players return in insertion order because the view is not persisted. |
 
-Run the existing add, edit, find, delete and saving regressions as well. Back up data
-before checking corrupt JSON tags; invalid tag strings and null tag entries should
-trigger the existing unreadable-data warning rather than silently creating labels.
+For each rejected update, compare the data file contents and modification time before and after: neither should change. For successful updates, inspect the JSON and reload before accepting persistence as verified. Also run the sorted-index tag-update sequence under the filter tests below.
+
+With the app closed, back up the disposable JSON. In separate copies, omit the `tags` field and then set it to `null`: the player loads without tags. Restore the backup between cases. An invalid tag string or a null entry inside the tag array must instead trigger the unreadable-data warning. Do not modify the only copy of real data. Remove the disposable test folder after closing the app and restoring any renamed paths.
 
 ### Filtering by tag (US16): manual regression checks
 
-In a disposable team, add Amy with Striker and Captain, Bob with Goalkeeper, and
-Charlie with Captain, in that order. Confirm tags are visible on their cards.
+Use a fresh disposable folder, or clear only the disposable roster. Prepare players in this order:
+
+```text
+clear
+add n/Amy p/111 t/Striker t/Captain
+add n/Bob p/222 t/Goalkeeper
+add n/Charlie p/333 t/Captain
+rate 1 2
+rate 3 9
+injury 1 i/injured
+keep 2
+keep 3
+```
+
+Before the sorting rows, all views use insertion order. Execute rows in order; `find`, `filter` and `squad` replace one another, rather than intersecting.
 
 | Action | Expected result |
 | --- | --- |
-| `filter t/STRIKER` | Amy only; 1 player listed. |
-| `keep 1`, `rate 1 10`, `squad`, then `filter t/STRIKER` | Amy remains visible with Striker, Captain, Kept, and Rating: 10/10. |
-| `filter t/Striker t/Captain t/striker` | Amy and Charlie once each, numbered 1 and 2. |
-| `filter t/strik` or `filter t/NoSuchTag` | Empty list; 0 players listed. |
-| `filter t/Goalkeeper` after `find Amy` | Bob appears despite the earlier name filter. |
-| `filter t/Captain`, then `find Bob` | Bob appears; find replaces the tag filter. |
-| `filter t/`, `filter`, `filter Striker`, `filter t/Bad!`, `Filter t/Striker` | Error; previous list and player data unchanged. |
-| Use tags of 30 and 31 characters. | A valid 30-character label is searched; 31 is rejected. |
-| `filter t/Captain`, then `delete 1` | Amy is deleted; Charlie remains numbered 1, Bob stays hidden. |
-| `tag 1 t/Striker` after the previous step | Charlie's tags change; the Captain filter remains, so Charlie disappears. |
-| `filter t/Goalkeeper`, then add a new player. | Full roster returns, with the new player last. |
-| `help`, then `filter t/Goalkeeper` | Player panel returns showing Bob. Help includes filter syntax and examples. |
-| `list` after any filter | Full roster restored in its original order. |
-| Clear the disposable team, then `filter t/Striker`. | 0 players listed; no exception. |
+| `filter t/STRIKER` | Amy only as 1; `1 player listed!`. |
+| `filter t/Striker t/Captain t/striker` | Amy and Charlie once each, numbered 1 and 2; `2 players listed!`. |
+| `filter t/strik`, then `filter t/NoSuchTag`. | Each is a successful empty list with `0 players listed!`. |
+| `find Amy`, then `filter t/Goalkeeper`. | Bob appears despite being hidden by the name search. |
+| `filter t/Captain`, then `find Bob`. | Bob appears; the tag predicate is replaced. |
+| `squad`, then `filter t/Striker`. | Amy appears although not kept; the squad predicate is replaced. |
+| `squad`, then `find Amy`. | Amy appears; name search also replaces the squad predicate. |
+| `filter t/Captain`, then `squad`. | Bob and Charlie appear; Amy is hidden because she is not kept. |
+| `filter i/INJURED`, then `filter t/Captain i/fit`. | First Amy only, then Charlie only. Tags use OR with each other and AND with injury status. |
+| Try `filter t/`, `filter`, `filter Striker`, `filter t/Bad!`, `filter i/hurt`, `filter i/fit i/injured`, and `Filter t/Striker`. | Each reports the appropriate tag, format, status, duplicate-prefix or unknown-command error; Charlie remains the previous result and the file is not written. |
+| `filter t/123456789012345678901234567890`, then the same label with one extra `1`. | The 30-character label searches successfully with no matches; 31 characters is rejected without changing that view. |
+| `list`, `sort rating`, then `filter t/Captain`. | Charlie is 1 and Amy is 2: the active descending rating sort is retained, rather than roster order. |
+| `tag 1 t/Goalkeeper` after the previous row. | Charlie is updated, not Amy; he disappears from Captain results. Amy remains as 1. |
+| `find Charlie`, then `filter t/Goalkeeper`. | Bob and Charlie are both found; Charlie precedes unrated Bob under the active rating sort. |
+| `filter t/Goalkeeper`, then `delete 2`. | Unrated Bob is deleted using the displayed index; Charlie remains as 1 and Amy stays hidden. |
+| `add n/Dana p/444 t/Captain` | Full roster returns with the active sort: Charlie, Amy, Dana. The add clears the filter but retains sorting. |
+| `list` | Amy, Charlie, Dana in insertion order, numbered 1–3; sorting is cleared. |
+| `filter t/Captain`, then `sort rating all` | All three players return, in order Charlie, Amy, Dana; the explicit all scope replaces the tag filter. |
+| `sort rating squad`, then `filter t/Captain`, then `list` | First Charlie only (the kept squad); next Amy and Dana (the tag filter replaces squad scope); finally all three in insertion order with sorting cleared. |
+| `help`, then `filter t/Goalkeeper`. | Player panel returns showing Charlie; help includes current filter syntax. |
+| Exit and relaunch from the same folder, then `filter t/Goalkeeper`. | Full insertion-order roster appears on launch; the subsequent filter finds Charlie with persisted Goalkeeper and rating 9. |
+| `clear`, then `filter t/Striker`, then `find Amy`. | Both searches give `0 players listed!` without exceptions on an empty roster. |
 
-Compare the JSON file before and after successful/failed filtering; its contents must
-not change. Block the save path as in the existing find tests: filtering still works
-without a save error. Add/edit/delete remain subject to their existing save behavior.
+Compare the JSON contents and modification time before and after valid, empty-result and invalid filters: neither changes. Block the save path using the procedure under [Finding players by name](#finding-players-by-name-f3-us04); filtering must still show ordinary results without a save error. Restore the data directory before modifying players or closing the test session. Close the app and remove only the disposable test data after completion.
