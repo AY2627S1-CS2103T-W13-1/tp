@@ -11,15 +11,13 @@ for fast keyboard use with a graphical list of player records.
 
 The current version lets you:
 
-- Add players with a name, phone number, email address, and address.
+- Add players with a name, phone number, optional jersey number, and tags.
 - Give players custom tags, such as a position or trial group.
 - List players and find them by name.
 - Edit or delete a player using their number in the displayed list.
+- Rate players and record whether they are kept, cut, or pending.
 - Clear the list when starting a new set of records.
 - Save changes automatically to a local JSON file.
-
-Player ratings and selection decisions are planned for later versions; they
-are not available in the current app.
 
 ## Get started
 
@@ -33,7 +31,7 @@ root:
 Enter commands in the command box. For example:
 
 ```text
-add n/Tan Wei Ming p/91234567 e/wei@example.com a/123 Clementi Road t/goalkeeper
+add n/Tan Wei Ming p/91234567 t/goalkeeper
 find Tan
 list
 ```
