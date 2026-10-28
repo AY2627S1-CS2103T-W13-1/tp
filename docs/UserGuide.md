@@ -315,6 +315,8 @@ Format: `remark INDEX r/REMARK`
   is invalid. Write `remark 1 r/See soccer for drills` instead. Other prefix-like text
   such as `n/coach` can appear in the remark.
 * Leading and trailing spaces are removed. `remark 1 r/` clears the remark.
+* If the player already has that remark, or has none and you clear it, the result box shows
+  `No changes made: NAME already has these details.` and nothing changes.
 * The current filter and rating sort are retained. Invalid syntax or an invalid index leaves the team unchanged.
 * Remarks are saved automatically, restored when CouchCoach reopens, and preserved by
   name, phone, tag, rating, selection-status and injury-status updates. Older files start with empty remarks.
@@ -324,6 +326,7 @@ Examples:
 * `remark 1 r/Strong left foot` records an observation for the first displayed player.
 * `remark 1 r/Improved passing` replaces that observation.
 * `remark 1 r/` clears it.
+* Entering `remark 1 r/` again changes nothing, as the remark is already clear.
 * After `find Amy`, `remark 1 r/Strong left foot` updates the first search result.
 
 ### Editing a player: `edit`
