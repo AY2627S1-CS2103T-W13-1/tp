@@ -58,6 +58,9 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
 * Items followed by `...` can appear zero or more times.<br>
   For example, `find KEYWORD [MORE_KEYWORDS]...` can be used as `find wei` or as `find wei ming`.
 
+* Separate prefixes from preceding text with spaces or tabs. Pasted tabs are accepted;
+  pressing the Tab key in the app moves keyboard focus.
+
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 

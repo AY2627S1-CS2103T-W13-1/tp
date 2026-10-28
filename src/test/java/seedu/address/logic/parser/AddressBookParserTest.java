@@ -43,6 +43,21 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_tabSeparatedPrefixes_matchesSpaceSeparatedCommands() throws Exception {
+        assertEquals(parser.parseCommand("add n/Amy p/91234567 t/Striker"),
+                parser.parseCommand("add\tn/Amy\tp/91234567\tt/Striker"));
+        assertEquals(parser.parseCommand("edit 1 p/98765432"),
+                parser.parseCommand("edit 1\tp/98765432"));
+        assertEquals(parser.parseCommand("filter t/Striker t/Captain"),
+                parser.parseCommand("filter\tt/Striker \tt/Captain"));
+    }
+
+    @Test
+    public void parseCommand_tabSeparatedDuplicatePrefix_rejected() {
+        assertThrows(ParseException.class, () -> parser.parseCommand("add\tn/Amy\tn/Bob\tp/91234567"));
+    }
+
+    @Test
     public void parseCommand_clear() throws Exception {
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
         assertTrue(parser.parseCommand("  clear \t ") instanceof ClearCommand);
