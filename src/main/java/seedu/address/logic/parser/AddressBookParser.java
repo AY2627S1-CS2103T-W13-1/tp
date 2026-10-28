@@ -21,6 +21,7 @@ import seedu.address.logic.commands.InjuryCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.RateCommand;
 import seedu.address.logic.commands.RemarkCommand;
+import seedu.address.logic.commands.SaveCommand;
 import seedu.address.logic.commands.SetStatusCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.SquadCommand;
@@ -69,6 +70,13 @@ public class AddressBookParser {
                             String.format(MESSAGE_INVALID_COMMAND_FORMAT, ClearCommand.MESSAGE_USAGE));
                 }
                 yield new ClearCommand();
+            }
+            case SaveCommand.COMMAND_WORD -> {
+                if (!arguments.isBlank()) {
+                    throw new ParseException(
+                            String.format(MESSAGE_INVALID_COMMAND_FORMAT, SaveCommand.MESSAGE_USAGE));
+                }
+                yield new SaveCommand();
             }
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case FilterCommand.COMMAND_WORD -> new FilterCommandParser().parse(arguments);

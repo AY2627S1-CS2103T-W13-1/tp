@@ -114,6 +114,12 @@
                GridPane.columnIndex="0" GridPane.rowIndex="14" GridPane.valignment="TOP" />
         <Label fx:id="exitDescription" text="Close CouchCoach" wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="14" GridPane.valignment="TOP" />
+        <Label fx:id="saveSyntax" text="save"
+               GridPane.columnIndex="0" GridPane.rowIndex="15" GridPane.valignment="TOP" />
+        <Label fx:id="saveDescription"
+               text="Save the current team without changing players&#10;After a save failure, fix the problem and use save&#10;Do not repeat the original command"
+               wrapText="true" minWidth="0"
+               GridPane.columnIndex="1" GridPane.rowIndex="15" GridPane.valignment="TOP" />
       </GridPane>
       <Label fx:id="helpFooter" text="Your data is saved automatically after every change."
              wrapText="true" minWidth="0" />

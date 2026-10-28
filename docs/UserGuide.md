@@ -433,13 +433,29 @@ Format: `exit`
 
 CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `sort`, `squad`, `help` and `exit` do not change your data, so they do not save.
 
-If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
+If a change cannot be saved (e.g. the data path is occupied by a directory or is read-only),
+the result box shows the applied command's feedback followed by a warning that the change
+could not be saved. The change is still shown in CouchCoach, but it is not on disk yet.
+The command box clears because the operation has already happened. **Do not repeat the
+original command**: for example, repeating `delete 1` would delete the next player.
 
 Fixing the problem does not save the change by itself, and `exit` does not save either. To save it:
 
-1. Fix the problem, e.g. restore the data folder or make it writable again.
-1. Make another change. Every save writes your whole team, so the next successful change also saves the change that failed earlier. If you have nothing else to change, add a temporary player and then delete it, e.g. `add n/Temp Player p/000` followed by `delete INDEX`, using the temporary player's index.
-1. Check that the result box shows the normal success message, not the save error, before you exit.
+1. Fix the problem, e.g. remove the directory occupying the data file path or make it writable again.
+1. Enter `save` to write the current team without changing any players or their displayed order.
+1. Check for `Saved the current team to disk.` before you exit. If saving still fails, fix
+   the problem and retry `save`; unsaved changes remain in memory until you close CouchCoach.
+
+### Retrying a save: `save`
+
+Writes the current team to disk without reapplying a previous command. The current search,
+filter and rating sort are retained. Saving an empty team writes an empty roster.
+
+Format: `save`
+
+Use `save` on its own; extra arguments are rejected. This command is useful after a save
+failure, and can also be used at any time to save the current team. It replaces the data
+file with the team shown in CouchCoach, so back up any external file edits first.
 
 ### Editing the data file
 
@@ -452,7 +468,7 @@ Advanced users are welcome to update data directly by editing that data file.
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` or `clear`), which replaces it, so back up the file before editing it.<br>
+If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` or `clear`) or an explicit `save` replaces it, so back up the file before editing it.<br>
 A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
 Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
@@ -491,5 +507,6 @@ Action     | Format, Examples
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`
 **List**   | `list`
 **Pending** | `pending INDEX`<br> e.g., `pending 3`
+**Save**   | `save`
 **Squad**  | `squad`
 **Help**   | `help`
