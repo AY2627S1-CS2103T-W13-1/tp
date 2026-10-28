@@ -998,6 +998,24 @@ these checks and verify that both remain unchanged afterwards.
 
 1. _{ more test cases … }_
 
+### Jersey number zero padding: manual regression checks
+
+`JerseyNumber` validates a numeric value from 0 to 99 with optional leading zeros.
+The immutable numeric value supplies equality, display, and JSON serialization, so `099`
+and `99` produce the same stored number and duplicate warning. Validation rejects
+out-of-range digits before integer parsing, including padded values such as `0100`.
+
+Use a disposable empty team and run these commands in order:
+
+| Action | Expected result |
+| --- | --- |
+| `add n/Amy p/123 j/099` | Amy shows Jersey #99. |
+| `add n/Bob p/456 j/99` | Bob is added with a warning naming Amy for jersey 99. |
+| `edit 2 j/010` | Bob shows Jersey #10; other player fields are retained. |
+| `edit 2 j/0100`, `edit 2 j/+10`, `edit 2 j/10.0` | Jersey constraint error; the team and file remain unchanged. |
+| `edit 2 j/000` | Bob shows Jersey #0. |
+| Restart. | Amy remains #99 and Bob #0; the saved numbers have no leading zeros. |
+
 ### Custom player tags (US08): manual regression checks
 
 Use a disposable data folder. Start with `add n/Tag Tester p/123 t/Striker t/Trial Group 2`.
