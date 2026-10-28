@@ -5,9 +5,9 @@
 
 # About Us
 
-We are a team based in the [School of Computing, National University of Singapore](http://www.comp.nus.edu.sg).
+We are a team based in the [School of Computing, National University of Singapore](https://www.comp.nus.edu.sg).
 
-You can reach us at the email `seer[at]comp.nus.edu.sg`
+For CouchCoach questions or bug reports, use the [project issue tracker](https://github.com/AY2627S1-CS2103T-W13-1/tp/issues).
 
 ## Project team
 
@@ -18,7 +18,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](https://github.com/iansine)]
 
 * Role: Developer
-* Responsibilities:  
+* Responsibilities:
   * Integration: In charge of versioning the code, maintaining the code repository, and integrating various parts of the software to create a whole.
 
 ### Jonathan Koh
@@ -28,7 +28,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](https://github.com/jonkohzy)]
 
 * Role: Developer
-* Responsibilities: 
+* Responsibilities:
   * Code quality: Looks after code quality, ensures adherence to coding standards, etc.
 
 ### Dhanush Bhoja Shetty
@@ -38,7 +38,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](https://github.com/dbs15329)]
 
 * Role: Developer
-* Responsibilities: 
+* Responsibilities:
   * Testing: Ensures the testing of the project is done properly and on time.
 
 ### Wesley Tay
