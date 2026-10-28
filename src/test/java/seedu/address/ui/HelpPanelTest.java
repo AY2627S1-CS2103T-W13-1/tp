@@ -53,7 +53,7 @@ public class HelpPanelTest {
                     Map.entry("deleteSyntax", "delete INDEX"),
                     Map.entry("deleteDescription", "Delete the player at that position in the list\n"
                             + "shown right now. Positions change after a delete.\ne.g. delete 3"),
-                    Map.entry("statusSyntax", "keep INDEX\ncut INDEX\npending INDEX"),
+                    Map.entry("statusSyntax", "keep INDEX\n\ncut INDEX\n\npending INDEX"),
                     Map.entry("statusDescription", "Mark the player at that position as kept, cut,\n"
                             + "or not yet decided (pending)\ne.g. keep 3"),
                     Map.entry("squadSyntax", "squad"),
