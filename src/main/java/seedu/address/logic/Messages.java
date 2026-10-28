@@ -1,6 +1,6 @@
 package seedu.address.logic;
 
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,7 +26,7 @@ public class Messages {
     public static final String MESSAGE_DUPLICATE_JERSEY_NUMBER =
             "\nWarning: jersey number %1$s is also used by %2$s.";
     public static final String MESSAGE_DUPLICATE_FIELDS = "Each of these can be given only once: %1$s\n"
-            + "Remove the repeated one. Text such as \" r/\" inside a value also counts as a repeat.";
+            + "Remove the repeated one. Text such as \" %2$s\" inside a value also counts as a repeat.";
 
     /**
      * Returns an error message indicating the duplicate prefixes.
@@ -34,10 +34,10 @@ public class Messages {
     public static String getErrorMessageForDuplicatePrefixes(Prefix... duplicatePrefixes) {
         assert duplicatePrefixes.length > 0;
 
-        Set<String> duplicateFields =
-                Stream.of(duplicatePrefixes).map(Prefix::toString).collect(Collectors.toSet());
+        List<String> duplicateFields =
+                Stream.of(duplicatePrefixes).map(Prefix::toString).distinct().sorted().toList();
 
-        return String.format(MESSAGE_DUPLICATE_FIELDS, String.join(" ", duplicateFields));
+        return String.format(MESSAGE_DUPLICATE_FIELDS, String.join(" ", duplicateFields), duplicateFields.get(0));
     }
 
     /**
