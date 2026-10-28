@@ -9,16 +9,18 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
  */
 public class JerseyNumber {
 
+    /** Validation guidance for coaches entering a jersey number. */
     public static final String MESSAGE_CONSTRAINTS =
             "Jersey numbers should be whole numbers from 0 to 99, e.g. 7 or 23.";
-    /** Matches one or two digits, which covers every number from 0 to 99 including a leading zero. */
-    public static final String VALIDATION_REGEX = "\\d{1,2}";
+    /** Matches numbers from 0 to 99 with any number of leading zeros. */
+    public static final String VALIDATION_REGEX = "0*[0-9]{1,2}";
 
+    /** The normalized numeric value, independent of leading zeros. */
     public final int value;
 
     /**
      * Constructs a {@code JerseyNumber}.
-     * A leading zero is dropped, so "07" and "7" are the same jersey number.
+     * Leading zeros are dropped, so "010" and "10" are the same jersey number.
      *
      * @param jerseyNumber A valid jersey number.
      */
