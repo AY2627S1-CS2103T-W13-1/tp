@@ -79,10 +79,10 @@
                text="Edit the displayed player; tags replace existing tags&#10;A single empty t/ clears tags; omit t/ to keep them&#10;An empty j/ removes the jersey number&#10;e.g. edit 1 t/Striker t/Captain"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="9" GridPane.valignment="TOP" />
-        <Label fx:id="filterSyntax" text="filter t/TAG [t/TAG]..."
+        <Label fx:id="filterSyntax" text="filter [t/TAG]...&#10;[i/STATUS]"
                GridPane.columnIndex="0" GridPane.rowIndex="10" GridPane.valignment="TOP" />
         <Label fx:id="filterDescription"
-               text="Show players with any requested tag&#10;Matches complete labels, ignores capitalisation&#10;e.g. filter t/Striker t/Trial Group 2"
+               text="Show players with any requested tag, the injury&#10;status, or both. Tags match complete labels, ignoring&#10;capitalisation. e.g. filter t/Striker i/injured"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="10" GridPane.valignment="TOP" />
         <Label fx:id="remarkSyntax" text="remark INDEX r/REMARK"

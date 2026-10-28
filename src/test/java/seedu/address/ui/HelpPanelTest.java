@@ -39,9 +39,10 @@ public class HelpPanelTest {
                     Map.entry("editDescription", "Edit the displayed player; tags replace existing tags\n"
                             + "A single empty t/ clears tags; omit t/ to keep them\n"
                             + "An empty j/ removes the jersey number\ne.g. edit 1 t/Striker t/Captain"),
-                    Map.entry("filterSyntax", "filter t/TAG [t/TAG]..."),
-                    Map.entry("filterDescription", "Show players with any requested tag\n"
-                            + "Matches complete labels, ignores capitalisation\ne.g. filter t/Striker t/Trial Group 2"),
+                    Map.entry("filterSyntax", "filter [t/TAG]...\n[i/STATUS]"),
+                    Map.entry("filterDescription", "Show players with any requested tag, the injury\n"
+                            + "status, or both. Tags match complete labels, ignoring\n"
+                            + "capitalisation. e.g. filter t/Striker i/injured"),
                     Map.entry("listSyntax", "list"), Map.entry("listDescription", "Show all players"),
                     Map.entry("findSyntax", "find KEYWORD..."),
                     Map.entry("findDescription", "Show players whose names contain a keyword\n"
