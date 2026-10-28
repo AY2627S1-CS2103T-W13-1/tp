@@ -9,8 +9,9 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
-<HBox id="cardPane" fx:id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <GridPane HBox.hgrow="ALWAYS">
+<!-- A VBox root, unlike an HBox, sizes the card for its actual width, so wrapped text leaves no blank space -->
+<VBox id="cardPane" fx:id="cardPane" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+  <GridPane>
     <columnConstraints>
       <ColumnConstraints hgrow="SOMETIMES" minWidth="10" prefWidth="150" />
     </columnConstraints>
@@ -44,4 +45,4 @@
       <FlowPane fx:id="tags" hgap="6" vgap="4" />
     </VBox>
   </GridPane>
-</HBox>
+</VBox>

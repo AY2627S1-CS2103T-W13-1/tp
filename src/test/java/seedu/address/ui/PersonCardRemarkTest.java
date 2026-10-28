@@ -64,4 +64,27 @@ public class PersonCardRemarkTest {
             assertTrue(remark.getMaxY() <= viewport.getMaxY());
         });
     }
+
+    @Test
+    public void layout_remarkFittingOnOneLine_leavesNoBlankSpace() throws Exception {
+        runOnFxThread(() -> {
+            String longRemark = "Very strong left foot, excellent vision, needs to work on positioning at set pieces";
+            assertEquals(layOutCardHeight("Fast"), layOutCardHeight(longRemark));
+        });
+    }
+
+    /**
+     * Returns the height of the card for a player with {@code remark}, laid out in a list wide enough
+     * for the remark to fit on one line.
+     */
+    private double layOutCardHeight(String remark) {
+        PersonListPanel panel = new PersonListPanel(FXCollections.observableArrayList(
+                new PersonBuilder().withRemark(remark).build()));
+        Region root = panel.getRoot();
+        new Scene(root, 900, 600);
+        root.resize(900, 600);
+        root.applyCss();
+        root.layout();
+        return ((Region) root.lookup("#cardPane")).getHeight();
+    }
 }
