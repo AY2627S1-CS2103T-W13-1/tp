@@ -34,10 +34,14 @@ public class FilterCommandParserTest {
 
     @Test
     public void parse_invalidTags_constraintError() {
-        for (String input : List.of(" t/", " t/Striker t/", " t/ t/Captain", " t/Bad!",
-                " t/Striker p/123", " t/" + "a".repeat(Tag.MAX_LENGTH + 1))) {
-            assertParseFailure(parser, input, Tag.MESSAGE_CONSTRAINTS);
+        for (String input : List.of(" t/", " t/Striker t/", " t/ t/Captain")) {
+            assertParseFailure(parser, input, Tag.MESSAGE_EMPTY);
         }
+        assertParseFailure(parser, " t/Bad!", String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"));
+        assertParseFailure(parser, " t/Striker p/123",
+                String.format(Tag.MESSAGE_LOOKS_LIKE_PREFIX, "Striker p/123", "p/"));
+        String tooLong = "a".repeat(Tag.MAX_LENGTH + 1);
+        assertParseFailure(parser, " t/" + tooLong, String.format(Tag.MESSAGE_TOO_LONG, tooLong, Tag.MAX_LENGTH + 1));
         assertParseSuccess(parser, " t/" + "a".repeat(Tag.MAX_LENGTH),
                 new FilterCommand(new TagsContainAnyPredicate(Set.of(new Tag("a".repeat(Tag.MAX_LENGTH))))));
     }

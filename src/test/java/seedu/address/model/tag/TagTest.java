@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
 
@@ -22,13 +23,31 @@ public class TagTest {
 
     @Test
     public void isValidTagName_normalAndBoundaryLabels() {
-        for (String label : List.of("A", "Striker", "Under-21", "Trial Group 2", "a".repeat(Tag.MAX_LENGTH))) {
+        for (String label : List.of("A", "Striker", "Under-21", "Trial Group 2", "a".repeat(Tag.MAX_LENGTH),
+                "Défenseur", "Centre Back/Wing", "Centre_Back", "U18 & Under", "C++", "St. Mary's")) {
             assertTrue(Tag.isValidTagName(label));
+            assertEquals(Optional.empty(), Tag.getValidationError(label));
         }
-        for (String label : List.of("", "  ", "-Striker", "Trial/2", "@role", "a".repeat(Tag.MAX_LENGTH + 1))) {
+        for (String label : List.of("", "  ", "-Striker", "@role", "Bad!", "Striker p/123",
+                "a".repeat(Tag.MAX_LENGTH + 1))) {
             assertFalse(Tag.isValidTagName(label));
             assertThrows(IllegalArgumentException.class, Tag.MESSAGE_CONSTRAINTS, () -> new Tag(label));
         }
+    }
+
+    @Test
+    public void getValidationError_eachProblem_namesTheProblem() {
+        assertEquals(Optional.of(Tag.MESSAGE_EMPTY), Tag.getValidationError("  "));
+        String tooLong = "a".repeat(Tag.MAX_LENGTH + 1);
+        assertEquals(Optional.of(String.format(Tag.MESSAGE_TOO_LONG, tooLong, Tag.MAX_LENGTH + 1)),
+                Tag.getValidationError(tooLong));
+        assertEquals(Optional.of(String.format(Tag.MESSAGE_BAD_START, "-defender")),
+                Tag.getValidationError("-defender"));
+        assertEquals(Optional.of(String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!")),
+                Tag.getValidationError("Bad!"));
+        assertEquals(Optional.of(String.format(Tag.MESSAGE_LOOKS_LIKE_PREFIX, "Striker p/123", "p/")),
+                Tag.getValidationError("Striker   p/123"));
+        assertThrows(NullPointerException.class, () -> Tag.getValidationError(null));
     }
 
     @Test
