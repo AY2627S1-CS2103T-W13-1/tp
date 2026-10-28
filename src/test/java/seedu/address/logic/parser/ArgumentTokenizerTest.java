@@ -158,6 +158,15 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_nonBreakingSpaceSeparators_preservesValuesAndRepeatedPrefixes() {
+        ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
+                "1\u00a0 \tp/\u00a0first\u00a0inside \u00a0\t-t one\u00a0-t two\u00a0-t\u00a0", pSlash, dashT);
+        assertPreamblePresent(arguments, "1");
+        assertArgumentPresent(arguments, pSlash, "first\u00a0inside");
+        assertArgumentPresent(arguments, dashT, "one", "two", "");
+    }
+
+    @Test
     public void tokenize_lineBreakBeforePrefix_doesNotSplitValue() {
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(" p/first\n-tsecond", pSlash, dashT);
         assertArgumentPresent(arguments, pSlash, "first\n-tsecond");
