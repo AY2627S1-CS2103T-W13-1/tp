@@ -210,8 +210,10 @@ Format: `injury INDEX i/STATUS`
   the whole command and leaves the team unchanged.
 * The current filter and all other player details are retained. Injury status is also
   preserved when you change a remark, name, phone, tags, rating or selection status.
-* The injury status appears on the player card, is saved automatically, and is restored
-  when you reopen CouchCoach. Repeating the current status leaves it unchanged.
+* Injured players have an **Injured** badge next to their name, so they stand out in the list.
+  Fit players have no badge. The status is saved automatically and restored when you reopen CouchCoach.
+* If the player already has that status, CouchCoach tells you so and nothing changes.
+* To see only injured (or fit) players, use [`filter i/injured`](#filtering-players-by-tag-filter-us16).
 
 Examples:
 
@@ -310,11 +312,13 @@ case-sensitive: use `find`, as `Find` is unrecognized.
 
 ### Filtering players by tag: `filter` (US16)
 
-Show a group of players by the custom tags assigned using `add` or `edit`.
+Show a group of players by the custom tags assigned using `add` or `edit`, by injury status, or both.
 
-Format: `filter t/TAG [t/TAG]...`
+Format: `filter [t/TAG]... [i/STATUS]`
 
-* Supply at least one non-empty tag. Labels follow the [tag rules](#categorising-players-with-tags-us08).
+* Supply at least one `t/TAG` or an `i/STATUS`. `STATUS` is `injured` or `fit`, ignoring case, e.g. `filter i/injured` shows only injured players.
+* With both, a player must match both, e.g. `filter t/Striker i/fit` shows fit strikers.
+* Tags must be non-empty. Labels follow the [tag rules](#categorising-players-with-tags-us08).
 * Match complete labels, ignoring capitalisation: `filter t/striker` matches `Striker`,
   while `filter t/strik` does not. `filter t/Trial Group 2` treats the whole label as one tag.
 * Repeat `t/` to match **any** requested tag (OR). A player matching multiple tags is listed once.
@@ -464,7 +468,7 @@ Action     | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`
 **Exit**   | `exit`
-**Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/Striker t/Captain`
+**Filter** | `filter [t/TAG]... [i/STATUS]`<br> e.g., `filter t/Striker t/Captain`, `filter i/injured`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Injury** | `injury INDEX i/STATUS`<br> e.g., `injury 1 i/injured`; mark fit again with `injury 1 i/fit`
 **Sort**   | `sort rating [asc|desc]`<br> e.g., `sort rating desc`
