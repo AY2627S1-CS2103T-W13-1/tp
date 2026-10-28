@@ -361,37 +361,63 @@ because a tag cannot be empty; it does not clear anything.
 
 ### Deleting a player: `delete`
 
-Deletes the specified player from the team.
+Removes a player from the team permanently.
 
 Format: `delete INDEX`
 
-* Deletes the player at the specified `INDEX`.
-* The index refers to the index number shown in the displayed player list, which may be filtered by `find` or `filter`.
-* The index **must be a positive whole number** 1, 2, 3, ...
-* The remaining players are renumbered after a deletion, so check the list again before deleting another player.
+* `INDEX` is the number shown beside the player in the list on screen right now. That list may be
+  narrowed by [`find`](#finding-players-by-name-find), [`filter`](#filtering-players-by-tag-filter-us16)
+  or [`squad`](#viewing-your-squad-squad), or reordered by [`sort rating`](#sorting-players-by-rating-sort);
+  `delete` always uses the number you can see.
+* The result box confirms who was removed, e.g. `Deleted player: Amy Tan; Phone: 91234567; Tags: Striker`.
+* The list on screen stays as it is: a search, tag filter, squad view or rating sort remains active.
+  The players below the deleted one move up, so **their numbers change**. Check the list again before
+  deleting another player.
+* The deletion is saved straight away (see [Saving the data](#saving-the-data)).
+* If `INDEX` is missing or is not a whole number, e.g. `delete`, `delete x` or `delete 1 2`, the result box
+  shows the correct format. If it is `0`, negative or larger than the list on screen, it shows
+  `The player index provided is invalid.` Nothing is deleted in either case.
+
+<box type="warning" seamless>
+
+**Caution:** `delete` cannot be undone and does not ask for confirmation. To remove every player at once,
+use [`clear`](#clearing-all-players-clear).
+</box>
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd player in the team.
-* `find Tan` followed by `delete 1` deletes the 1st player in the results of the `find` command.
+* `find Tan` followed by `delete 1` deletes the 1st player in the search results. The search stays on screen,
+  so the next `Tan` player is now number 1.
+* `sort rating` followed by `delete 1` deletes the highest-rated player.
 
 ### Marking a player as kept, cut or pending: `keep`, `cut`, `pending`
 
-Records your selection decision for a player. The decision is shown as a badge next to the player's name: **Pending**, **Kept** or **Cut**.
+Records your selection decision for a player. The decision appears as a badge next to the player's name:
+**Pending**, **Kept** or **Cut**.
 
 Format: `keep INDEX`, `cut INDEX` or `pending INDEX`
 
-* `keep` marks the player at the specified `INDEX` as kept, and `cut` marks them as cut.
-* `pending` marks the player as not yet decided, e.g. to undo a `keep` or `cut` you made by mistake.
-* Every player you add starts as pending. Editing a player with `edit` does not change their status.
-* The index refers to the index number shown in the displayed player list, which may be filtered by `find`.
-* The index **must be a positive whole number** 1, 2, 3, ...
-* The displayed list stays as it is, so you can keep working through the results of a `find`.
-* If the player already has that status, CouchCoach tells you so and nothing changes.
+* `keep` marks the player as kept, and `cut` marks them as cut. `pending` marks them as not yet decided,
+  e.g. to undo a `keep` or `cut` made by mistake.
+* Every new player starts as pending. Players from data files saved before v1.4, which have no decision
+  recorded, also load as pending.
+* `INDEX` is the number shown beside the player in the list on screen right now, including a list narrowed by
+  `find`, `filter` or `squad`, or reordered by `sort rating`.
+* The result box confirms the change, e.g. `Marked Amy Tan as kept.` If the player already has that decision,
+  it says so instead, e.g. `Amy Tan is already marked as kept.`, and nothing changes.
+* The list on screen stays as it is, so you can work through the results of a `find` or `filter`.
+  While viewing your squad, though, a player you `cut` or mark `pending` leaves the squad, so they disappear
+  from the list and the players below them move up one number.
+* A decision does not change a player's rating, tags or position in a rating sort. Editing a player with `edit`
+  does not change their decision.
+* The decision is saved straight away and restored when you reopen CouchCoach.
+* If `INDEX` is missing or is not a whole number, e.g. `keep` or `keep a`, the result box shows the correct format.
+  If it is `0`, negative or larger than the list on screen, it shows `The player index provided is invalid.`
 
 Examples:
 * `list` followed by `keep 2` marks the 2nd player in the team as kept.
-* `find Tan` followed by `cut 1` marks the 1st player in the results of the `find` command as cut.
-* `pending 1` changes the 1st player in the displayed list back to pending.
+* `find Tan` followed by `cut 1` marks the 1st player in the search results as cut.
+* `pending 1` changes the 1st player in the list on screen back to pending.
 
 ### Viewing your squad: `squad`
 
@@ -399,15 +425,20 @@ Shows only the players you have marked as kept, so you can see your squad at a g
 
 Format: `squad`
 
-* The players are shown in the same order as in `list`.
 * The result box shows how many players are in your squad, e.g. `3 players in your squad.`
-* If you have not kept anyone yet, the list is empty and the result box tells you how to keep a player.
-* `squad` shows your whole squad, even if you ran `find` before it.
-* While you are viewing your squad, a player you `cut` or mark as `pending` disappears from the list, as they are no longer in your squad.
-* Use `list` to see all players again.
+  If you have not kept anyone yet, the list is empty and the result box says
+  `No players in your squad yet. Use 'keep INDEX' to keep a player, or 'list' to see all players.`
+* `squad` shows your whole squad, even if a `find` or `filter` was active before it.
+* The players appear in the order they were added, unless a rating sort is active: then they keep that
+  sorted order (see [`sort`](#sorting-players-by-rating-sort)).
+* While viewing your squad, a player you `cut` or mark `pending` disappears from the list. A player you
+  `delete` is removed from the team.
+* Use `list` to see all players again. `squad` changes no data and does not save.
+* Any text after `squad` is ignored, so `squad all` is the same as `squad`.
 
 Examples:
 * `keep 1` followed by `keep 3` and then `squad` shows the two players you kept.
+* `sort rating` followed by `squad` shows your kept players, highest rating first.
 
 ### Clearing all players: `clear`
 
@@ -431,30 +462,71 @@ Format: `exit`
 
 ### Saving the data
 
-CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `sort`, `squad`, `help` and `exit` do not change your data, so they do not save.
+CouchCoach saves your team automatically after every successful change. You do not need to save manually.
 
-If a change cannot be saved (e.g. the data folder was deleted or made read-only), the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The change is still shown in CouchCoach, but it is not on disk yet.
+* These commands save: `add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`.
+  Each save writes your whole team to the data file.
+* These commands never save, as they do not change your data: `list`, `find`, `filter`, `sort`, `squad`,
+  `help` and `exit`.
+* A command that is rejected, e.g. because of a wrong format or an invalid index, changes nothing and does not save.
+
+If a change cannot be saved, e.g. because the data file or its folder has been made read-only, the result box shows
+`Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.`
+The change is shown in CouchCoach, but it is not on disk yet. (If the `data` folder is deleted while CouchCoach is
+open, CouchCoach simply creates it again at the next save.)
 
 Fixing the problem does not save the change by itself, and `exit` does not save either. To save it:
 
-1. Fix the problem, e.g. restore the data folder or make it writable again.
-1. Make another change. Every save writes your whole team, so the next successful change also saves the change that failed earlier. If you have nothing else to change, add a temporary player and then delete it, e.g. `add n/Temp Player p/000` followed by `delete INDEX`, using the temporary player's index.
+1. Fix the problem, e.g. make the file and folder writable again.
+1. Make another successful change. As every save writes your whole team, it also saves the change that failed earlier.
+   If the failed command was `keep`, `cut` or `pending`, the simplest way is to repeat it: it says the player is
+   already marked, but still saves your team. Otherwise, add a temporary player and then delete it, e.g.
+   `add n/Temp Player p/000` followed by `delete INDEX`, using the temporary player's number.
 1. Check that the result box shows the normal success message, not the save error, before you exit.
 
 ### Editing the data file
 
-CouchCoach data is saved automatically as a JSON file `[working directory]/data/addressbook.json`.
-The working directory is the terminal's current folder when you launch the app; it can differ from the folder containing the JAR.
-For example, if your terminal is in `/teams/trials` and you run `java -jar /apps/couchcoach.jar`, the team file is `/teams/trials/data/addressbook.json`.
-Launch from the same working directory each time to load the same team. The status bar shows the data file path.
-Advanced users are welcome to update data directly by editing that data file.
+CouchCoach keeps your team in a JSON file, `data/addressbook.json`, inside the **working directory**: the folder
+your terminal is in when you launch the app. This can differ from the folder containing the JAR. For example,
+if your terminal is in `/teams/trials` and you run `java -jar /apps/couchcoach.jar`, the team file is
+`/teams/trials/data/addressbook.json`. Launch from the same folder each time to load the same team.
+The status bar at the bottom of the window shows the data file path.
+
+What CouchCoach does with the file when it starts:
+
+* **No data file:** it starts with a sample team, so you can try the commands. The file is created at your
+  first change. To start empty instead, use `clear`.
+* **A valid data file:** it loads your team. Data files from older versions still load: a player without a
+  saved decision is pending, without a rating is unrated, without an injury status is fit, and without
+  tags, a remark or a jersey number has none.
+* **An invalid data file:** it starts with an empty team and the result box shows
+  `The data file is not in a readable format and will be replaced by an empty team when you make your next change.`
+  The invalid file is left untouched while you only use commands that do not save (see [Saving the data](#saving-the-data)),
+  so you can close CouchCoach, fix or restore the file, and reopen it. Your next change replaces the file with
+  the current (empty) team.
+
+Advanced users can edit the file directly while CouchCoach is closed. Each player is stored with these fields:
+
+Field | Allowed values | If missing
+------|----------------|-----------
+`name` | Same rules as `n/NAME` in [`add`](#adding-a-player-add) | Required
+`phone` | Digits only, optionally starting with `+`, 3 to 15 digits (no spaces) | Required
+`selectionStatus` | `PENDING`, `KEPT` or `CUT`, in any letter case | Pending
+`rating` | A whole number from `0` to `10`, or `null` | Unrated
+`tags` | A list of labels following the [tag rules](#categorising-players-with-tags-us08) | No tags
+`remark` | Any text | No remark
+`injuryStatus` | `fit` or `injured`, in any letter case | Fit
+`jerseyNumber` | A whole number from `0` to `99` | No jersey number
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` or `clear`), which replaces it, so back up the file before editing it.<br>
-A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
-Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your edits make the file invalid, CouchCoach starts with an empty team (see above), and your next change
+replaces the invalid file, so **back up the file before editing it**.<br>
+These all make the file invalid: a value outside the allowed values above, a missing `name` or `phone`,
+a malformed JSON file, an empty file, a file without a `persons` list, a `null` entry in the `persons` list,
+or two players with the same name, ignoring capitalisation and repeated spaces.<br>
+A file containing only the word `null` currently stops CouchCoach from starting; see [Known issues](#known-issues).
 </box>
 
 --------------------------------------------------------------------------------------------------------------------
@@ -462,13 +534,26 @@ Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous CouchCoach home folder.
+**A**: Close CouchCoach on both computers. Copy `data/addressbook.json` from the folder you launch CouchCoach from
+on the old computer (see [Editing the data file](#editing-the-data-file)) into a `data` folder inside the folder
+you will launch it from on the new computer, replacing any file there. Then launch CouchCoach from that folder.
+
+**Q**: CouchCoach says my data file is not in a readable format. How do I get my team back?<br>
+**A**: Do not make any change yet: a change replaces the unreadable file with the current, empty team.
+Close CouchCoach, then either restore your backup of `data/addressbook.json`, or fix the file using the rules in
+[Editing the data file](#editing-the-data-file). Reopen CouchCoach and check that your team is back.
+
+**Q**: The result box says my change could not be saved. Is it lost?<br>
+**A**: Not while CouchCoach is still open. Follow the steps in [Saving the data](#saving-the-data) to save it
+before you exit.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
+1. **If the data file contains only the word `null`**, CouchCoach stops with an error in the terminal instead of opening. The remedy is to restore a backup of `data/addressbook.json`, or delete that file to start with the sample team.
+1. **If `preferences.json` (in the same folder as the `data` folder) contains only `null`, or `"guiSettings": null`**, CouchCoach stops with an error in the terminal instead of opening. The remedy is to delete `preferences.json`; CouchCoach recreates it with default window settings, and your team is not affected.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -479,7 +564,7 @@ Action     | Format, Examples
 **Add**    | `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...` <br> e.g., `add n/Tan Wei Ming p/91234567 j/10`
 **Clear**  | `clear`
 **Cut**    | `cut INDEX`<br> e.g., `cut 3`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Delete** | `delete INDEX`<br> e.g., `delete 3` (cannot be undone)
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`
 **Exit**   | `exit`
 **Filter** | `filter [t/TAG]... [i/STATUS]`<br> e.g., `filter t/Striker t/Captain`, `filter i/injured`
@@ -490,6 +575,6 @@ Action     | Format, Examples
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Strong left foot`; clear with `remark 1 r/`
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`
 **List**   | `list`
-**Pending** | `pending INDEX`<br> e.g., `pending 3`
-**Squad**  | `squad`
+**Pending** | `pending INDEX`<br> e.g., `pending 3` (undoes a keep or cut)
+**Squad**  | `squad`<br> shows only kept players
 **Help**   | `help`
