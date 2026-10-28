@@ -21,6 +21,7 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.SaveCommand;
 import seedu.address.logic.commands.SetStatusCommand;
 import seedu.address.logic.commands.SquadCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -144,6 +145,16 @@ public class AddressBookParserTest {
     public void parseCommand_unrecognisedInput_throwsParseException() {
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand(""));
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand(" \t "));
+    }
+
+    @Test
+    public void parseCommand_save_acceptsOnlyCommandWord() throws Exception {
+        assertTrue(parser.parseCommand("save") instanceof SaveCommand);
+        assertTrue(parser.parseCommand("  save \t ") instanceof SaveCommand);
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, SaveCommand.MESSAGE_USAGE);
+        for (String input : List.of("save 1", "save all", "save n/Amy")) {
+            assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand(input));
+        }
     }
 
     @Test

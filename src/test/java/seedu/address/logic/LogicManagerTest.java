@@ -27,6 +27,7 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.SaveCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -357,20 +358,57 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_cutWhenSaveFails_throwsCommandException() {
+    public void execute_cutWhenSaveFails_returnsAppliedChangeWarning() throws Exception {
         model.addPerson(AMY);
         logic = createLogicWithFailingSave();
-        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_FAILURE, () -> logic.execute("cut 1"));
+        assertTrue(logic.execute("cut 1").getFeedbackToUser().endsWith("\n" + LogicManager.MESSAGE_SAVE_FAILURE));
+        assertEquals(SelectionStatus.CUT, model.getAddressBook().getPersonList().getFirst().getSelectionStatus());
     }
 
     @Test
-    public void execute_storageThrowsIoException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_SAVE_FAILURE);
+    public void execute_storageThrowsIoException_returnsAppliedChangeWarning() throws Exception {
+        assertSaveWarningForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_SAVE_FAILURE);
     }
 
     @Test
-    public void execute_storageThrowsAdException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_SAVE_FAILURE);
+    public void execute_storageThrowsAdException_returnsAppliedChangeWarning() throws Exception {
+        assertSaveWarningForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_SAVE_FAILURE);
+    }
+
+    @Test
+    public void execute_deleteWithFailedSave_retrySavePreservesRemainingPlayerAndView() throws Exception {
+        Person bob = new PersonBuilder().withName("Bob").withRating("9").withTags("Striker").build();
+        Person charlie = new PersonBuilder().withName("Charlie").withRating("2").withTags("Striker").build();
+        Person hiddenPlayer = new PersonBuilder().withName("Dan").withTags("Goalkeeper").build();
+        model.addPerson(AMY);
+        model.addPerson(charlie);
+        model.addPerson(bob);
+        model.addPerson(hiddenPlayer);
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        Files.createDirectory(dataFile);
+        assertTrue(logic.execute("delete 1").getFeedbackToUser().endsWith("\n" + LogicManager.MESSAGE_SAVE_FAILURE));
+        assertEquals(List.of(charlie, bob, hiddenPlayer), model.getAddressBook().getPersonList());
+        logic.execute("sort rating");
+        logic.execute("filter t/Striker");
+        AddressBook remainingTeam = new AddressBook(model.getAddressBook());
+
+        assertEquals(SaveCommand.MESSAGE_FAILURE, logic.execute("save").getFeedbackToUser());
+        assertEquals(SaveCommand.MESSAGE_FAILURE, logic.execute("save").getFeedbackToUser());
+        assertEquals(remainingTeam, model.getAddressBook());
+        assertEquals(List.of(bob, charlie), model.getFilteredPersonList());
+
+        Files.delete(dataFile);
+        assertEquals(SaveCommand.MESSAGE_SUCCESS, logic.execute("save").getFeedbackToUser());
+        assertEquals(remainingTeam, new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow());
+        assertEquals(List.of(bob, charlie), model.getFilteredPersonList());
+        assertEquals(remainingTeam, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_saveEmptyTeam_writesEmptyRoster() throws Exception {
+        assertEquals(SaveCommand.MESSAGE_SUCCESS, logic.execute("save").getFeedbackToUser());
+        assertEquals(new AddressBook(), new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow());
     }
 
     @Test
@@ -507,9 +545,9 @@ public class LogicManagerTest {
      * Tests the Logic component's handling of an {@code IOException} thrown by the Storage component.
      *
      * @param e the exception to be thrown by the Storage component
-     * @param expectedMessage the message expected inside exception thrown by the Logic component
+     * @param expectedMessage the save warning expected in the command result
      */
-    private void assertCommandFailureForExceptionFromStorage(IOException e, String expectedMessage) {
+    private void assertSaveWarningForExceptionFromStorage(IOException e, String expectedMessage) throws Exception {
         Path prefPath = temporaryFolder.resolve("ExceptionUserPrefs.json");
 
         // Inject LogicManager with a JsonAddressBookStorage that throws the IOException e when saving
@@ -531,6 +569,10 @@ public class LogicManagerTest {
         Person expectedPerson = new PersonBuilder(AMY).build();
         ModelManager expectedModel = new ModelManager();
         expectedModel.addPerson(expectedPerson);
-        assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+        CommandResult result = logic.execute(addCommand);
+        String appliedFeedback = String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(AMY));
+        assertTrue(result.getFeedbackToUser().startsWith(appliedFeedback));
+        assertTrue(result.getFeedbackToUser().endsWith("\n" + expectedMessage));
+        assertEquals(expectedModel, model);
     }
 }
