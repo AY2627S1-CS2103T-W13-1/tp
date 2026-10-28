@@ -39,7 +39,9 @@ The following commands perform common Gradle tasks.
 
 ## Continuous integration (CI)
 
-This project uses GitHub Actions for CI. The necessary workflow configuration files are in `.github/workflows`. No further setup is required.
+This project uses GitHub Actions; its workflows are in `.github/workflows`. **Java CI** runs `check coverage` with JDK 25 (Zulu JDK+FX) on Ubuntu, macOS and Windows. Linux also runs the repository-wide checks and Gradle uses `xvfb-run -a` for JavaFX tests. **MarkBind Action** builds and deploys the website after a push to `master`.
+
+The required PR checks are `build (ubuntu-latest)`, `build (macos-latest)` and `build (windows-latest)`. If they remain **Expected — Waiting for status to be reported** with no workflow run, check that Java CI is enabled in the team repository. Re-enable it if necessary, then trigger a new PR event, such as another commit. If runs exist, inspect their job logs to distinguish queued jobs from failing steps.
 
 ### Code coverage
 
@@ -74,9 +76,11 @@ Any warnings or errors will be printed out to the console.
 
 ## Making a release
 
-Here are the steps to create a new release.
+Make the release from the team's reviewed `master` revision. For the v1.5 release candidate, follow the [Week 11 deliverables](https://nus-cs2103-ay2627-s1.github.io/website/schedule/week11/project.html): publish the runnable JAR and current online UG/DG, and smoke-test the JAR before the deadline.
 
-1. Update the version number in [`MainApp.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java).
-1. Generate a fat JAR file using Gradle (i.e., `./gradlew shadowJar`).
-1. Tag the repo with the version number. e.g. `v0.1`
-1. [Create a new release using GitHub](https://help.github.com/articles/creating-releases/). Upload the JAR file you created.
+1. Confirm that intended feature and documentation PRs are merged and all required Java CI checks pass. Verify the version in [`MainApp.java`](https://github.com/AY2627S1-CS2103T-W13-1/tp/blob/master/src/main/java/seedu/address/MainApp.java) matches the intended release (e.g. `V1.5`). Review and commit any version change before tagging.
+1. With JDK 25 selected, run `./gradlew clean check coverage shadowJar` and the [repository checks](#repository-wide-checks). On headless Linux, prefix the Gradle command with `xvfb-run -a`.
+1. [Build the documentation](Documentation.md#building-and-previewing-the-site). Inspect UG, DG, diagrams, navigation and the current app screenshot. Confirm the deployed website matches the release revision.
+1. Copy `build/libs/couchcoach.jar` into an empty writable folder. Run `java -version`, then `java -jar "couchcoach.jar"`. Follow the [manual testing appendix](DeveloperGuide.md#appendix-instructions-for-manual-testing), checking a data change, `save`, exit and reload from that folder. Use disposable data.
+1. Tag the tested commit with the release version, e.g. `v1.5`, and push that tag to the team repository. [Create the GitHub release](https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository) from that tag and attach the tested `couchcoach.jar`; avoid spaces or special characters in the filename.
+1. Download the uploaded asset and repeat the launch/reload smoke test. Check that the website's download link resolves to this release. Review remaining milestone issues/PRs with the team before rescheduling or closing them and closing the milestone.

@@ -23,14 +23,15 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
 
 1. Create a folder for CouchCoach that you can save files in, e.g. a `CouchCoach` folder in your home folder, and move `couchcoach.jar` into it.
 
-1. Open a terminal, `cd` into that folder, and run `java -jar couchcoach.jar`. For example, on macOS or Linux:
+1. Open a terminal, `cd` into that folder, and run `java -jar "couchcoach.jar"`. For example, on macOS or Linux:
 
    ```text
    cd ~/CouchCoach
-   java -jar couchcoach.jar
+   java -jar "couchcoach.jar"
    ```
 
-   On Windows, use `cd %USERPROFILE%\CouchCoach` in Command Prompt instead of the first line.<br>
+   On Windows Command Prompt, use `cd /d "%USERPROFILE%\CouchCoach"` instead of the first line. In PowerShell, use `cd "$env:USERPROFILE\CouchCoach"`.<br>
+   If your downloaded JAR has a different name, substitute that name in the launch command.
    A window like the one below should appear in a few seconds. The first time you run it, CouchCoach contains some sample players for you to try commands on. Type `clear` to remove them when you are ready to enter your own team.<br>
    <pic src="images/Ui.png" width="450" alt="CouchCoach window showing a team of players with their status, rating, jersey number, tags and remarks" />
 
@@ -76,19 +77,29 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
   For example, `find KEYWORD [MORE_KEYWORDS]...` can be used as `find wei` or as `find wei ming`.
 
 * Separate prefixes from preceding text with spaces, tabs, or non-breaking spaces copied from other apps.
-  Pasted tabs are accepted; pressing the Tab key in the app moves keyboard focus.
+  Pasted tabs are converted to ordinary spaces in the command box, including tabs inside a value. Pressing the Tab key moves keyboard focus.
   Leading and trailing non-breaking spaces around field values are ignored, while those within a value are preserved.
   Line breaks do not act as prefix separators.
 
-* Parameters can be in any order.<br>
+* Command words and prefixes must be lowercase: use `add n/Amy p/123`, not `Add N/Amy P/123`. Values follow the rules of their individual fields.
+
+* Prefixed parameters can be in any order; positional arguments such as `rate INDEX RATING` must stay in the order shown.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
 * Extraneous parameters for `help`, `list`, `squad`, and `exit` are ignored.<br>
   For example, `help 123` is interpreted as `help`.
-  The destructive `clear` command must be entered on its own; extra text is rejected.
+  `clear` and `save` must each be entered on their own; extra text is rejected.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
+
+### Understanding the window and player numbers
+
+The command box is at the top of the window; the result box below it confirms a command or explains an error. The player list shows names, contact numbers, ratings, selection badges, and any jersey numbers, tags, remarks or injury badges. Scroll the list to see more players. The bottom status bar shows the team file path.
+
+`INDEX` always means the number beside a player in the **current displayed list**, starting at 1. It is not a permanent player ID. Searching, filtering, sorting, deleting or updating a player can change those numbers. Check the list before every indexed command. Positive forms such as `+1` and `01` also identify player 1; zero, negative numbers and numbers beyond the displayed list are invalid.
+
+`find`, `filter` and `squad` each replace the previous filter. They retain any rating sort; `list` shows everyone again and clears sorting. These views do not delete hidden players. Player details persist after a successful save, while filters and sorting reset on restart.
 
 ### Viewing help: `help`
 
@@ -156,7 +167,7 @@ Format for clearing tags: `tag INDEX t/`
 
 `INDEX` is the positive whole number beside the player in the displayed list, including search results, tag/injury filters and the squad. Recheck the displayed numbers after changing a view or a player. Supplying tags replaces the entire old set; include every label you want to keep. Name, phone and jersey edits preserve the existing tags. A single empty `t/` clears all tags; mixing an empty label with other labels is invalid.
 
-Separate parameter prefixes with ordinary spaces. A tab immediately before `t/` is not recognised as a parameter separator in this version.
+Separate parameter prefixes with spaces, pasted tabs or non-breaking spaces, as described in the command-format notes.
 
 Examples:
 
@@ -278,7 +289,7 @@ Format: `injury INDEX i/STATUS`
 * New players and players loaded from older files without injury status default to `fit`.
 * Use `i/` exactly once. An unsupported value, duplicate prefix or invalid index rejects
   the whole command and leaves the team unchanged.
-* The current filter and all other player details are retained. Injury status is also
+* The current filter and rating sort are retained. If an injury change means the player no longer matches an injury filter, they disappear and the remaining players are renumbered. All other player details are retained. Injury status is also
   preserved when you change a remark, name, phone, tags, rating or selection status.
 * Injured players have an **Injured** badge next to their name, so they stand out in the list.
   Fit players have no badge. The status is saved automatically and restored when you reopen CouchCoach.
@@ -299,12 +310,12 @@ Format: `remark INDEX r/REMARK`
 
 * `INDEX` is the positive whole number beside a player in the current displayed list,
   including a list filtered by `find`, `filter` or `squad`.
-* Use `r/` exactly once. A second `r/` after a space is treated as another delimiter and
+* Use `r/` exactly once. A second `r/` after a space, tab or non-breaking space is treated as another delimiter and
   rejects the command, even within an observation: `remark 1 r/See r/soccer for drills`
   is invalid. Write `remark 1 r/See soccer for drills` instead. Other prefix-like text
   such as `n/coach` can appear in the remark.
 * Leading and trailing spaces are removed. `remark 1 r/` clears the remark.
-* The current filter is retained. Invalid syntax or an invalid index leaves the team unchanged.
+* The current filter and rating sort are retained. Invalid syntax or an invalid index leaves the team unchanged.
 * Remarks are saved automatically, restored when CouchCoach reopens, and preserved by
   name, phone, tag, rating, selection-status and injury-status updates. Older files start with empty remarks.
 
@@ -332,7 +343,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`
   Supplying `t/` to `edit` rejects the whole command and shows the new syntax.
 * `edit` cannot change a remark or injury status. Use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-player-s-injury-status-injury-us13) instead.
 * Details you do not edit stay as they are. In particular, editing never changes a player's selection status, rating, remark or injury status.
-* The displayed list stays as it is, so you can keep editing the results of a `find` or `filter` with their numbers unchanged. An active rating sort also stays. If the edited player no longer matches the search, e.g. after a name change, they drop out of the displayed list; use `list` to see everyone.
+* The current filter and rating sort remain active. If the edited player no longer matches a name search, they disappear and the remaining players are renumbered. Recheck the displayed indices before another edit; use `list` to see everyone.
 * The result box shows the player's new details, and notes any jersey number you removed. If the values you typed are the same as the current ones, including a phone number typed with different spacing, it says `No changes made: NAME already has these details.`
 
 Examples, for a team where the 1st player is `Tan Wei Ming`, with jersey number 10, and `Nur'ain Binte Hassan` wears 7:
@@ -393,7 +404,9 @@ Example: find wei ming
 The displayed list and player data remain unchanged after this error. Command words are
 case-sensitive: use `find`, as `Find` is unrecognized.
 
-### Filtering players by tag: `filter` (US16)
+<a id="filtering-players-by-tag-filter-us16"></a>
+
+### Filtering players by tag or injury status: `filter` (US16)
 
 Show a group of players by the custom tags assigned using `add` or `tag`, by injury status, or both.
 
@@ -405,7 +418,7 @@ Format: `filter [t/TAG]... [i/STATUS]`
 * Match complete labels, ignoring capitalisation: `filter t/striker` matches `Striker`,
   while `filter t/strik` does not. `filter t/Trial Group 2` treats the whole label as one tag.
 * Repeat `t/` to match **any** requested tag (OR). A player matching multiple tags is listed once.
-* Separate parameter prefixes with ordinary spaces; tabs immediately before a prefix are not recognised as separators in this version.
+* Separate parameter prefixes with spaces, pasted tabs or non-breaking spaces, as described in the command-format notes.
 * Filter the whole team, including players hidden by a previous `find`, `filter`, or `squad`.
   Results follow the active rating sort, or insertion order when no sort is active,
   and are numbered from 1. Check these displayed indices before editing or deleting.
@@ -579,14 +592,14 @@ Fixing the problem does not save the change by itself, and `exit` does not save 
 
 ### Retrying a save: `save`
 
-Writes the current team to disk without reapplying a previous command. The current search,
+Writes the **whole team**, including players hidden by the current view, to disk without reapplying a previous command. The current search,
 filter and rating sort are retained. Saving an empty team writes an empty roster.
 
 Format: `save`
 
 Use `save` on its own; extra arguments are rejected. This command is useful after a save
 failure, and can also be used at any time to save the current team. It replaces the data
-file with the team shown in CouchCoach, so back up any external file edits first.
+file with the whole team held in memory, so back up any external file edits first. On success, the result is `Saved the current team to disk.` If it still cannot save, the result is `The current team could not be saved to disk. Fix the problem and type 'save' to retry before closing CouchCoach, or unsaved changes will be lost.`
 
 ### Editing the data file
 
@@ -599,7 +612,7 @@ The status bar at the bottom of the window shows the data file path.
 What CouchCoach does with the file when it starts:
 
 * **No data file:** it starts with a sample team, so you can try the commands. The file is created at your
-  first change. To start empty instead, use `clear`.
+  first change or explicit `save`. To start empty instead, use `clear`.
 * **A valid data file:** it loads your team. Data files from older versions still load: a player without a
   saved decision is pending, without a rating is unrated, without an injury status is fit, and without
   tags, a remark or a jersey number has none.
@@ -616,11 +629,11 @@ Field | Allowed values | If missing
 `name` | Same rules as `n/NAME` in [`add`](#adding-a-player-add) | Required
 `phone` | Digits only, optionally starting with `+`, 3 to 15 digits (no spaces) | Required
 `selectionStatus` | `PENDING`, `KEPT` or `CUT`, in any letter case | Pending
-`rating` | A whole number from `0` to `10`, or `null` | Unrated
+`rating` | `"0"` to `"10"`, a plain whole number from `0` to `10`, or `null`; the app writes rated values as strings | Unrated
 `tags` | A list of labels following the [tag rules](#tagging-a-player-tag-us08) | No tags
 `remark` | Any text | No remark
 `injuryStatus` | `fit` or `injured`, in any letter case | Fit
-`jerseyNumber` | A whole number from `0` to `99` | No jersey number
+`jerseyNumber` | A digit string or plain whole number from `0` to `99`, e.g. `"7"` or `7`; the app writes strings, and leading zeros are accepted in strings | No jersey number
 
 <box type="warning" seamless>
 
@@ -643,6 +656,9 @@ are replaced with defaults at startup. Your team data remains unchanged.
 
 ## FAQ
 
+**Q**: Can I use CouchCoach without an internet connection?<br>
+**A**: Yes. Once Java and the JAR are installed, all player commands and the in-app help work offline. Keep only one CouchCoach instance open for a given team file; simultaneous edits from different instances can overwrite each other.
+
 **Q**: How do I transfer my data to another computer?<br>
 **A**: Close CouchCoach on both computers. Copy `data/addressbook.json` from the folder you launch CouchCoach from
 on the old computer (see [Editing the data file](#editing-the-data-file)) into a `data` folder inside the folder
@@ -661,7 +677,8 @@ before you exit.
 
 ## Known issues
 
-1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
+1. **When using multiple screens**, moving the application to a secondary screen and later disconnecting that screen can leave the saved window position off-screen. Close CouchCoach, then delete `preferences.json` in the working directory before launching again. This resets window settings without deleting the team file.
+1. **On Linux with Wayland**, if JavaFX fails at startup with `Gdk-CRITICAL`, try `GDK_BACKEND=x11 java -jar "couchcoach.jar"` from the same working directory.
 
 --------------------------------------------------------------------------------------------------------------------
 

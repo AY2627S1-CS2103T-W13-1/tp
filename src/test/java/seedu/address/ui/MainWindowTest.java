@@ -61,6 +61,51 @@ public class MainWindowTest {
     private StackPane playerArea;
 
     @Test
+    public void execute_tabSeparatedCommandsThroughCommandBox_preservesPlayerDetails() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("clear");
+            enterCommand("add\tn/Amy\tp/123\tj/7\tt/Trial");
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals("Amy", model.getFilteredPersonList().getFirst().getName().fullName);
+            enterCommand("edit 1\tp/456");
+            enterCommand("tag 1\tt/Captain");
+            enterCommand("remark 1\tr/Trial\tnote");
+            enterCommand("injury 1\ti/injured");
+            enterCommand("filter\tt/Captain\ti/injured");
+            assertEquals(1, model.getFilteredPersonList().size());
+            Person player = model.getFilteredPersonList().getFirst();
+            assertEquals("456", player.getPhone().value);
+            assertEquals("Trial note", player.getRemark().value);
+            assertEquals(List.of(new Tag("Captain")), List.copyOf(player.getTags()));
+            assertEquals(new JerseyNumber("7"), player.getJerseyNumber().orElseThrow());
+            assertEquals("injured", player.getInjuryStatus().toString());
+            assertEquals("", commandField.getText());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(testDirectory.resolve("players.json"))
+                .readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_tabInsertion_keepsCaretAndDuplicatePrefixValidation() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("clear");
+            commandField.setText("add n/Amy");
+            commandField.positionCaret(commandField.getLength());
+            commandField.replaceSelection("\tp/123");
+            assertEquals("add n/Amy p/123", commandField.getText());
+            assertEquals(commandField.getLength(), commandField.getCaretPosition());
+            commandField.fireEvent(new ActionEvent());
+            assertEquals("Amy", model.getFilteredPersonList().getFirst().getName().fullName);
+            AddressBook original = new AddressBook(model.getAddressBook());
+            enterCommand("edit 1\tn/Amy\tn/Bob");
+            assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(original, model.getAddressBook());
+            assertEquals("edit 1 n/Amy n/Bob", commandField.getText());
+        });
+    }
+
+    @Test
     public void execute_sortEmptySquadThroughCommandBox_showsEmptyList() throws Exception {
         runOnFxThread(() -> {
             enterCommand("sort rating squad");

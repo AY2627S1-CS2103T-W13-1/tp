@@ -60,8 +60,9 @@ The existing sequence illustrates the **mutating** path for `delete 1`:
 For view commands (`list`, `find`, `filter`, `sort`, `squad`) and `help`/`exit`,
 `LogicManager` returns without saving player data. A read-only command can still
 change a filter or comparator in memory. Parse/command errors return before saving;
-an I/O failure after mutation leaves the change in memory and produces the
-save-failure `CommandException`. The UI observes changes to the displayed list,
+an I/O failure after mutation leaves the change in memory and returns the
+applied command feedback with a save warning. The explicit `save` command retries
+persistence without repeating the mutation. The UI observes changes to the displayed list,
 rather than needing a saved-file reload after each command.
 
 Each component defines an interface and a manager implementation. The following
@@ -71,16 +72,19 @@ partial diagram retains the shared contracts without expanding feature internals
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-W13-1/tp/blob/master/src/main/java/seedu/address/ui/Ui.java)
 
 <puml src="diagrams/UiClassDiagram.puml" alt="Structure of the UI Component"/>
 
-See the [player-card detail](diagrams/PlayerCardClassDiagram.html) for the planned
-US21 remarks and US13 injury-status display.
+See the [player-card detail](diagrams/PlayerCardClassDiagram.html) for the implemented
+US21 remarks and US13 injury badge. Empty remarks and fit-player injury badges are
+hidden and unmanaged, so they do not leave blank rows.
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W13-1/tp/blob/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W13-1/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java).
+
+`HelpPanel` is embedded in the player-list area of `MainWindow`; it is not a separate dialog. `help`, the Help menu and F1 show the same summary. The underlying player view remains active. Any successful command other than `help` restores the player panel, including a `save` retry; a rejected command leaves help visible. `CommandBox` uses a `TextFormatter` to replace tabs with ordinary spaces before `TextField` strips control characters. This preserves pasted command boundaries, including tabs inside a value, without changing Tab-key focus traversal. It clears after a returned `CommandResult`, including save warnings, but retains invalid input when parsing or execution throws.
 
 The `UI` component,
 
@@ -97,13 +101,13 @@ The `UI` component,
 
 `LogicManager#execute(commandText)` performs the following steps:
 
-1. `AddressBookParser#parseCommand` identifies the lowercase command word. Commands needing arguments delegate to their command parser; parameterless commands such as `list`, `squad`, `help` and `exit` are constructed directly. `clear` also checks that its arguments are blank.
+1. `AddressBookParser#parseCommand` identifies the lowercase command word. Commands needing arguments delegate to their command parser; parameterless commands such as `list`, `squad`, `help` and `exit` are constructed directly. `clear` and `save` also check that their arguments are blank.
 2. The parser returns a concrete `Command`. Shared `ParserUtil` operations validate values and map one-based input to an `Index`; they do not resolve which player occupies that index.
 3. An index-based `Command#execute(model)` resolves the index against `Model#getFilteredPersonList()`, which is the **displayed sorted view**, despite the historical method name. A mutation replaces a `Person` or changes the roster; a view command changes a predicate/comparator.
 4. `LogicManager` skips `Storage#saveAddressBook` for `FindCommand`, `FilterCommand`, `SortCommand`, `ListCommand`, `SquadCommand`, `HelpCommand` and `ExitCommand`. Other successful command types save `model.getAddressBook()`, even if their feedback reports no data change.
-5. A successful `CommandResult` contains feedback and flags for showing help or exiting. An `IOException` while saving is translated into the existing save-failure `CommandException`; the model is not rolled back.
+5. A `CommandResult` contains feedback and flags for showing help or exiting. On an `IOException` while saving, `LogicManager` logs the technical cause and returns the applied command feedback followed by `MESSAGE_SAVE_FAILURE`. A failed `SaveCommand` instead returns `SaveCommand.MESSAGE_FAILURE`. Neither failure rolls back the model or throws a save-related `CommandException`, so the UI clears the command box and does not invite a repeated mutation.
 
-The existing command-level sequence remains a useful example:
+This partial sequence shows parsing and model mutation for `delete 1`; the later storage write is shown in the architecture sequence above:
 
 <puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions inside Logic for delete 1" />
 
@@ -207,10 +211,10 @@ as a `String` (or a list of `String` for tags), so that Jackson can map it to JS
 and `Tag#isValidTagName`. `JsonSerializableAddressBook#toModelType()` additionally rejects a `null` entry in the
 `persons` list and two players with the same name (as defined by `Person#isSamePerson`).
 
-**Defaults and backward compatibility.** A field that is missing from the file takes the default a new player would have:
+**Defaults and backward compatibility.** A missing optional field takes the default a new player would have; name and phone remain required:
 `PENDING` selection status, unrated, fit, no tags, an empty remark and no jersey number. Data files saved by earlier
 versions, which lack the newer fields, therefore still load. Conversely, `JsonAdaptedPerson` leaves out an unset
-jersey number when saving, and writes a `null` rating for an unrated player.
+jersey number when saving, and writes a `null` rating for an unrated player. Jackson also accepts plain integer JSON values for rating and jersey number by converting them to strings before model validation; the next save writes their canonical digit strings.
 
 **Loading at startup.** `MainApp#initModelManager` reads the team once, when the app starts:
 
@@ -236,11 +240,14 @@ fall back to defaults and are rewritten at startup; the team file is unaffected.
 * A command that is rejected throws a `ParseException` or `CommandException` before the save step, so the file is unchanged.
 * Each save writes the whole team through `JsonAddressBookStorage#saveAddressBook`, which also recreates a missing `data`
   folder via `FileUtil#createIfMissing`.
-* If the save throws an `IOException` (e.g. the file or folder is read-only), `LogicManager` throws a `CommandException`
-  with `LogicManager.MESSAGE_SAVE_FAILURE`. The change stays in the in-memory `Model`, but the save is unsuccessful.
+* If the save throws an `IOException` (e.g. the file or folder is read-only), `LogicManager` returns the applied
+  command feedback plus `MESSAGE_SAVE_FAILURE`. A failed explicit `save` returns `SaveCommand.MESSAGE_FAILURE` instead.
+  The change stays in the in-memory `Model`, but the save is unsuccessful; the UI clears the command box.
   `FileUtil#writeToFile` writes directly to the destination with `Files.write`, so an
   I/O failure can leave the file unchanged, empty or partially written. A later successful save writes the whole
-  in-memory team, including all changes whose earlier saves failed.
+  in-memory team, including all changes whose earlier saves failed. `SaveCommand#execute` only returns feedback;
+  `LogicManager` performs the actual write because `SaveCommand` is not classified as read-only. It writes
+  the complete roster even while a filter or sort is active. Closing the app never retries a team save.
 
 **Design considerations.**
 
@@ -255,7 +262,7 @@ fall back to defaults and are rewritten at startup; the team file is unaffected.
 
 **Aspect: What to do with an invalid data file**
 
-* **Alternative 1 (current choice):** Start with an empty team, warn, and leave the file untouched until the next change.
+* **Alternative 1 (current choice):** Start with an empty team, warn, and leave the file untouched until the next data-changing command or explicit `save`.
   * Pros: The coach can close the app and repair or restore the file without losing it.
   * Cons: A careless change after the warning overwrites the invalid file.
 * **Alternative 2:** Refuse to start.
@@ -270,6 +277,16 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Shared command parsing and prefix boundaries
+
+`AddressBookParser` separates a lowercase command word from its arguments. It accepts ordinary whitespace and non-breaking spaces around that word. `ArgumentTokenizer` recognises only the prefixes supplied by the command parser, each preceded by an ordinary space, tab or non-breaking space. It scans separator positions, so an empty prefix cannot cause an infinite loop. Joined text such as `Amy p/123` has a valid phone delimiter; `Amyp/123` does not. Line breaks do not delimit prefixes.
+
+`CommandBox` converts pasted tabs to spaces for JavaFX input, but the parser and tokenizer are also called directly by logic clients and tests. Keep tab recognition in `ArgumentTokenizer` so raw command strings have the same prefix boundaries without depending on a UI preprocessing step. The command-box formatter protects the paste path; tokenizer support preserves the parser contract for other callers. Non-breaking spaces are not converted by the formatter and still need tokenizer support.
+
+The tokenizer trims ordinary control/space padding and non-breaking spaces from each value and the preamble; it preserves internal text for the field validator. `ArgumentMultimap` retains repeated values. Parsers reject repeated single-value prefixes, while `t/` deliberately repeats. Unknown prefixes remain part of the preceding value unless a parser explicitly recognises them to provide targeted guidance, as `add` and `edit` do for `r/` and `i/`.
+
+`ParserUtil#parseIndex(String, String)` accepts a positive displayed index, including `+1` and `01`, and converts it to an `Index`. Zero, negative and overflowing whole numbers receive the invalid-player-index message; malformed text receives command usage. `find`, `rate` and `sort` split positional arguments with Java's `\s+` pattern, which does not treat non-breaking spaces as argument separators. Their examples therefore use ordinary spaces.
 
 ### Jersey number normalization
 
@@ -304,7 +321,7 @@ out-of-range digits before integer parsing, including padded values such as `010
 * The duplicate-name check runs only when the new name belongs to another player (`!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)`), so a coach can change the capitalisation or spacing of a player's own name.
 * `EditCommand` builds the edited player from the old one, so the selection status, rating, remark and injury status are always kept, and so are the tags. The jersey number is kept unless `j/` is given. `TagCommand` reuses the edit descriptor internally to replace tags. If the result equals the old player, the command reports that nothing changed instead of replacing it.
 * The jersey number warning is checked only when the edit includes `j/`, and the similar-name warning only when the name actually changes. This stops edits to other details from repeating a warning the coach has already seen.
-* `Model#setPerson()` replaces the player without resetting the filtered list, so the coach can keep editing search results by the same indices.
+* `Model#setPerson()` replaces the player without resetting the filtered list, so the current search and sort remain active. A rename that stops matching the search removes that player from the displayed view and renumbers later results.
 
 #### Design considerations
 
@@ -330,7 +347,7 @@ out-of-range digits before integer parsing, including padded values such as `010
 
 * **Alternative 1 (current choice):** Separate helper classes in `logic.commands`, called by `AddCommand` and `EditCommand` after the change is made.
   * Pros: The warning text is command feedback, so the `Model` stays unaware of it. Both commands share one implementation.
-  * Cons: Each check scans the whole team once per command. This is fast enough for the 1000-player limit in the non-functional requirements.
+  * Cons: Each check scans the whole team once per command. The non-functional requirements target responsive commands with 1000 players; this is a performance target, not an enforced roster limit.
 * **Alternative 2:** Check inside `UniquePersonList` when a player is added or replaced.
   * Cons: The model would have to return warnings alongside its changes, mixing presentation into the model.
 
@@ -482,7 +499,7 @@ player identity: duplicate detection remains based on the normalized player name
 
 `TagCommand` delegates player replacement to an `EditCommand` containing only a tag replacement descriptor, sharing field preservation and filter handling. `TagCommand.execute` and `EditCommand.execute` resolve the index against `Model#getFilteredPersonList`, which exposes the displayed, possibly sorted view. It creates a replacement `Person`, preserving fields omitted from the descriptor, including rating, selection status, remark, injury status and jersey number. The descriptor and player defensively copy tag sets so later caller changes cannot mutate a stored player. `Model#setPerson` replaces the roster entry without resetting the predicate or comparator. A player whose new tags no longer satisfy the active filter disappears; the remaining displayed indices change accordingly.
 
-The edit no-change check compares tag spellings as well as `Person` equality: case-only spelling changes must still be applied. `TagCommand` formats successful replacements as `Updated tags for NAME: LABELS` and removals as `NAME: tags cleared.`, retaining the shared `No changes made` result for an identical replacement. `LogicManager` saves after a successfully executed tag command, including a no-change result; parse and execution failures do not save. A save failure leaves the in-memory change applied and reports the save warning instead of ordinary edit feedback.
+The edit no-change check compares tag spellings as well as `Person` equality: case-only spelling changes must still be applied. `TagCommand` formats successful replacements as `Updated tags for NAME: LABELS` and removals as `NAME: tags cleared.`, retaining the shared `No changes made` result for an identical replacement. `LogicManager` saves after a successfully executed tag command, including a no-change result; parse and execution failures do not save. A save failure leaves the in-memory change applied and appends the save warning to the tag command feedback. The coach retries with `save` after fixing storage; the tag update is not repeated.
 
 `JsonAdaptedPerson` writes tag strings in case-insensitive alphabetical order and accepts missing/null `tags` from older records as an empty collection; invalid/null entries are rejected. `PersonCard` displays tags alphabetically in a wrapping `FlowPane`. Keeping tags as immutable values shared by parser, model and storage gives updates and filtering the same label rules without coupling identity to a coach's changing categories.
 
@@ -497,6 +514,16 @@ The edit no-change check compares tag spellings as well as `Person` equality: ca
 This partial UML shows the tag-matching path; the optional injury-status condition is omitted. The parser creates the command and optional tag predicate. The predicate realizes `Predicate<Person>` and reads player tags; the command changes the filtered view through `Model`.
 
 `ModelManager` wraps the roster in a `FilteredList`, then a `SortedList`, and exposes an unmodifiable observable view. Changing the predicate retains the active rating comparator. Results therefore use rating order when sorting is active, otherwise insertion order, and are numbered from 1. `find`, `filter` and `squad` replace one another's predicate while retaining sorting; `list` clears both predicate and comparator. This separates a coach's view from persisted roster order and avoids changing records just to browse a group.
+
+### Player remarks and injury status (US21 / US13)
+
+`RemarkCommandParser` requires a displayed index and exactly one `r/`. An empty value constructs an empty `Remark` to clear the note; repeated `r/` delimiters reject the whole command. `Remark` is an immutable free-text value without a length limit. Other prefix-like text is literal because this parser recognises only `r/`. `RemarkCommand` selects the displayed player and replaces it using `Person#withRemark`, then reports the text or `(cleared)`.
+
+`InjuryCommandParser` requires an index and exactly one `i/`. `ParserUtil#parseInjuryStatus` accepts `fit` or `injured` in any letter case. `InjuryCommand` uses `Person#withInjuryStatus`; if the value is already set it returns already-set feedback without replacement. Injury is independent of selection and rating: an injured player can still be kept and appear in `squad`.
+
+Both commands preserve every unrelated field and retain the predicate and comparator. Changing injury can remove a player from an injury-filtered view immediately, so subsequent indices can change. `LogicManager` saves after either successful command, including a repeated remark or already-set injury. Invalid syntax and out-of-range indices return before persistence. Save failures use the shared retry flow above.
+
+`JsonAdaptedPerson` writes remark text and the lowercase injury status, defaulting missing/null fields to an empty remark and `FIT` when loading older files. `PersonCard` displays `Remark: TEXT` only for a non-empty remark, and an **Injured** badge only for `INJURED`. This keeps assessment notes alongside the player while avoiding a redundant Fit badge on every card.
 
 ### Name search implementation (F3 / US04)
 
@@ -553,7 +580,7 @@ The IDs and priorities below retain the [team notes](https://docs.google.com/doc
 | US03 | `* * *` | coach | delete a player | remove withdrawn or mistaken entries | `delete` (F4) |
 | US04 | `* * *` | coach | find players by name | retrieve details without scanning the entire roster | Whole-word and punctuation-part `find` (F3) |
 | US05 | `* * *` | coach | view command formats inside the app | recall syntax without leaving the app | `help` (F5) |
-| US06 | `* * *` | coach | have player changes saved automatically | resume work without re-entering changes | Automatic local saving (F7), with a warning on failure |
+| US06 | `* * *` | coach | have player changes saved automatically | resume work without re-entering changes | Automatic local saving (F7), with failure feedback and an explicit `save` retry |
 | US07 | `* * *` | coach | edit a player's details | correct mistakes without re-entering the record | `edit` |
 | US08 | `* * *` | coach | assign my own labels to players | organise positions, roles, seasons and trial groups | Tags through `add` and `tag` |
 | US09 | `* * *` | coach | record a player's jersey number | identify them from trial notes and videos | Optional jersey number through `add` and `edit` |
@@ -634,7 +661,7 @@ The following rules apply throughout:
 * 4a. CouchCoach cannot save the updated team.
 
     * 4a1. CouchCoach informs the Coach that the deletion was applied but could not be saved, and will be lost
-      if the app is closed before a later change saves successfully.
+      if the app is closed before the Coach fixes storage and retries with `save`.
 
       Use case ends.
 
@@ -889,7 +916,7 @@ The following rules apply throughout:
 * 4b. CouchCoach cannot save the updated team.
 
     * 4b1. CouchCoach informs the Coach that the decision was recorded but could not be saved, and will be lost
-      if the app is closed before a later change saves successfully.
+      if the app is closed before the Coach fixes storage and retries with `save`.
 
       Use case ends.
 
@@ -1181,7 +1208,7 @@ the directory before modifying players or closing the app.
 
 Use Java 25 and a candidate JAR built from the version under review. Put it in a
 **separate disposable working directory**, launch with `java -jar couchcoach.jar`,
-and record the commit/JAR identity. These instructions describe the merged command
+and record the commit/JAR identity. These instructions describe the current command
 syntax `sort rating [all|squad] [asc|desc]`, including current-view and explicit scopes.
 
 Prepare this fixture in insertion order. Re-run the complete setup before each
@@ -1261,8 +1288,8 @@ blocked by renaming `data` and placing a regular file named `data` at that path.
 All three view commands should still succeed. Remove that blocker and restore the
 directory before a mutation or restart. To check rate's save failure, use the same
 blocker and run `rate 1 8`: Amy changes on screen, but the save-failure feedback
-appears. Restore storage and make a successful data-changing request before testing
-restart. Confirm both Amy's new rating and all preserved fields in the reloaded file.
+appears with the applied rating feedback and the command box clears. Restore storage
+and run `save`; wait for `Saved the current team to disk.` before testing restart. Confirm both Amy's new rating and all preserved fields in the reloaded file.
 
 **Cleanup:** close the app, restore any renamed directory, and remove only the
 disposable test directory. Keep any recorded evidence outside the real team's data.
@@ -1356,6 +1383,51 @@ Run `rate 3 3` and `rate 4 9`, so that Charlotte Oliveiro is rated 3 and David L
 
 **Cleanup:** delete the folder.
 
+### Remarks and injury status (US21 / US13): manual regression checks
+
+In a disposable folder, prepare the fixture below before each independent row. Commands within a row run sequentially. Other Player is roster index 1; Amy is index 2 until a view changes it.
+
+```text
+clear
+list
+add n/Other Player p/111
+add n/Amy p/123 j/7 t/Trial
+keep 2
+rate 2 8
+```
+
+| Action | Expected result |
+| --- | --- |
+| `find Amy`, `remark 1 r/Strong left foot`, then `remark 1 r/Improved passing`. | Amy's note is replaced, not appended; feedback names Amy. Other Player stays unchanged. Amy remains Kept, rated 8, jersey 7, tagged Trial and fit. |
+| `find Amy`, `remark 1 r/Note`, then `remark 1 r/`. | `Updated remark for Amy: (cleared)`; the remark row disappears without a blank gap. |
+| `find Amy`, then `remark 1 r/See n/coach for drills`. | The whole text is stored literally; `n/` is not a remark parameter. |
+| `find Amy`, then try `remark 1`, `remark 1 r/One r/Two`, `remark 0 r/Note` and `remark 2 r/Note`. | Missing/duplicate-prefix or index errors; no player, view or file changes. |
+| `find Amy`, `injury 1 i/INJURED`, repeat `injury 1 i/injured`, then `injury 1 i/fit`. | Injured badge appears, repeated status gives already-set feedback, then the badge disappears. The selection badge remains Kept throughout. |
+| `find Amy`, then try `injury 1`, `injury 1 i/hurt`, `injury 1 i/fit i/injured`, and `injury 2 i/injured`. | Appropriate format/status/duplicate-prefix/index error; no player, view or file changes. |
+| `injury 2 i/injured`, `filter t/Trial i/injured`, then `injury 1 i/fit`. | Amy is the displayed target and leaves the injured view. The list becomes empty; `list` restores both players with Amy fit. |
+| `sort rating`, `remark 1 r/Trial note`, then `injury 1 i/injured`. | Rated Amy is targeted as displayed index 1, ahead of unrated Other Player. Rating order, selection, tags, phone and jersey remain. |
+| `remark 2 r/Trial note`, `injury 2 i/injured`, exit, then relaunch. | Amy's remark and Injured badge persist; all unrelated fields remain. The launch view resets to insertion order. |
+
+Compare the team file bytes after rejected requests. Also run the save-failure procedure below with a valid remark or injury update: the applied field remains visible, the warning instructs `save`, and recovery persists the update without repeating it.
+
+### Clearing the roster
+
+Use only disposable data. Start with two players, keep one, then enter `squad` and `sort rating`. `clear extra` must reject the command without deleting either player. Enter `clear`: both the visible squad player and the hidden player are removed, with no confirmation. `list` and a restart must still show an empty team. A second `clear` on that empty team succeeds. Under blocked storage, `clear` empties the in-memory roster and warns; restore storage and use `save` before restarting.
+
+### Pasted prefix separators
+
+Use a disposable roster. In the commands below, replace `<TAB>` with a real tab and `<NBSP>` with a real non-breaking space before pasting; these labels are not literal input. Pressing Tab in the app moves focus instead of inserting a tab.
+
+| Action | Expected result |
+| --- | --- |
+| `add<TAB>n/Amy<TAB>p/123<TAB>t/Trial` | Amy is added with phone 123 and tag Trial. |
+| `edit 1<NBSP>p/456`, then `tag 1<TAB>t/Captain`. | Phone changes to 456; tags become Captain. |
+| `filter<TAB>t/Captain`, then `filter<NBSP>i/fit`. | Amy is found in each view. |
+| `remark 1<TAB>r/Trial note`, then `injury 1<NBSP>i/injured`. | Both updates succeed and preserve other fields. |
+| `add n/Amy<TAB>n/Bob p/789` | Duplicate-name-prefix error; nothing is added. |
+
+Pasted tabs become ordinary spaces in the command box, including within a remark. For positional commands (`rate`, `sort`, `find`), ordinary spaces and pasted tabs therefore work between arguments; non-breaking spaces do not act as positional separators. Do not paste multiline commands: line breaks do not delimit prefixes.
+
 ### Viewing help
 
 Prerequisites: Launch CouchCoach with at least one player and run `list`. Record the
@@ -1364,7 +1436,7 @@ independent help entry-point check so that the player list is visible first.
 
 | Test case | Expected result |
 | --- | --- |
-| Enter `help`. | The player-list area shows the **CouchCoach commands:** summary in the main window, with usage for `add`, `list`, `find`, `delete`, `help`, and `exit`. The result box shows `Showing CouchCoach command summary.` No separate window opens. |
+| Enter `help`. | The player-list area shows the **CouchCoach commands:** summary in the main window, with every current command, including `tag`, `filter`, scoped `sort rating`, `rate`, `remark`, `injury`, and `save`. Scroll to verify the final rows. The result box shows `Showing CouchCoach command summary.` No separate window opens. |
 | Enter `help extra words`. | The extra words are ignored; the same summary and result message appear as for `help`. |
 | Select **Help → Help** from the menu. | The same summary appears in the player-list area. The existing result-box message is unchanged. |
 | Press **F1** with focus in the command box, then repeat with focus in the result box. | Each shortcut shows the same summary in the player-list area, without opening another window or changing the result-box message. If the keyboard uses media keys by default, use **Fn+F1**. |
@@ -1400,7 +1472,7 @@ of the file before each case so that you can compare it afterwards.
 | Setup (app closed) | Expected result on launch |
 | --- | --- |
 | Delete `data/addressbook.json`. | The sample team appears again. |
-| Replace the file's contents with `{ "persons": [ {"name": "Amy"` (malformed JSON). | An empty team, and the result box shows `The data file is not in a readable format and will be replaced by an empty team when you make your next change.` |
+| Replace the file's contents with `{ "persons": [ {"name": "Amy"` (malformed JSON). | An empty team, and the result box shows `The data file is not in a readable format. CouchCoach has started with an empty team. Your next change or 'save' will replace the file with the current team. Back up the file before continuing.` |
 | Then run `list`, `find Amy`, `squad` and `exit`. | The file's contents are unchanged. |
 | Relaunch, then `add n/New Player p/123`. | The invalid file is replaced by a valid one containing only New Player. |
 | Use `{"persons":[{"name":"Amy","phone":"123"},null]}`. | Empty team and the same warning; the file is unchanged until the next change. |
@@ -1408,19 +1480,23 @@ of the file before each case so that you can compare it afterwards.
 | Use `{"persons":[{"name":"Amy Tan","phone":"91234567"}]}` (an older file without the newer fields). | Amy Tan loads as **Pending**, unrated, fit, with no tags, remark or jersey number. No warning. |
 | Use a player with `"selectionStatus":"kept"` or `"injuryStatus":"INJURED"`. | The player loads normally; these values are not case-sensitive. |
 
-**Save failure and recovery** (macOS or Linux)
+**Save failure and recovery**
 
-Prepare a fresh disposable team with `clear`, `list`, `add n/Amy p/123` and `add n/Bob p/456`, in that order.
-Both players start pending. Run the following rows in order; the permission failure occurs before the file is written.
+Prepare a fresh disposable team with `clear`, `list`, `add n/Amy p/123` and `add n/Bob p/456`. Both start pending. Close other instances using this folder. Run the rows in order; use your file manager or another terminal to rename paths while CouchCoach stays open. The blocker causes failure before the original file is written and works without relying on OS permission behaviour.
 
 | Test case | Expected result |
 | --- | --- |
-| With a valid team loaded, run `chmod 444 data/addressbook.json` in another terminal, then `keep 1`. | The badge changes to **Kept**, but the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The file is unchanged. |
-| While the file is still read-only, run `cut 2`. | Bob becomes **Cut** in memory and the save-failure message appears again. The file still records both players as pending: two failed saves have accumulated. |
-| Run `chmod 644 data/addressbook.json`, then `keep 1` again. | `... is already marked as kept.` The file now records Amy as kept and Bob as cut, saving both previously unsaved changes. |
-| Delete the whole `data` folder while the app is open, then `pending 2`. | The folder and file are recreated, and Bob's pending status is saved normally. |
+| Rename the `data` folder to `data-backup` and create a regular file named `data` in its place. Enter `keep 1`. | Amy becomes **Kept**. Feedback begins `Marked Amy as kept.` and appends `Your change was applied but could not be saved to disk. Fix the problem and type 'save' to retry before closing CouchCoach, or the change will be lost. Do not repeat the original command.` The command box clears. The backup still records Pending. |
+| While blocked, enter `cut 2`, then `save`. | Bob becomes **Cut** in memory. `save` reports `The current team could not be saved to disk. Fix the problem and type 'save' to retry before closing CouchCoach, or unsaved changes will be lost.` Neither command changes the backup; no mutation is repeated. |
+| Enter `find Amy`, then `sort rating`, then `save` while blocked. | View commands work without a save warning. The explicit save still reports failure; both in-memory changes remain. |
+| Remove the blocker file and rename `data-backup` back to `data`. Enter `save`. | `Saved the current team to disk.` Both Amy's Kept and Bob's Cut statuses are written, although only Amy is displayed. The current filter and sort remain active. |
+| Enter `save extra`. | Format error; data and view stay unchanged and no write is attempted. |
+| Enter `list`, close and relaunch from the same folder. | Amy remains Kept and Bob remains Cut; both appear in insertion order. |
+| Delete the disposable `data` folder while the app is open, then enter `pending 2`. | The folder and file are recreated, and Bob's pending status is saved normally. |
 
-Restore any changed file permissions and close the app before deleting the disposable folders.
+Also test a destructive command on a fresh copy of the fixture: block storage, enter `delete 1` once, then restore storage and enter `save`. Amy is removed once, Bob remains, and the restored file contains only Bob. Repeating `delete 1` would incorrectly remove Bob, which is why recovery uses `save`.
+
+Restore renamed directories and close the app before deleting disposable folders. With an invalid team file, verify separately that `save` overwrites it with the in-memory empty team, as the startup warning states; preserve a backup first. On a fresh sample roster, `save` creates the whole team file even without a player change.
 
 #### Null data and preference recovery
 

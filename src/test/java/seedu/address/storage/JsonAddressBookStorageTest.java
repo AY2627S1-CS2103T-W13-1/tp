@@ -9,15 +9,20 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import com.fasterxml.jackson.databind.JsonNode;
+
 import seedu.address.commons.exceptions.DataLoadingException;
+import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -84,6 +89,27 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void readAndSaveAddressBook_numericRatingAndJersey_writesCanonicalStrings() throws Exception {
+        Path filePath = testFolder.resolve("NumericFields.json");
+        Files.writeString(filePath, """
+                {"persons":[{"name":"Amy","phone":"123","rating":8,"jerseyNumber":7}]}
+                """);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        ReadOnlyAddressBook loaded = storage.readAddressBook().orElseThrow();
+        AddressBook expected = new AddressBook();
+        expected.addPerson(new PersonBuilder().withName("Amy").withPhone("123")
+                .withRating("8").withJerseyNumber("7").build());
+        assertEquals(expected, new AddressBook(loaded));
+
+        storage.saveAddressBook(loaded);
+        JsonNode savedPlayer = JsonUtil.fromJsonString(Files.readString(filePath), JsonNode.class)
+                .get("persons").get(0);
+        assertEquals("8", savedPlayer.get("rating").textValue());
+        assertEquals("7", savedPlayer.get("jerseyNumber").textValue());
+        assertEquals(expected, new AddressBook(storage.readAddressBook().orElseThrow()));
     }
 
     @Test

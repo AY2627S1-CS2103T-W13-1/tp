@@ -7,12 +7,12 @@ start
 through Storage;
 if () then ([file is missing])
   :Use the sample team;
-  note right: The file is created\nat the first change
+  note right: The file is created\nat the first change or explicit save
 elseif () then ([file cannot be read as a valid team])
   :Use an empty team;
   :Show the unreadable-data
   warning in the result box;
-  note right: The invalid file is kept\nuntil the next change
+  note right: The invalid file is kept\nuntil the next change or explicit save
 else ([file is valid])
   :Use the saved team;
 endif
