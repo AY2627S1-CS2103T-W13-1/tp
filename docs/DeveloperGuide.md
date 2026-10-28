@@ -1438,6 +1438,7 @@ independent help entry-point check so that the player list is visible first.
 | Test case | Expected result |
 | --- | --- |
 | Enter `help`. | The player-list area shows the **CouchCoach commands:** summary in the main window, with every current command, including `tag`, `filter`, scoped `sort rating`, `rate`, `remark`, `injury`, and `save`. Scroll to verify the final rows. The result box shows `Showing CouchCoach command summary.` No separate window opens. |
+| Check help at normal and minimum window widths, scrolling through every command. | A blank line separates command entries, including `keep`, `cut`, and `pending`. Syntax and descriptions stay aligned, long descriptions wrap, and the final `exit` command remains reachable by scrolling. |
 | Enter `help extra words`. | The extra words are ignored; the same summary and result message appear as for `help`. |
 | Select **Help → Help** from the menu. | The same summary appears in the player-list area. The existing result-box message is unchanged. |
 | Press **F1** with focus in the command box, then repeat with focus in the result box. | Each shortcut shows the same summary in the player-list area, without opening another window or changing the result-box message. If the keyboard uses media keys by default, use **Fn+F1**. |
