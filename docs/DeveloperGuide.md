@@ -212,6 +212,13 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Jersey number normalization
+
+`JerseyNumber` validates a numeric value from 0 to 99 with optional leading zeros.
+The immutable numeric value supplies equality, display, and JSON serialization, so `099`
+and `99` produce the same stored number and duplicate warning. Validation rejects
+out-of-range digits before integer parsing, including padded values such as `0100`.
+
 ### Adding players, jersey numbers and duplicate warnings
 
 #### Implementation
@@ -226,7 +233,7 @@ This section describes some noteworthy details on how certain features are imple
 </box>
 
 1. `AddCommandParser` tokenizes the arguments. It also looks for `r/` and `i/`, but only so that `ParserUtil#requireNoRemarkOrInjury()` can reject them with a message that names the right command. Without this, `r/...` would be read as part of the value before it, and the error would blame that value instead. `n/` and `p/` are compulsory, and `ArgumentMultimap#verifyNoDuplicatePrefixesFor()` rejects a repeated `n/`, `p/` or `j/`.
-1. `ParserUtil` parses each value. `parseName()` collapses repeated spaces with `Name#normalize()` before checking the allowed characters and the 100-character limit separately, so that each problem has its own message. `parsePhone()` removes spaces, hyphens, dots and brackets with `Phone#normalize()` before checking for 3 to 15 digits. `parseJerseyNumber()` accepts one or two digits, and `JerseyNumber` stores the value as an `int`, so `07` and `7` are the same number.
+1. `ParserUtil` parses each value. `parseName()` collapses repeated spaces with `Name#normalize()` before checking the allowed characters and the 100-character limit separately, so that each problem has its own message. `parsePhone()` removes spaces, hyphens, dots and brackets with `Phone#normalize()` before checking for 3 to 15 digits. `parseJerseyNumber()` accepts values from 0 to 99 with optional leading zeros, and `JerseyNumber` stores the value as an `int`, so `07` and `7` are the same number.
 1. The parser creates the player with `new Person(name, phone, tags)`, which starts as `PENDING`, `UNRATED`, `FIT` and with an empty remark, and sets the jersey number with `Person#withJerseyNumber()`. A `Person` stores a missing jersey number as `null` but exposes it only as an `Optional<JerseyNumber>` from `getJerseyNumber()`.
 1. `AddCommand#execute()` rejects the player if `Model#hasPerson()` finds a player with the same name. This uses `Person#isSamePerson()`, which compares names with `Name#isSameName()`, ignoring case and repeated spaces. Otherwise, `Model#addPerson()` adds the player and resets the filtered list to show the whole team, so the coach sees the new player.
 1. `AddCommand` then asks two package-private helpers in the `logic.commands` package for warnings. `DuplicateJerseyNumberChecker#getWarning()` looks for other players with the same jersey number (`Person#hasSameJerseyNumber()`), and `SimilarNameChecker#getWarning()` looks for names that are equal once spaces and punctuation are ignored (`Name#isSimilarTo()`). Both search `Model#getAddressBook()`, i.e. the whole team rather than the filtered list, so they also find players hidden by `find` or `filter`. Each returns an empty string or a warning line, which is appended to the success message.
@@ -1187,6 +1194,19 @@ Keep a backup of the valid team file before each independent case.
 | Repeat with `preferences.json` set to `{"guiSettings":null}`. | The same default-preference recovery; team file bytes remain unchanged. |
 | Delete `data/addressbook.json`, then launch. | Sample players appear; a subsequent data change creates a valid team file. |
 | Replace the team file with malformed JSON, then launch. | Empty team and the unreadable-data warning; the invalid file stays unchanged until a data change. |
+
+### Jersey number zero padding: manual regression checks
+
+Use a disposable empty team and run these commands in order:
+
+| Action | Expected result |
+| --- | --- |
+| `add n/Amy p/123 j/099` | Amy shows Jersey #99. |
+| `add n/Bob p/456 j/99` | Bob is added with a warning naming Amy for jersey 99. |
+| `edit 2 j/010` | Bob shows Jersey #10; other player fields are retained. |
+| `edit 2 j/0100`, `edit 2 j/+10`, `edit 2 j/10.0` | Jersey constraint error; the team and file remain unchanged. |
+| `edit 2 j/000` | Bob shows Jersey #0. |
+| Restart. | Amy remains #99 and Bob #0; the saved numbers have no leading zeros. |
 
 ### Custom player tags (US08): manual regression checks
 
