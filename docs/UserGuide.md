@@ -160,20 +160,20 @@ Examples, starting from a team that already contains `Nur'ain Binte Hassan` with
 
 ### Tagging a player: `tag` (US08)
 
-Use custom labels to group players by position, role, season or trial group. Add labels with `add`, or replace an existing player's labels with `tag`.
+Use custom labels to group players by position, role, season or trial group. Add labels with `add`, or append labels to an existing player with `tag`.
 
-Format for replacing tags: `tag INDEX t/TAG [t/TAG]...`
+Format for adding tags: `tag INDEX t/TAG [t/TAG]...`
 
 Format for clearing tags: `tag INDEX t/`
 
-`INDEX` is the positive whole number beside the player in the displayed list, including search results, tag/injury filters and the squad. Recheck the displayed numbers after changing a view or a player. Supplying tags replaces the entire old set; include every label you want to keep. Name, phone and jersey edits preserve the existing tags. A single empty `t/` clears all tags; mixing an empty label with other labels is invalid.
+`INDEX` is the positive whole number beside the player in the displayed list, including search results, tag/injury filters and the squad. Recheck the displayed numbers after changing a view or a player. Supplying tags adds them to the existing set; you do not need to repeat labels you want to keep. Name, phone and jersey edits preserve the existing tags. A single empty `t/` clears all tags; mixing an empty label with other labels is invalid. To remove selected labels, clear all tags first, then add the labels you want to keep. If clearing removes the player from the current tag filter, use `list` or `find` and recheck their displayed index before adding tags again.
 
 Separate parameter prefixes with spaces, pasted tabs or non-breaking spaces, as described in the command-format notes.
 
 Examples:
 
 * `add n/Amy Tan p/91234567 t/Striker t/Trial Group 2` adds Amy with two tags.
-* `tag 1 t/Goalkeeper t/Captain` replaces the first displayed player's tags with these two labels.
+* `tag 1 t/Goalkeeper t/Captain` adds these two labels to the first displayed player while keeping their existing tags.
 * `edit 1 p/98765432` changes the phone while keeping existing tags.
 * `tag 1 t/` removes all tags from the first displayed player.
 
@@ -187,15 +187,15 @@ is saved as `Trial Group 2`. Blank labels are invalid except for the single clea
 e.g. the tag that is too long or the character that is not allowed.
 
 Repeat `t/` for multiple tags. Duplicate labels are combined ignoring capitalisation,
-so `t/Striker t/striker` keeps the first spelling, `Striker`, once. Tags appear in
+so `t/Striker t/striker` keeps the first spelling, `Striker`, once. Existing labels keep their saved spelling: adding `t/striker` to a player with `Striker` does not rename it. Supplying only labels the player already has reports no changes. Tags appear in
 alphabetical order on player cards and command feedback. They do not affect duplicate
 player detection: the same name is still rejected even if tags differ.
 
-Tags are saved automatically and restored when you restart. Older data files without a `tags` field load with no tags. Changing tags keeps the current search, tag/injury filter, squad view and active rating sort. If the player no longer matches the tag filter, they disappear from that view and the remaining players are renumbered. Use `list` to see everyone in insertion order again.
+Tags are saved automatically and restored when you restart. Older data files without a `tags` field load with no tags. Changing tags keeps the current search, tag/injury filter, squad view and active rating sort. Adding labels keeps a player in their current tag filter. Clearing tags removes them from a tag-filtered view and renumbers the remaining players. Use `list` to see everyone in insertion order again.
 
-Changing only tags preserves the player's name, phone, jersey number, rating, selection status, remark and injury status. Name, phone, jersey, rating, selection, remark and injury updates also preserve tags unless you explicitly replace or clear them with `tag`.
+Changing only tags preserves the player's name, phone, jersey number, rating, selection status, remark and injury status. Name, phone, jersey, rating, selection, remark and injury updates also preserve tags unless you explicitly add to or clear them with `tag`.
 
-For a player named Amy Tan with phone 91234567 and no jersey number:
+For a player named Amy Tan with phone 91234567, no jersey number and no tags:
 
 | Command | Result message |
 | --- | --- |
@@ -205,7 +205,7 @@ For a player named Amy Tan with phone 91234567 and no jersey number:
 | Repeat `tag 1 t/` | `No changes made: Amy Tan already has these details.` |
 | `tag 1 t/Bad!` | `The tag "Bad!" contains "!", which is not allowed. Tags can contain letters, digits, spaces and the symbols - & / _ + ' .` |
 
-Changing only a tag's capitalisation, e.g. from `STRIKER` to `Striker`, updates its displayed and saved spelling. A malformed index, a missing index or an index outside the displayed list rejects the update. For an out-of-range index the result is `The player index provided is invalid.` Invalid tags reject the whole tag update. The old `edit INDEX t/...` syntax is rejected with guidance to use `tag`, including mixed name/phone/jersey-and-tag edits; no field changes. Use separate commands. After a rejected command, the data and view remain unchanged. If saving fails after a valid tag update, follow [Saving the data](#saving-the-data) before closing the app.
+To change a tag's capitalisation, clear the tags and add them again with the desired spelling. A malformed index, a missing index or an index outside the displayed list rejects the update. For an out-of-range index the result is `The player index provided is invalid.` Invalid tags reject the whole tag update. The old `edit INDEX t/...` syntax is rejected with guidance to use `tag`, including mixed name/phone/jersey-and-tag edits; no field changes. Use separate commands. After a rejected command, the data and view remain unchanged. If saving fails after a valid tag update, follow [Saving the data](#saving-the-data) before closing the app.
 
 ### Listing all players: `list`
 
@@ -243,7 +243,7 @@ Without an explicit scope, the result box shows `Sorted players by rating (desce
 | --- | --- |
 | `add` | Shows the full roster again, keeping the sort. New players start Unrated and appear after the rated players and earlier unrated players. |
 | `edit` | Keeps the sort and current filter. A renamed player may disappear if they no longer match a name search. |
-| `tag` | Keeps the sort and current filter. A player may disappear if their replacement tags no longer match a tag filter. |
+| `tag` | Keeps the sort and current filter. Adding tags keeps matching players visible; clearing tags removes them from a tag filter. |
 | `rate` | Keeps the filter and sort; the player moves to their new rated/unrated position. Other displayed indices can change. |
 | `find` | Searches the whole team, replacing the old filter; matches use the active sort. |
 | `filter` | Replaces the old filter with the requested tag/injury conditions; matches use the active sort. |
@@ -343,7 +343,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`
 * If the new name looks like another player's, e.g. `TanWei Ming` when `Tan Wei Ming` exists, the change is made, but the result box warns you, as with `add`. Editing other details does not repeat this warning.
 * Omit `j/` to keep the player's current jersey number. Type `j/` with nothing after it to remove the jersey number. An empty `j/` works only with `edit`; `add` rejects it.
 * If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`, naming players hidden by an earlier `find` or `filter` too. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
-* Tags are retained. Use `tag INDEX t/TAG...` to replace them, or `tag INDEX t/` to clear them.
+* Tags are retained. Use `tag INDEX t/TAG...` to add labels, or `tag INDEX t/` to clear them.
   Supplying `t/` to `edit` rejects the whole command and shows the new syntax.
 * `edit` cannot change a remark or injury status. Use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-player-s-injury-status-injury-us13) instead.
 * Details you do not edit stay as they are. In particular, editing never changes a player's selection status, rating, remark or injury status.
