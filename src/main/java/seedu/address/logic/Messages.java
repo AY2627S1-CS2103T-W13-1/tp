@@ -15,12 +15,12 @@ public class Messages {
     public static final String MESSAGE_DATA_FILE_UNREADABLE = "The data file is not in a readable format "
             + "and will be replaced by an empty team when you make your next change.";
     public static final String MESSAGE_UNKNOWN_COMMAND = "Unknown command. Type 'help' to see the list of commands.";
+    public static final String MESSAGE_SIMILAR_NAME =
+            "\nWarning: this name looks like %1$s. Check that this is not the same player.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The player index provided is invalid.";
     public static final String MESSAGE_DUPLICATE_JERSEY_NUMBER =
             "\nWarning: jersey number %1$s is also used by %2$s.";
-    public static final String MESSAGE_SIMILAR_NAME =
-            "\nWarning: this name looks like %1$s. Check that this is not the same player.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
 
