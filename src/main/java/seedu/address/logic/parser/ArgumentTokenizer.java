@@ -70,13 +70,11 @@ public class ArgumentTokenizer {
      * {@code fromIndex} = 0, this method returns 5.
      */
     private static int findPrefixPosition(String argsString, String prefix, int fromIndex) {
-        int prefixIndex = argsString.indexOf(prefix, fromIndex + 1);
-        while (prefixIndex != -1) {
-            char separator = argsString.charAt(prefixIndex - 1);
-            if (separator == ' ' || separator == '\t') {
-                return prefixIndex;
+        for (int separatorIndex = fromIndex; separatorIndex < argsString.length(); separatorIndex++) {
+            char separator = argsString.charAt(separatorIndex);
+            if ((separator == ' ' || separator == '\t') && argsString.startsWith(prefix, separatorIndex + 1)) {
+                return separatorIndex + 1;
             }
-            prefixIndex = argsString.indexOf(prefix, prefixIndex + 1);
         }
         return -1;
     }

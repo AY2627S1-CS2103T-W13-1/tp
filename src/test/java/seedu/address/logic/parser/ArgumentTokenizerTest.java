@@ -137,6 +137,11 @@ public class ArgumentTokenizerTest {
     }
 
     @Test
+    public void tokenize_emptyPrefixAndEmptyArgs_emptyPreamble() {
+        assertPreambleEmpty(ArgumentTokenizer.tokenize("", new Prefix("")));
+    }
+
+    @Test
     public void tokenize_tabSeparators_preservesValuesAndRepeatedPrefixes() {
         ArgumentMultimap arguments = ArgumentTokenizer.tokenize(
                 "1\tp/first\tinside\t-t one \t-t two\t-t", pSlash, dashT);
