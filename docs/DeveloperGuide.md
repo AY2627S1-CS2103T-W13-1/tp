@@ -310,12 +310,20 @@ The sequence diagram below shows how `cut 1` is executed.
 
 1. `AddressBookParser` matches the command word `cut`, creates a `SetStatusCommandParser` for `CUT`, and uses it to parse `"1"` into a `SetStatusCommand`.
 1. `LogicManager` executes the command. The command gets the player `p` at index 1 of the displayed list from the `Model`.
-1. As `Person` is immutable, `p.withSelectionStatus(CUT)` returns a new `Person` with every other field (name, phone, rating, tags and remark) unchanged. The command replaces `p` with it using `Model#setPerson()`.
+1. As `Person` is immutable, `p.withSelectionStatus(CUT)` returns a new `Person` with every other field (name, phone, rating, tags, remark, injury status and jersey number) unchanged. The command replaces `p` with it using `Model#setPerson()`.
 1. `LogicManager` then saves the team through `Storage`. It decides this by command type: read-only command types, such as `find` and `squad`, skip this step, while `keep`, `cut` and `pending` always save.
 
 If the index is out of range, the command throws a `CommandException` before changing anything. If the player already has the status, the command returns a message saying so and does not replace the player. `LogicManager` still saves in this case, as it only checks the command type, but the saved data is unchanged.
 
 The status is saved in the data file as a `selectionStatus` field. Data files saved by v1.3 have no such field, so `JsonAdaptedPerson` loads those players as `PENDING`.
+
+**Viewing the squad.** `squad` is handled by `SquadCommand`, which does not build a separate list. It sets the `Model`'s
+displayed-list predicate to `HasSelectionStatusPredicate(KEPT)`, so the squad is simply the kept players in the displayed list.
+As a result:
+* any active rating sort still applies, because `ModelManager` keeps its comparator when the predicate changes;
+* `keep`, `cut`, `pending` and `delete` use the squad's numbering while it is shown, and a player who is cut or marked
+  pending immediately leaves the displayed list;
+* `SquadCommand` changes no data, so `LogicManager` lists it as read-only and does not save after it.
 
 #### Design considerations
 
@@ -327,6 +335,14 @@ The status is saved in the data file as a `selectionStatus` field. Data files sa
 * **Alternative 2:** Separate `KeepCommand`, `CutCommand` and `PendingCommand` classes.
   * Pros: Each class matches one command word, like the rest of AB3.
   * Cons: Three almost identical classes and parsers to keep in sync.
+
+**Aspect: How to show the squad**
+
+* **Alternative 1 (current choice):** A predicate on the displayed list (`HasSelectionStatusPredicate`).
+  * Pros: Reuses the filtered and sorted list that every other view uses, so indices, sorting and the UI need no special handling.
+  * Cons: The squad replaces any active `find` or `filter`, as the displayed list has one predicate at a time.
+* **Alternative 2:** A separate squad list kept in the `Model`.
+  * Cons: Two lists to keep in sync whenever a status, a player or the sort order changes.
 
 **Aspect: What the list shows after the command**
 
@@ -536,49 +552,48 @@ The following rules apply throughout:
 
 #### UC01: Delete a player
 
-**Related user stories:** US02, US03, US04
+**Related user stories:** edit a player's details or delete their record; list all players; find players by name;
+have changes to player data saved automatically
 
 **MSS**
 
 1. Coach requests to list all players.
 2. CouchCoach displays the player list.
-3. Coach requests to delete a player using their index in the displayed list.
-4. CouchCoach removes the player, saves the updated data, and displays the
-   deleted player's details and updated list. The remaining displayed players
-   are renumbered.
+3. Coach requests to delete a specific player, using the player's index in the displayed list.
+4. CouchCoach deletes the player, saves the updated team, and confirms which player was deleted.
+   The displayed list keeps its current search, filter or sort order, and the remaining players are renumbered.
 
    Use case ends.
 
 **Extensions**
 
-* 1a. Coach requests to find players by name instead of listing all players.
+* 1a. Coach instead requests a narrowed or reordered list: players found by name, players with given tags or
+  injury status, the kept squad, or players sorted by rating.
 
-    * 1a1. CouchCoach processes the search request.
+    * 1a1. CouchCoach displays that list.
 
-      Use case resumes at step 2, displaying only the matching players.
-      The search filter remains active after deletion.
-
-    * 1a1a. The search request has no keywords.
-
-        * 1a1a1. CouchCoach displays an error and leaves the displayed list unchanged.
-
-          Use case resumes at step 1.
+      Use case resumes at step 2. The same view remains after the deletion.
 
 * 2a. The displayed list is empty.
 
   Use case ends.
 
-* 3a. The deletion request is malformed or the index does not identify a
-  player in the displayed list.
+* 3a. The request does not contain exactly one index that is a whole number.
 
-    * 3a1. CouchCoach displays an error and leaves the data unchanged.
+    * 3a1. CouchCoach shows the correct command format and leaves the team unchanged.
 
       Use case resumes at step 3.
 
-* 4a. CouchCoach cannot save the updated data.
+* 3b. The index is a whole number that does not identify a player in the displayed list (e.g. 0, negative, or too large).
 
-    * 4a1. CouchCoach informs the Coach that the deletion was applied in the
-      current session but could not be saved and may be lost after closing.
+    * 3b1. CouchCoach shows that the player index is invalid and leaves the team unchanged.
+
+      Use case resumes at step 3.
+
+* 4a. CouchCoach cannot save the updated team.
+
+    * 4a1. CouchCoach informs the Coach that the deletion was applied but could not be saved, and will be lost
+      if the app is closed before a later change saves successfully.
 
       Use case ends.
 
@@ -730,42 +745,60 @@ The following rules apply throughout:
 
 #### UC05: Record a selection decision
 
-**Related user story:** US10
+**Related user stories:** mark players as kept or cut and view the kept players;
+have changes to player data saved automatically
 
 **MSS**
 
 1. Coach requests to list all players.
-2. CouchCoach displays the player list for the Coach to review.
-3. Coach identifies a player from the displayed list and requests to mark
-   that player as kept or cut.
-4. CouchCoach records the selection decision, saves the updated data, and
-   displays the player's updated selection status.
+2. CouchCoach displays the player list, showing each player's selection decision.
+3. Coach requests to mark a specific player in the displayed list as kept, cut or pending (undecided).
+4. CouchCoach records the decision, saves the updated team, and confirms the player's new decision.
+   The displayed list keeps its current view.
 
    Use case ends.
 
 **Extensions**
 
-* 2a. The player list is empty.
+* 1a. Coach instead requests a narrowed or reordered list, as in UC01 extension 1a.
+
+    * 1a1. CouchCoach displays that list.
+
+      Use case resumes at step 2.
+
+* 2a. The displayed list is empty.
 
   Use case ends.
 
-* 3a. The request does not identify a player in the displayed list.
+* 3a. The request does not contain exactly one whole-number index, or the index does not identify a player in the
+  displayed list.
 
-    * 3a1. CouchCoach displays an error and leaves the data unchanged.
-
-      Use case resumes at step 3.
-
-* 3b. The selection status is missing or is neither kept nor cut.
-
-    * 3b1. CouchCoach explains the permitted selection statuses and leaves the
-      data unchanged.
+    * 3a1. CouchCoach shows the correct command format or that the player index is invalid, and leaves the team unchanged.
 
       Use case resumes at step 3.
 
-* 4a. CouchCoach cannot save the updated data.
+* 3b. The player already has the requested decision.
 
-    * 4a1. CouchCoach informs the Coach that the selection decision was recorded
-      in the current session but could not be saved and may be lost after closing.
+    * 3b1. CouchCoach informs the Coach that the player already has that decision, and leaves the team unchanged.
+
+      Use case ends.
+
+* 4a. The displayed list is the kept squad, and the new decision is cut or pending.
+
+    * 4a1. CouchCoach removes the player from the displayed list, and the players below are renumbered.
+
+      Use case ends.
+
+* 4b. CouchCoach cannot save the updated team.
+
+    * 4b1. CouchCoach informs the Coach that the decision was recorded but could not be saved, and will be lost
+      if the app is closed before a later change saves successfully.
+
+      Use case ends.
+
+* \*a. At any time, the Coach requests to view the kept squad.
+
+    * \*a1. CouchCoach displays only the players marked as kept, and how many there are.
 
       Use case ends.
 
@@ -1007,22 +1040,41 @@ names. A keyword also matches a part of a word between punctuation, so `Ming` ma
 search considers the full team. The existing JavaFX list cells supply displayed
 indices. `LogicManager` returns a successful find result without saving player data.
 
-### Deleting a person
+### Deleting a player
 
-1. Deleting a person while all persons are being shown
+**Setup:** launch CouchCoach from an empty folder, so that it starts with the six sample players, then run `list`.
+Run `rate 3 3` and `rate 4 9`, so that Charlotte Oliveiro is rated 3 and David Li is rated 9.
 
-   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+| Test case | Expected result |
+| --- | --- |
+| `delete 1` | The first player is removed. The result box shows `Deleted player:` followed by their details. The others move up one number. |
+| `find Bernice`, then `delete 1` | Bernice Yu is removed. The search stays active, so the list is now empty. Run `list` afterwards. |
+| `sort rating`, then `delete 1` | David Li (rated 9) is removed, not Charlotte Oliveiro, who comes first in insertion order. The list stays sorted. |
+| `delete 0`, `delete -1`, then `delete 99` | Each shows `The player index provided is invalid.` and removes nobody. |
+| `delete`, `delete x`, then `delete 1 2` | Each shows `Invalid command format!` with the `delete` usage, and removes nobody. |
+| `squad` (no one kept yet), then `delete 1` | The squad is empty, so the index is invalid and nobody is removed. |
+| Close and relaunch from the same folder. | The deleted players are still gone. |
 
-   1. Test case: `delete 1`<br>
-      Expected: The first contact is deleted from the list. The status message shows the deleted contact's details.
+**Cleanup:** delete the folder.
 
-   1. Test case: `delete 0`<br>
-      Expected: No person is deleted. The status message shows error details.
+### Marking selection decisions and viewing the squad
 
-   1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
-      Expected: Similar to previous.
+**Setup:** launch from an empty folder (six sample players, all **Pending**) and run `list`.
 
-1. _{ more test cases … }_
+| Test case | Expected result |
+| --- | --- |
+| `keep 1` | `Marked Alex Yeoh as kept.` The first card's badge changes to **Kept**. |
+| `keep 1` again | `Alex Yeoh is already marked as kept.` Nothing changes. |
+| `cut 2`, then `pending 2` | The second player becomes **Cut**, then **Pending** again. |
+| `keep 0`, `keep 7`, `keep`, `keep a`, `keep 1 2` | `0` and `7` show `The player index provided is invalid.`; the others show the `keep` usage. No badge changes. |
+| `find Bernice`, then `keep 1` | Bernice Yu becomes **Kept** and the search stays on screen. |
+| `squad` | Exactly the kept players appear, and the result box shows `2 players in your squad.` |
+| `cut 1` while viewing the squad | That player is cut and leaves the list; the other kept player moves up to number 1. |
+| `list`, `keep 1`, `rate 1 3`, `rate 2 9`, `sort rating`, then `squad` | Only the two kept players appear, Bernice Yu (9) before Alex Yeoh (3). |
+| `list`, mark every kept player `pending`, then `squad` | The list is empty and the result box suggests `keep INDEX`. |
+| Close and relaunch from the same folder. | Every badge is as you left it. |
+
+**Cleanup:** delete the folder.
 
 ### Viewing help
 
@@ -1049,11 +1101,43 @@ these checks and verify that both remain unchanged afterwards.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+Use a disposable folder for every case, and launch CouchCoach from that folder with `java -jar PATH_TO/couchcoach.jar`,
+so that the team file is `data/addressbook.json` in that folder. Close the app before editing any file, and keep a copy
+of the file before each case so that you can compare it afterwards.
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+**Saving and reloading**
 
-1. _{ more test cases … }_
+| Test case | Expected result |
+| --- | --- |
+| Launch from an empty folder. | Six sample players appear, no warning is shown, and no `data/addressbook.json` exists yet. |
+| `list`, `find Alex`, `filter t/Striker`, `sort rating`, `squad`, `help`, then `exit` | The file still does not exist: none of these save. |
+| Relaunch, then `keep 1`. | `data/addressbook.json` now exists and contains all six players, the first with `"selectionStatus" : "KEPT"`. |
+| `keep 1` again, then `delete 99` | The first reports that nothing changed and the second is rejected; the file's players are unchanged. |
+| Close and relaunch. | The same six players appear, the first still **Kept**. |
+
+**Missing, invalid and older data files**
+
+| Setup (app closed) | Expected result on launch |
+| --- | --- |
+| Delete `data/addressbook.json`. | The sample team appears again. |
+| Replace the file's contents with `{ "persons": [ {"name": "Amy"` (malformed JSON). | An empty team, and the result box shows `The data file is not in a readable format and will be replaced by an empty team when you make your next change.` |
+| Then run `list`, `find Amy`, `squad` and `exit`. | The file's contents are unchanged. |
+| Relaunch, then `add n/New Player p/123`. | The invalid file is replaced by a valid one containing only New Player. |
+| Use `{"persons":[{"name":"Amy","phone":"123"},null]}`. | Empty team and the same warning; the file is unchanged until the next change. |
+| Use `{}`, an empty file, `{"persons":null}`, a player with `"selectionStatus":"MAYBE"`, a player with `"phone":"9123 4567"`, or two players named `Amy Tan` and `amy  tan`. | Each gives an empty team and the same warning. |
+| Use `{"persons":[{"name":"Amy Tan","phone":"91234567"}]}` (an older file without the newer fields). | Amy Tan loads as **Pending**, unrated, fit, with no tags, remark or jersey number. No warning. |
+| Use a player with `"selectionStatus":"kept"` or `"injuryStatus":"INJURED"`. | The player loads normally; these values are not case-sensitive. |
+| Replace the file's contents with `null`. | Known issue: launch fails with an error in the terminal (see the UG's Known issues). |
+
+**Save failure and recovery** (macOS or Linux)
+
+| Test case | Expected result |
+| --- | --- |
+| With a valid team loaded, run `chmod 444 data/addressbook.json` in another terminal, then `keep 1`. | The badge changes to **Kept**, but the result box shows `Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.` The file is unchanged. |
+| Run `chmod 644 data/addressbook.json`, then `keep 1` again. | `... is already marked as kept.` The file now records the player as kept, so the failed change is saved. |
+| Delete the whole `data` folder while the app is open, then `cut 2`. | The folder and file are recreated, and the change is saved normally. |
+
+**Cleanup:** delete the folders.
 
 ### Custom player tags (US08): manual regression checks
 
