@@ -21,8 +21,18 @@ public class SortCommandParserTest {
     }
 
     @Test
+    public void parse_anyLetterCase_returnsDirection() throws Exception {
+        SortCommandParser parser = new SortCommandParser();
+        assertEquals(new SortCommand(false), parser.parse("Rating"));
+        assertEquals(new SortCommand(false), parser.parse("RATING Desc"));
+        assertEquals(new SortCommand(true), parser.parse("rating ASC"));
+        assertEquals(new SortCommand(true), new AddressBookParser().parseCommand("sort Rating Asc"));
+    }
+
+    @Test
     public void parse_invalidInput_throwsParseException() {
-        for (String input : List.of("", "asc", "name", "Rating", "rating ASC", "rating up", "rating asc extra")) {
+        for (String input : List.of("", "asc", "name", "ratings", "rating up", "rating ascending",
+                "rating asc extra")) {
             assertThrows(ParseException.class, () -> new SortCommandParser().parse(input));
         }
     }
