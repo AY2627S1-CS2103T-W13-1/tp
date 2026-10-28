@@ -57,7 +57,7 @@ public class HelpPanelTest {
                     Map.entry("squadDescription", "Show only the players you have kept"),
                     Map.entry("rateSyntax", "rate INDEX RATING"),
                     Map.entry("rateDescription", "Set a player's rating (whole number 0 to 10)\n"
-                            + "e.g. rate 1 8"),
+                            + "Use unrated as RATING to remove it.\ne.g. rate 1 8, rate 1 unrated"),
                     Map.entry("helpSyntax", "help"), Map.entry("helpDescription", "Show this summary"),
                     Map.entry("clearSyntax", "clear"),
                     Map.entry("clearDescription", "Delete all players; cannot be undone\n"

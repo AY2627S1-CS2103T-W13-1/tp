@@ -211,8 +211,10 @@ This section describes some noteworthy details on how certain features are imple
 ### Player ratings (US12)
 
 `RateCommandParser` parses `rate INDEX RATING` into a `RateCommand`. It validates the
-positive displayed index and a whole-number rating from 0 to 10. The command checks
-that the index exists in the displayed list before changing the model.
+positive displayed index and a whole-number rating from 0 to 10. The word `unrated`, in
+any letter case, is parsed as `Rating.UNRATED` instead, so the same command removes a
+rating. The command checks that the index exists in the displayed list before changing
+the model. Removing the rating of a player who is already unrated changes nothing.
 
 The sequence below follows successful execution of `rate 1 8`:
 

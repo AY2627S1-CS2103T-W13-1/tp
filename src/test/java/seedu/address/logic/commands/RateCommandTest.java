@@ -68,8 +68,26 @@ public class RateCommandTest {
         assertThrows(CommandException.class, () ->
                 new RateCommand(Index.fromOneBased(2), new Rating("8")).execute(model));
         assertEquals(List.of(amy), model.getFilteredPersonList());
-        assertThrows(IllegalArgumentException.class, () ->
-                new RateCommand(Index.fromOneBased(1), Rating.UNRATED));
+    }
+
+    @Test
+    public void execute_unrated_removesRatingAndKeepsOtherDetails() throws Exception {
+        ModelManager model = new ModelManager();
+        Person unratedAmy = new PersonBuilder().withName("Amy Bee").withJerseyNumber("10").withTags("Striker").build();
+        model.addPerson(new PersonBuilder(unratedAmy).withRating("8").build());
+        CommandResult result = new RateCommand(Index.fromOneBased(1), Rating.UNRATED).execute(model);
+        assertEquals(List.of(unratedAmy), model.getAddressBook().getPersonList());
+        assertEquals("Removed the rating of player: Amy Bee; Rating: Unrated", result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_unratedPlayerUnrated_saysAlreadyUnratedAndChangesNothing() throws Exception {
+        ModelManager model = new ModelManager();
+        Person amy = new PersonBuilder().withName("Amy Bee").build();
+        model.addPerson(amy);
+        CommandResult result = new RateCommand(Index.fromOneBased(1), Rating.UNRATED).execute(model);
+        assertEquals(List.of(amy), model.getAddressBook().getPersonList());
+        assertEquals("Amy Bee is already unrated.", result.getFeedbackToUser());
     }
 
     @Test

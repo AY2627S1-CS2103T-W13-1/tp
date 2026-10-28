@@ -7,7 +7,7 @@ import seedu.address.logic.commands.RateCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Rating;
 
-/** Parses a displayed player index and a rating. */
+/** Parses a displayed player index and a rating, or the word "unrated" in any letter case. */
 public class RateCommandParser implements Parser<RateCommand> {
     @Override
     public RateCommand parse(String args) throws ParseException {
@@ -16,8 +16,11 @@ public class RateCommandParser implements Parser<RateCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RateCommand.MESSAGE_USAGE));
         }
         Index index = ParserUtil.parseIndex(parts[0], RateCommand.MESSAGE_USAGE);
+        if (RateCommand.UNRATED_KEYWORD.equalsIgnoreCase(parts[1])) {
+            return new RateCommand(index, Rating.UNRATED);
+        }
         if (!Rating.isValidRating(parts[1])) {
-            throw new ParseException(Rating.MESSAGE_CONSTRAINTS);
+            throw new ParseException(RateCommand.MESSAGE_INVALID_RATING);
         }
         return new RateCommand(index, new Rating(parts[1]));
     }
