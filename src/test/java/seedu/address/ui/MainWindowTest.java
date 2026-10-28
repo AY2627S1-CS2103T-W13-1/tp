@@ -34,6 +34,7 @@ import javafx.stage.Window;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.TagCommand;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -106,7 +107,7 @@ public class MainWindowTest {
             assertEquals(keptPlayer.getTags(), ratedPlayer.getTags());
             assertEquals(SelectionStatus.KEPT, ratedPlayer.getSelectionStatus());
             AddressBook original = new AddressBook(model.getAddressBook());
-            for (String invalid : List.of("rate 1 11", "edit 1 t/Bad!", "keep 2")) {
+            for (String invalid : List.of("rate 1 11", "tag 1 t/Bad!", "keep 2")) {
                 enterCommand(invalid);
                 assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                 assertEquals(original, model.getAddressBook());
@@ -119,20 +120,24 @@ public class MainWindowTest {
     }
 
     @Test
-    public void execute_tagEditsThroughCommandBox_normalBoundaryAndErrors() throws Exception {
+    public void execute_tagThroughCommandBox_normalBoundaryAndErrors() throws Exception {
         runOnFxThread(() -> {
             enterCommand("add n/Tag Trialist p/123 t/Striker t/Trial Group 2");
             assertPlayerPanelShown();
             assertTrue(resultDisplay.getText().contains("Tags: Striker, Trial Group 2"));
             enterCommand("find Trialist");
-            enterCommand("edit 1 t/" + "A".repeat(Tag.MAX_LENGTH));
+            enterCommand("help");
+            assertHelpSummaryShown();
+            enterCommand("tag 1 t/" + "A".repeat(Tag.MAX_LENGTH));
+            assertPlayerPanelShown();
             assertTrue(resultDisplay.getText().contains("Tags: " + "A".repeat(Tag.MAX_LENGTH)));
             AddressBook originalData = new AddressBook(model.getAddressBook());
             String tooLong = "A".repeat(Tag.MAX_LENGTH + 1);
             Map<String, String> expectedErrors = Map.of(
-                    "edit 1 t/Bad!", String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"),
-                    "edit 1 t/" + tooLong, String.format(Tag.MESSAGE_TOO_LONG, tooLong, Tag.MAX_LENGTH + 1),
-                    "edit 1 t/ t/Striker", Tag.MESSAGE_EMPTY);
+                    "tag 1 t/Bad!", String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"),
+                    "tag 1 t/" + tooLong, String.format(Tag.MESSAGE_TOO_LONG, tooLong, Tag.MAX_LENGTH + 1),
+                    "tag 1 t/ t/Striker", Tag.MESSAGE_EMPTY,
+                    "edit 1 p/789 t/Captain", TagCommand.MESSAGE_USE_TAG);
             for (String input : expectedErrors.keySet()) {
                 enterCommand(input);
                 assertEquals(expectedErrors.get(input), resultDisplay.getText());
@@ -140,9 +145,9 @@ public class MainWindowTest {
                 assertEquals(originalData, model.getAddressBook());
             }
             enterCommand("find Trialist");
-            enterCommand("edit 1 t/");
+            enterCommand("tag 1 t/");
             assertPlayerPanelShown();
-            // edit keeps the search, so only the edited player is still shown
+            // Tag updates keep the search, so only the updated player is still shown
             assertEquals(1, model.getFilteredPersonList().size());
             assertTrue(model.getFilteredPersonList().getLast().getTags().isEmpty());
             assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));

@@ -35,10 +35,13 @@ public class HelpPanelTest {
                     Map.entry("addSyntax", "add n/NAME p/PHONE\n[j/JERSEY] [t/TAG]..."),
                     Map.entry("addDescription", "Add a player with an optional jersey number and tags\n"
                             + "e.g. add n/Tan Wei Ming p/91234567 j/10 t/Striker"),
-                    Map.entry("editSyntax", "edit INDEX [n/NAME]\n[p/PHONE] [j/JERSEY]\n[t/TAG]..."),
-                    Map.entry("editDescription", "Edit the displayed player; tags replace existing tags\n"
-                            + "A single empty t/ clears tags; omit t/ to keep them\n"
-                            + "An empty j/ removes the jersey number\ne.g. edit 1 t/Striker t/Captain"),
+                    Map.entry("editSyntax", "edit INDEX [n/NAME]\n[p/PHONE] [j/JERSEY]"),
+                    Map.entry("editDescription", "Edit name, phone, or jersey; other details are kept\n"
+                            + "An empty j/ removes the jersey number\n"
+                            + "Use tag to update tags. e.g. edit 1 j/23"),
+                    Map.entry("tagSyntax", "tag INDEX t/TAG\n[t/TAG]..."),
+                    Map.entry("tagDescription", "Replace tags; a single empty t/ clears them\n"
+                            + "e.g. tag 1 t/Striker t/Captain"),
                     Map.entry("filterSyntax", "filter [t/TAG]...\n[i/STATUS]"),
                     Map.entry("filterDescription", "Show players with any requested tag, the injury\n"
                             + "status, or both. Tags match complete labels, ignoring\n"
@@ -80,7 +83,7 @@ public class HelpPanelTest {
                 assertEquals(text, label.getText());
             });
             for (String command : List.of("add", "list", "find", "delete", "status", "squad",
-                    "help", "exit", "edit", "rate", "filter", "remark", "injury", "sort", "clear")) {
+                    "help", "exit", "edit", "rate", "filter", "remark", "injury", "sort", "clear", "tag")) {
                 assertTrue(((Label) help.getContent().lookup("#" + command + "Description")).isWrapText());
             }
         });
