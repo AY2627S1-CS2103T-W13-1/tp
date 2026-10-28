@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
@@ -83,7 +84,7 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        if (editedPerson.equals(personToEdit)) {
+        if (isUnchanged(personToEdit, editedPerson)) {
             return new CommandResult(String.format(MESSAGE_NO_CHANGE, personToEdit.getName()));
         }
 
@@ -96,6 +97,20 @@ public class EditCommand extends Command {
                 : "";
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
                 + describeRemovals(personToEdit, editedPerson) + warning);
+    }
+
+    /**
+     * Returns true if {@code editedPerson} looks exactly like {@code personToEdit}. {@link Person#equals} is
+     * not enough on its own, as tags are equal regardless of capitalisation, so it would treat changing a tag
+     * from {@code STRIKER} to {@code Striker} as no change, although the stored spelling changes.
+     */
+    private static boolean isUnchanged(Person personToEdit, Person editedPerson) {
+        return editedPerson.equals(personToEdit)
+                && getTagSpellings(editedPerson).equals(getTagSpellings(personToEdit));
+    }
+
+    private static Set<String> getTagSpellings(Person person) {
+        return person.getTags().stream().map(Tag::toString).collect(Collectors.toSet());
     }
 
     /**

@@ -29,6 +29,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.SelectionStatus;
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -251,6 +252,24 @@ public class EditCommandTest {
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
         assertEquals(List.of(editedPerson), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_tagCapitalisationOnlyChanged_updatesSpelling() {
+        Person firstPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        Person upperCaseTag = new PersonBuilder(firstPerson).withTags("STRIKER").build();
+        model.setPerson(firstPerson, upperCaseTag);
+        Person titleCaseTag = new PersonBuilder(firstPerson).withTags("Striker").build();
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setTags(Set.of(new Tag("Striker")));
+
+        // tags are equal regardless of capitalisation, so this must not be reported as "No changes made"
+        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(titleCaseTag));
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(upperCaseTag, titleCaseTag);
+
+        assertCommandSuccess(new EditCommand(INDEX_FIRST_PERSON, descriptor), model, expectedMessage, expectedModel);
+        assertEquals("Striker", model.getFilteredPersonList().getFirst().getTags().iterator().next().toString());
     }
 
     @Test
