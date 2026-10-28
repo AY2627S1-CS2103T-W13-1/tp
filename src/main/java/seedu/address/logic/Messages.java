@@ -19,6 +19,9 @@ public class Messages {
             "\nWarning: this name looks like %1$s. Check that this is not the same player.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The player index provided is invalid.";
+    /** Shown when {@code add} or {@code edit} is given a detail that only its own command can set. */
+    public static final String MESSAGE_DETAIL_NEEDS_OWN_COMMAND = "%1$s cannot set a remark or injury status. "
+            + "Use \"remark INDEX r/REMARK\" or \"injury INDEX i/STATUS\" instead.";
     public static final String MESSAGE_DUPLICATE_JERSEY_NUMBER =
             "\nWarning: jersey number %1$s is also used by %2$s.";
     public static final String MESSAGE_DUPLICATE_FIELDS = "Each of these can be given only once: %1$s\n"

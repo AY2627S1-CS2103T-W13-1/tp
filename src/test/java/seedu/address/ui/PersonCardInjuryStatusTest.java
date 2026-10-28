@@ -18,7 +18,7 @@ public class PersonCardInjuryStatusTest {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().withInjuryStatus(InjuryStatus.INJURED)
                     .withRemark("Strong left foot").withSelectionStatus(SelectionStatus.KEPT).build(), 1);
-            Label label = (Label) card.getRoot().lookup("#injuryStatus");
+            Label label = (Label) card.getRoot().lookup("#injuryBadge");
             assertEquals("Injured", label.getText());
             assertTrue(label.getStyleClass().contains("injury-badge"));
             assertEquals("Remark: Strong left foot", ((Label) card.getRoot().lookup("#remark")).getText());
@@ -32,7 +32,7 @@ public class PersonCardInjuryStatusTest {
     public void constructor_fitPlayer_hidesInjuryBadge() throws Exception {
         runOnFxThread(() -> {
             PersonCard card = new PersonCard(new PersonBuilder().withInjuryStatus(InjuryStatus.FIT).build(), 1);
-            Label label = (Label) card.getRoot().lookup("#injuryStatus");
+            Label label = (Label) card.getRoot().lookup("#injuryBadge");
             assertFalse(label.isVisible());
             assertFalse(label.isManaged());
         });

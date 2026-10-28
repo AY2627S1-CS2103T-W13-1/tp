@@ -44,7 +44,7 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label remark;
     @FXML
-    private Label injuryStatus;
+    private Label injuryBadge;
     @FXML
     private Label selectionStatus;
     @FXML
@@ -67,8 +67,8 @@ public class PersonCard extends UiPart<Region> {
         remark.setVisible(!person.getRemark().value.isEmpty());
         remark.setManaged(remark.isVisible());
         // Only injured players get a badge, so they stand out; a "fit" line on every card would hide them
-        injuryStatus.setVisible(person.getInjuryStatus() == InjuryStatus.INJURED);
-        injuryStatus.setManaged(injuryStatus.isVisible());
+        injuryBadge.setVisible(person.getInjuryStatus() == InjuryStatus.INJURED);
+        injuryBadge.setManaged(injuryBadge.isVisible());
         rating.setText("Rating: " + person.getRating() + (person.getRating().isRated() ? "/10" : ""));
         selectionStatus.setText(person.getSelectionStatus().toString());
         selectionStatus.getStyleClass().add(STATUS_STYLE_CLASS_PREFIX

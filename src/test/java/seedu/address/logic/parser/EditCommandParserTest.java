@@ -69,7 +69,7 @@ public class EditCommandParserTest {
 
     @Test
     public void parse_remarkOrInjuryGiven_failure() {
-        String expectedMessage = String.format(ParserUtil.MESSAGE_DETAIL_NEEDS_OWN_COMMAND, EditCommand.COMMAND_WORD);
+        String expectedMessage = String.format(Messages.MESSAGE_DETAIL_NEEDS_OWN_COMMAND, EditCommand.COMMAND_WORD);
         assertParseFailure(parser, "1 r/Changed", expectedMessage);
         assertParseFailure(parser, "1" + NAME_DESC_AMY + " i/injured", expectedMessage);
     }

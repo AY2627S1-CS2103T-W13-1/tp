@@ -59,6 +59,7 @@ public class ParserUtilTest {
     @Test
     public void parseIndexWithUsage_validInput_success() throws Exception {
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  ", USAGE));
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("+1", USAGE));
     }
 
     @Test
@@ -71,7 +72,7 @@ public class ParserUtilTest {
 
     @Test
     public void parseIndexWithUsage_wholeNumberNotValidIndex_throwsInvalidIndex() {
-        for (String input : new String[] {"0", "-1", "+1", "2147483648"}) {
+        for (String input : new String[] {"0", "-1", "+0", "2147483648", "+2147483648"}) {
             assertThrows(ParseException.class, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
                     ParserUtil.parseIndex(input, USAGE));
         }

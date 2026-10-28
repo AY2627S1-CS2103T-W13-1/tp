@@ -129,7 +129,7 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_remarkOrInjuryGiven_failure() {
-        String expectedMessage = String.format(ParserUtil.MESSAGE_DETAIL_NEEDS_OWN_COMMAND, AddCommand.COMMAND_WORD);
+        String expectedMessage = String.format(Messages.MESSAGE_DETAIL_NEEDS_OWN_COMMAND, AddCommand.COMMAND_WORD);
 
         // without this check, the remark would be read as part of the phone number
         assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " r/Fast winger", expectedMessage);

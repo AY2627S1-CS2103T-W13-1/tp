@@ -11,6 +11,7 @@ import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.StringUtil;
+import seedu.address.logic.Messages;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.JerseyNumber;
@@ -24,10 +25,6 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
-
-    /** Shown when {@code add} or {@code edit} is given a detail that only its own command can set. */
-    public static final String MESSAGE_DETAIL_NEEDS_OWN_COMMAND = "%1$s cannot set a remark or injury status. "
-            + "Use \"remark INDEX r/REMARK\" or \"injury INDEX i/STATUS\" instead.";
 
     /** Matches input the user meant as an index, i.e. a whole number with an optional sign. */
     private static final String WHOLE_NUMBER_REGEX = "[+-]?\\d+";
@@ -68,6 +65,7 @@ public class ParserUtil {
     /**
      * Parses {@code oneBasedIndex} into an {@code Index}, reporting a whole number that is not a valid index
      * (e.g. 0, -1, or too large to store) the same way as an index beyond the end of the displayed list.
+     * A leading {@code +} is accepted, as {@code +1} clearly means the first player.
      * Input that is not a whole number at all is a format error, so it is reported with {@code messageUsage}.
      *
      * @param oneBasedIndex The index typed by the user.
@@ -80,10 +78,11 @@ public class ParserUtil {
         if (!trimmedIndex.matches(WHOLE_NUMBER_REGEX)) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, messageUsage));
         }
-        if (!StringUtil.isNonZeroUnsignedInteger(trimmedIndex)) {
+        String unsignedIndex = trimmedIndex.startsWith("+") ? trimmedIndex.substring(1) : trimmedIndex;
+        if (!StringUtil.isNonZeroUnsignedInteger(unsignedIndex)) {
             throw new ParseException(MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
-        return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+        return Index.fromOneBased(Integer.parseInt(unsignedIndex));
     }
 
     /**
@@ -96,7 +95,7 @@ public class ParserUtil {
         boolean hasRemark = argMultimap.getValue(CliSyntax.PREFIX_REMARK).isPresent();
         boolean hasInjury = argMultimap.getValue(CliSyntax.PREFIX_INJURY).isPresent();
         if (hasRemark || hasInjury) {
-            throw new ParseException(String.format(MESSAGE_DETAIL_NEEDS_OWN_COMMAND, commandWord));
+            throw new ParseException(String.format(Messages.MESSAGE_DETAIL_NEEDS_OWN_COMMAND, commandWord));
         }
     }
 

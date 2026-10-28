@@ -95,6 +95,10 @@ public class EditCommand extends Command {
         String warning = editPersonDescriptor.isJerseyNumberEdited()
                 ? DuplicateJerseyNumberChecker.getWarning(model, editedPerson)
                 : "";
+        // Likewise, only check the name when this edit actually changes it, not merely when n/ is given
+        if (!editedPerson.getName().equals(personToEdit.getName())) {
+            warning += SimilarNameChecker.getWarning(model, editedPerson);
+        }
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
                 + describeRemovals(personToEdit, editedPerson) + warning);
     }
