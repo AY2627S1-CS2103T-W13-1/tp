@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Level;
@@ -84,14 +85,24 @@ public class LogsCenter {
         consoleHandler.setLevel(Level.ALL);
         baseLogger.addHandler(consoleHandler);
 
-        // add a FileHandler to log to a file
+        // add a FileHandler to log to a file, if the log file can be written
+        createFileHandler(LOG_FILE).ifPresent(baseLogger::addHandler);
+    }
+
+    /**
+     * Returns a {@code FileHandler} writing to {@code logFile}, or an empty {@code Optional} if the file cannot be
+     * opened, e.g. because the working folder is read-only. A missing log file must not stop the app from starting.
+     */
+    static Optional<FileHandler> createFileHandler(String logFile) {
         try {
-            FileHandler fileHandler = new FileHandler(LOG_FILE, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
+            FileHandler fileHandler = new FileHandler(logFile, MAX_FILE_SIZE_IN_BYTES, MAX_FILE_COUNT, true);
             fileHandler.setFormatter(new SimpleFormatter());
             fileHandler.setLevel(Level.ALL);
-            baseLogger.addHandler(fileHandler);
+            return Optional.of(fileHandler);
         } catch (IOException e) {
-            logger.warning("Error adding file handler for logger.");
+            // logger is not initialised yet while setBaseLogger runs, so report through baseLogger
+            baseLogger.warning("Could not create the log file " + logFile + "; logging to the console only.");
+            return Optional.empty();
         }
     }
 
