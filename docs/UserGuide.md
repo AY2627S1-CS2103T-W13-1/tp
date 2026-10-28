@@ -390,15 +390,20 @@ Format: `filter [t/TAG]... [i/STATUS]`
   while `filter t/strik` does not. `filter t/Trial Group 2` treats the whole label as one tag.
 * Repeat `t/` to match **any** requested tag (OR). A player matching multiple tags is listed once.
 * Separate parameter prefixes with ordinary spaces; tabs immediately before a prefix are not recognised as separators in this version.
-* Filter the whole team, including players hidden by a previous `find`, `filter`, or `squad`. The new filter replaces that view rather than adding conditions to it. Results follow the active rating sort, or insertion order when no sort is active, and are numbered from 1.
+* Filter the whole team, including players hidden by a previous `find`, `filter`, or `squad`.
+  Results follow the active rating sort, or insertion order when no sort is active,
+  and are numbered from 1. Check these displayed indices before editing or deleting.
+  Each new filter replaces the previous view rather than adding conditions to it.
 * `delete` and `edit` use the displayed indices and keep the filter; a successful `add`
   restores the full list. `find` replaces the tag filter with its name search.
 * `keep`, `cut`, `pending`, and `rate` also use displayed indices and preserve tags.
   `squad` replaces the tag filter with the kept-player view.
-* `list` restores the full roster and clears sorting. Filtering changes no player data and does not save. Filters and sorting are not restored after restarting; your saved players and their tags are restored.
+* `list` restores the full roster and clears sorting, returning players to insertion order.
+  Filtering changes no player data and does not save. Filters and sorting are not restored after restarting; your saved players and their tags are restored.
 * Missing conditions, invalid labels/statuses, duplicate `i/` arguments, or text before the first recognised parameter show an error and leave the current list and data unchanged. An injury-only filter is valid. A tag with no matches is valid and displays `0 players listed!`, including on an empty team.
 
-For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tagged `Captain`:
+For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tagged `Captain`,
+added in that order with no active sort:
 
 | Command | Displayed players | Result message |
 | --- | --- | --- |
@@ -407,7 +412,11 @@ For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tag
 | `filter t/Goalkeeper` | Bob | `1 player listed!` |
 | `filter t/strik` | Empty list | `0 players listed!` |
 
-For example, if Amy is rated 2 and Charlie is rated 9, `sort rating` followed by `filter t/Captain` shows Charlie as 1 and Amy as 2. `edit 1 t/Goalkeeper` then changes Charlie's tags, even though Amy was added first. Charlie disappears from the Captain results because the filter remains active. `list` shows both players again and clears sorting.
+For example, if Amy and Bob both have the `Striker` tag and ratings of 2 and 9 respectively,
+`sort rating` followed by `filter t/Striker` shows Bob first and Amy second. `list` clears
+that sort and restores the full team in insertion order.
+
+Before running `list` in that example, `edit 1 t/Goalkeeper` updates Bob and removes him from the Striker results, because the filter remains active. Amy becomes the first displayed match. Recheck indices after an update.
 
 Use the lowercase command word `filter`; `Filter` is unrecognized. `filter` without
 parameters displays the format error and syntax example. `filter t/` is rejected
