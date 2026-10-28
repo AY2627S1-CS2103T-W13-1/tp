@@ -183,20 +183,77 @@ provides the separate command-level design view.
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W13-1/tp/tree/master/src/main/java/seedu/address/storage/Storage.java)
 
-<pic src="images/StorageClassDiagram.png" width="800" alt="Class diagram of the Storage component" />
-
-The image is drawn from [`StorageClassDiagram.svg`](diagrams/StorageClassDiagram.svg). After editing the SVG, regenerate the PNG at twice its size, e.g. with Chrome:
-`chrome --headless --force-device-scale-factor=2 --window-size=960,600 --screenshot=docs/images/StorageClassDiagram.png docs/diagrams/StorageClassDiagram.svg`.
+<puml src="diagrams/StorageClassDiagram.puml" width="600" alt="Class diagram of the Storage component" />
 
 The `Storage` component,
-* can save both the team's player data and user preference data in JSON format, and read them back into corresponding objects.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
-* saves each player as a `JsonAdaptedPerson`, which holds every field as a `String` and checks each one when converting it back into a `Person`.
-* reads a field that is missing from the file as absent, so data files saved before a field existed still load. For example, a player from a v1.3 file has no jersey number.
-* writes the jersey number only for a player who has one; for a player without one, the field is left out of the file.
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* saves the team and the user preferences as JSON files, and reads them back into model objects.
+  `StorageManager` implements `Storage` and delegates to one class per file: `JsonAddressBookStorage` for the team
+  (`data/addressbook.json`) and `JsonUserPrefsStorage` for window settings (`preferences.json`). Both paths are relative
+  to the working directory, i.e. the folder the app is launched from.
+* depends on some classes in the `Model` component, because its job is to save and retrieve objects that belong to the `Model`.
+
+**JSON adaptation.** `JsonSerializableAddressBook` holds a list of `JsonAdaptedPerson`, which stores every player field
+as a `String` (or a list of `String` for tags), so that Jackson can map it to JSON directly. Converting back with
+`JsonAdaptedPerson#toModelType()` validates each field with the same rules the commands use, e.g. `Phone#isValidPhone`
+and `Tag#isValidTagName`. `JsonSerializableAddressBook#toModelType()` additionally rejects a `null` entry in the
+`persons` list and two players with the same name (as defined by `Person#isSamePerson`).
+
+**Defaults and backward compatibility.** A field that is missing from the file takes the default a new player would have:
+`PENDING` selection status, unrated, fit, no tags, an empty remark and no jersey number. Data files saved by earlier
+versions, which lack the newer fields, therefore still load. Conversely, `JsonAdaptedPerson` leaves out an unset
+jersey number when saving, and writes a `null` rating for an unrated player.
+
+**Loading at startup.** `MainApp#initModelManager` reads the team once, when the app starts:
+
+<puml src="diagrams/StorageLoadActivityDiagram.puml" width="550" alt="Activity diagram of how the team is loaded at startup" />
+
+`JsonUtil#readJsonFile` returns an empty `Optional` for a missing file, and throws a `DataLoadingException` for a file that
+cannot be parsed. `JsonAddressBookStorage` also turns an `IllegalValueException` from the conversion into a
+`DataLoadingException`, so an invalid file reaches the same fallback whatever is wrong with it: an empty team plus
+`Messages.MESSAGE_DATA_FILE_UNREADABLE`, which `UiManager` shows in the result box. Nothing is written at startup, so the
+invalid file stays on disk for the coach to fix. An unparsable `preferences.json` similarly falls back to default window settings.
+
+<box type="info" seamless>
+
+**Known limitation:** a data file or `preferences.json` whose whole content is `null`, and a `preferences.json` with
+`"guiSettings": null`, are parsed successfully into `null` values instead of failing, so they bypass this fallback and
+startup fails with a `NullPointerException`. These cases are listed in the UG's Known issues.
+</box>
+
+**Saving after a command.** The `Model` holds the team in memory; the file is only written by `LogicManager#execute`:
+
+<puml src="diagrams/StorageSaveActivityDiagram.puml" width="650" alt="Activity diagram of how LogicManager decides whether to save" />
+
+* `LogicManager#isReadOnly` lists the command types that never change data (`list`, `find`, `filter`, `sort`, `squad`,
+  `help` and `exit`). Every other command type saves after it executes successfully, even when it changed nothing
+  (e.g. `keep` on a player who is already kept), in which case the saved contents are the same.
+* A command that is rejected throws a `ParseException` or `CommandException` before the save step, so the file is unchanged.
+* Each save writes the whole team through `JsonAddressBookStorage#saveAddressBook`, which also recreates a missing `data`
+  folder via `FileUtil#createIfMissing`.
+* If the save throws an `IOException` (e.g. the file or folder is read-only), `LogicManager` throws a `CommandException`
+  with `LogicManager.MESSAGE_SAVE_FAILURE`. The change has already been applied to the in-memory `Model`, so the app and
+  the file now differ until the next successful save, which writes the whole team and so also saves the earlier change.
+
+**Design considerations.**
+
+**Aspect: When to save**
+
+* **Alternative 1 (current choice):** Save the whole team after every command that may change data.
+  * Pros: Simple and robust; the file never lags behind by more than the one command that failed to save, and a later
+    successful save repairs it.
+  * Cons: Rewrites the whole file for every change, which is fine for a team-sized roster but would not scale to very large files.
+* **Alternative 2:** Save only when the app exits.
+  * Cons: A crash or a failed final save loses every change of the session.
+
+**Aspect: What to do with an invalid data file**
+
+* **Alternative 1 (current choice):** Start with an empty team, warn, and leave the file untouched until the next change.
+  * Pros: The coach can close the app and repair or restore the file without losing it.
+  * Cons: A careless change after the warning overwrites the invalid file.
+* **Alternative 2:** Refuse to start.
+  * Cons: The coach cannot use the app at all until the file is fixed outside it.
 
 ### Common classes
 
