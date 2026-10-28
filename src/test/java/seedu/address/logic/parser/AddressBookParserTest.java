@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -44,7 +45,18 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_clear() throws Exception {
         assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD) instanceof ClearCommand);
-        assertTrue(parser.parseCommand(ClearCommand.COMMAND_WORD + " 3") instanceof ClearCommand);
+        assertTrue(parser.parseCommand("  clear \t ") instanceof ClearCommand);
+    }
+
+    @Test
+    public void parseCommand_clearWithArguments_throwsParseException() {
+        String usage = "clear: Deletes all players from the team.\n"
+                + "Parameters: none. Use 'clear' on its own.\n"
+                + "Warning: This cannot be undone and does not ask for confirmation.";
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, usage);
+        for (String input : List.of("clear 1", "clear everything", "clear n/Amy", "clear /")) {
+            assertThrows(ParseException.class, expectedMessage, () -> parser.parseCommand(input));
+        }
     }
 
     @Test

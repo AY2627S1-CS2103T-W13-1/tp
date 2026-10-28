@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_REMARK;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -30,12 +31,18 @@ public class RemarkCommandParserTest {
     @Test
     public void parse_missingFieldsOrInvalidIndex_throwsParseException() {
         String usage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, RemarkCommand.MESSAGE_USAGE);
-        for (String args : new String[] {"", " 1", " r/Strong left foot", " 0 r/Strong left foot",
-            " -1 r/Strong left foot", " abc r/Strong left foot",
-            " 2147483648 r/Strong left foot", " 1 extra r/Strong left foot"}) {
+        for (String args : new String[] {"", " 1", " r/Strong left foot", " abc r/Strong left foot",
+            " 1 extra r/Strong left foot"}) {
             assertParseFailure(parser, args, usage);
         }
         assertThrows(NullPointerException.class, () -> parser.parse(null));
+    }
+
+    @Test
+    public void parse_wholeNumberNotValidIndex_throwsInvalidIndex() {
+        for (String index : new String[] {"0", "-1", "2147483648"}) {
+            assertParseFailure(parser, " " + index + " r/Strong left foot", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        }
     }
 
     @Test

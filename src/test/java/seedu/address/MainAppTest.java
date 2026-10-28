@@ -67,6 +67,19 @@ public class MainAppTest {
     }
 
     @Test
+    public void initAndStart_nullPlayer_showsWarningAndKeepsFile() throws Exception {
+        Files.createDirectories(dataFile.getParent());
+        byte[] invalidData = "{\"persons\":[null]}".getBytes();
+        Files.write(dataFile, invalidData);
+
+        app.init();
+
+        assertEquals(new AddressBook(), app.model.getAddressBook());
+        assertEquals(Messages.MESSAGE_DATA_FILE_UNREADABLE, startAndGetResultDisplayText());
+        assertArrayEquals(invalidData, Files.readAllBytes(dataFile));
+    }
+
+    @Test
     public void stop_afterInit_savesPreferences() throws Exception {
         app.init();
         Files.deleteIfExists(prefsFile);

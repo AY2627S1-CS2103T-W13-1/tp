@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -38,11 +39,16 @@ public class SetStatusCommandParserTest {
                 SetStatusCommand.getUsage(SelectionStatus.KEPT));
         assertParseFailure(keepParser, "", keepUsage);
         assertParseFailure(keepParser, "a", keepUsage);
-        assertParseFailure(keepParser, "0", keepUsage);
         assertParseFailure(keepParser, "1 2", keepUsage);
 
         // each command word shows its own usage
-        assertParseFailure(cutParser, "-1", String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+        assertParseFailure(cutParser, "x", String.format(MESSAGE_INVALID_COMMAND_FORMAT,
                 SetStatusCommand.getUsage(SelectionStatus.CUT)));
+    }
+
+    @Test
+    public void parse_wholeNumberNotValidIndex_throwsInvalidIndex() {
+        assertParseFailure(keepParser, "0", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertParseFailure(cutParser, "-1", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 }

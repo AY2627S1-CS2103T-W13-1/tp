@@ -11,6 +11,9 @@ import seedu.address.model.Model;
 public class ClearCommand extends Command {
 
     public static final String COMMAND_WORD = "clear";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Deletes all players from the team.\n"
+            + "Parameters: none. Use 'clear' on its own.\n"
+            + "Warning: This cannot be undone and does not ask for confirmation.";
     public static final String MESSAGE_SUCCESS = "All players have been cleared from the team!";
 
 
