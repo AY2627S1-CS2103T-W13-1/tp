@@ -143,13 +143,17 @@ Examples, starting from a team that already contains `Nur'ain Binte Hassan` with
 
 ### Tagging a player: `tag` (US08)
 
-Use `tag` to replace or clear an existing player's tags.
+Use custom labels to group players by position, role, season or trial group. Add labels with `add`, or replace an existing player's labels with `tag`.
 
-Format: `tag INDEX t/TAG [t/TAG]...`
+Format for replacing tags: `tag INDEX t/TAG [t/TAG]...`
 
-`INDEX` is the current displayed player's positive index. Supply at least one `t/`.
-A single empty `t/` clears all tags; combining an empty label with other labels is invalid.
-Tags can also be supplied when creating a player with `add`:
+Format for clearing tags: `tag INDEX t/`
+
+`INDEX` is the positive whole number beside the player in the displayed list, including search results, tag/injury filters and the squad. Recheck the displayed numbers after changing a view or a player. Supplying tags replaces the entire old set; include every label you want to keep. Name, phone and jersey edits preserve the existing tags. A single empty `t/` clears all tags; mixing an empty label with other labels is invalid.
+
+Separate parameter prefixes with ordinary spaces. A tab immediately before `t/` is not recognised as a parameter separator in this version.
+
+Examples:
 
 * `add n/Amy Tan p/91234567 t/Striker t/Trial Group 2` adds Amy with two tags.
 * `tag 1 t/Goalkeeper t/Captain` replaces the first displayed player's tags with these two labels.
@@ -170,19 +174,21 @@ so `t/Striker t/striker` keeps the first spelling, `Striker`, once. Tags appear 
 alphabetical order on player cards and command feedback. They do not affect duplicate
 player detection: the same name is still rejected even if tags differ.
 
-Tags are saved automatically and restored when you restart. Older data files without
-a `tags` field load with no tags. Tag edits use the displayed list's index and keep the
-current search, tag/injury filter, squad view and active sorting. If the updated tags no
-longer match the current tag filter, the player disappears from that view. Use `list` to see everyone.
+Tags are saved automatically and restored when you restart. Older data files without a `tags` field load with no tags. Changing tags keeps the current search, tag/injury filter, squad view and active rating sort. If the player no longer matches the tag filter, they disappear from that view and the remaining players are renumbered. Use `list` to see everyone in insertion order again.
 
-Existing `edit INDEX t/...` commands are rejected with guidance to use `tag`; even a mixed
-name/phone/jersey-and-tag edit changes nothing. Use separate `edit` and `tag` commands.
-Successful updates name the player and their new tags, e.g. `Updated tags for Amy Tan: Captain, Goalkeeper`.
-Clearing reports `Amy Tan: tags cleared.` Repeating the same tags reports that no changes were made.
+Changing only tags preserves the player's name, phone, jersey number, rating, selection status, remark and injury status. Name, phone, jersey, rating, selection, remark and injury updates also preserve tags unless you explicitly replace or clear them with `tag`.
 
-Changing tags, names, or phone numbers keeps the player's selection status and rating.
-The `keep`, `cut`, `pending`, and `rate` commands keep existing tags. `squad` displays
-kept players with their tags and ratings.
+For a player named Amy Tan with phone 91234567 and no jersey number:
+
+| Command | Result message |
+| --- | --- |
+| `tag 1 t/Captain t/Striker` | `Updated tags for Amy Tan: Captain, Striker` |
+| Repeat the same command | `No changes made: Amy Tan already has these details.` |
+| `tag 1 t/` | `Amy Tan: tags cleared.` |
+| Repeat `tag 1 t/` | `No changes made: Amy Tan already has these details.` |
+| `tag 1 t/Bad!` | `The tag "Bad!" contains "!", which is not allowed. Tags can contain letters, digits, spaces and the symbols - & / _ + ' .` |
+
+Changing only a tag's capitalisation, e.g. from `STRIKER` to `Striker`, updates its displayed and saved spelling. A malformed index, a missing index or an index outside the displayed list rejects the update. For an out-of-range index the result is `The player index provided is invalid.` Invalid tags reject the whole tag update. The old `edit INDEX t/...` syntax is rejected with guidance to use `tag`, including mixed name/phone/jersey-and-tag edits; no field changes. Use separate commands. After a rejected command, the data and view remain unchanged. If saving fails after a valid tag update, follow [Saving the data](#saving-the-data) before closing the app.
 
 ### Listing all players: `list`
 
@@ -351,10 +357,11 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
   `Shaun O'Neil`, `find Jr` matches `Lim Jr.`, and `find s/o` matches `Muthu s/o Ramasamy`. Each part
   must still match in full, so `find Min` does not match `Tan Wei-Ming`.
 * No tagged parameters are used; `find n/Wei` searches for the literal word `n/Wei`.
-* Each search searches the whole team, including players hidden by an earlier search.
-* Results follow the active rating sort, or insertion order when no sort is active and are numbered from 1. After `find`, `delete 1`
+* Each search searches the whole team, including players hidden by an earlier `find`, `filter` or `squad`. It replaces that view rather than adding another condition.
+* Results follow the active rating sort, or insertion order when no sort is active, and are numbered from 1. After `find`, `delete 1`
   deletes the first displayed match. The search filter remains active after deletion.
-* Use `list` to restore the full team list.
+* A later `filter` replaces the name search; `squad` replaces it with all kept players. Both retain active sorting. Use `list` to restore the full team list and clear sorting.
+* A valid keyword with no matches, including a search on an empty team, shows an empty list and `0 players listed!`.
 * Searching changes neither player records nor the saved data file.
 
 For a team containing `Tan Wei Ming`, `Lim Wei Jie`, `Nur Aisyah`, and `Muthu s/o Ramasamy`:
@@ -382,7 +389,7 @@ case-sensitive: use `find`, as `Find` is unrecognized.
 
 ### Filtering players by tag: `filter` (US16)
 
-Show a group of players by the custom tags assigned using `add` or `edit`, by injury status, or both.
+Show a group of players by the custom tags assigned using `add` or `tag`, by injury status, or both.
 
 Format: `filter [t/TAG]... [i/STATUS]`
 
@@ -392,17 +399,18 @@ Format: `filter [t/TAG]... [i/STATUS]`
 * Match complete labels, ignoring capitalisation: `filter t/striker` matches `Striker`,
   while `filter t/strik` does not. `filter t/Trial Group 2` treats the whole label as one tag.
 * Repeat `t/` to match **any** requested tag (OR). A player matching multiple tags is listed once.
+* Separate parameter prefixes with ordinary spaces; tabs immediately before a prefix are not recognised as separators in this version.
 * Filter the whole team, including players hidden by a previous `find`, `filter`, or `squad`.
   Results follow the active rating sort, or insertion order when no sort is active,
   and are numbered from 1. Check these displayed indices before editing or deleting.
+  Each new filter replaces the previous view rather than adding conditions to it.
 * `delete` and `edit` use the displayed indices and keep the filter; a successful `add`
   restores the full list. `find` replaces the tag filter with its name search.
 * `keep`, `cut`, `pending`, and `rate` also use displayed indices and preserve tags.
   `squad` replaces the tag filter with the kept-player view.
 * `list` restores the full roster and clears sorting, returning players to insertion order.
-  Filtering changes no player data and does not save.
-* Missing tags, invalid labels, or text before the first `t/` show an error and leave the
-  current list unchanged. A tag with no matches is valid and displays `0 players listed!`.
+  Filtering changes no player data and does not save. Filters and sorting are not restored after restarting; your saved players and their tags are restored.
+* Missing conditions, invalid labels/statuses, duplicate `i/` arguments, or text before the first recognised parameter show an error and leave the current list and data unchanged. An injury-only filter is valid. A tag with no matches is valid and displays `0 players listed!`, including on an empty team.
 
 For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tagged `Captain`,
 added in that order with no active sort:
@@ -418,9 +426,22 @@ For example, if Amy and Bob both have the `Striker` tag and ratings of 2 and 9 r
 `sort rating` followed by `filter t/Striker` shows Bob first and Amy second. `list` clears
 that sort and restores the full team in insertion order.
 
+Before running `list` in that example, `tag 1 t/Goalkeeper` updates Bob and removes him from the Striker results, because the filter remains active. Amy becomes the first displayed match. Recheck indices after an update.
+
 Use the lowercase command word `filter`; `Filter` is unrecognized. `filter` without
 parameters displays the format error and syntax example. `filter t/` is rejected
 because a tag cannot be empty; it does not clear anything.
+
+With no conditions, the result box shows:
+
+```text
+Invalid command format!
+filter: Lists players with any of the given tags (exact labels, ignoring case), the given injury status, or both.
+Parameters: [t/TAG]... [i/STATUS] (at least one; STATUS is injured or fit)
+Examples: filter t/Striker t/Trial Group 2, filter i/injured, filter t/Striker i/fit
+```
+
+`filter t/Bad!` shows the same specific tag error as the tag-update example above. `filter t/` instead explains that a tag cannot be empty and gives `tag INDEX t/` as the clearing syntax. To remove the view filter while keeping player tags, use `list`.
 
 ### Deleting a player: `delete`
 
@@ -553,7 +574,7 @@ Action     | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`; remove a jersey number with `edit 3 j/`
 **Exit**   | `exit`
-**Filter** | `filter [t/TAG]... [i/STATUS]`<br> e.g., `filter t/Striker t/Captain`, `filter i/injured`
+**Filter** | `filter [t/TAG]... [i/STATUS]`<br> e.g., `filter t/Striker t/Captain`, `filter i/injured`, `filter t/Striker i/fit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Injury** | `injury INDEX i/STATUS`<br> e.g., `injury 1 i/injured`; mark fit again with `injury 1 i/fit`
 **Tag**    | `tag INDEX t/TAG [t/TAG]...`<br> e.g., `tag 1 t/Striker`, `tag 1 t/`
