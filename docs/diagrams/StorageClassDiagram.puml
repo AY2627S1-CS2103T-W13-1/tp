@@ -44,7 +44,7 @@ show JsonAdaptedPerson fields
 hide HiddenOutside
 
 note right of JsonAdaptedPerson
-  A field that is missing from the file
+  An optional field missing from the file
   takes its default (e.g. PENDING, unrated,
   fit), so older data files still load.
 end note
