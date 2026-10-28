@@ -77,14 +77,17 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_addAndEditAfterFilter_restoreFullRosterAndPersistTags() throws Exception {
+    public void execute_editKeepsFilterAndAddRestoresFullRoster_persistTags() throws Exception {
         logic.execute("add n/Amy p/123 t/Striker");
         logic.execute("add n/Bob p/456 t/Goalkeeper");
         logic.execute("filter t/Goalkeeper");
+        logic.execute("edit 1 p/4567");
+        assertEquals(List.of("Bob"), model.getFilteredPersonList().stream().map(p -> p.getName().fullName).toList());
+
+        // Bob no longer has the filtered tag, so he drops out of the filtered list
         logic.execute("edit 1 t/Captain");
-        assertEquals("Bob", model.getFilteredPersonList().getLast().getName().fullName);
-        assertEquals(Set.of(new Tag("Captain")), model.getFilteredPersonList().getLast().getTags());
-        assertEquals(2, model.getFilteredPersonList().size());
+        assertEquals(0, model.getFilteredPersonList().size());
+        assertEquals(Set.of(new Tag("Captain")), model.getAddressBook().getPersonList().getLast().getTags());
         logic.execute("filter t/Striker");
         logic.execute("add n/Charlie p/789 t/Captain");
         assertEquals(3, model.getFilteredPersonList().size());
@@ -115,11 +118,14 @@ public class LogicManagerTest {
         logic.execute("add n/Tagged Player p/123 t/Striker");
         AddressBook original = new AddressBook(model.getAddressBook());
         logic = createLogicWithFailingSave();
-        for (String command : List.of("add n/Other p/456 t/", "edit 1 t/Bad!", "edit 1 t/ t/Striker",
-                "edit 1 t/Striker t/", "edit 1 t/ t/")) {
-            assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> logic.execute(command));
+        for (String command : List.of("add n/Other p/456 t/", "edit 1 t/ t/Striker", "edit 1 t/Striker t/",
+                "edit 1 t/ t/")) {
+            assertThrows(ParseException.class, Tag.MESSAGE_EMPTY, () -> logic.execute(command));
             assertEquals(original, model.getAddressBook());
         }
+        assertThrows(ParseException.class, String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"), () ->
+                logic.execute("edit 1 t/Bad!"));
+        assertEquals(original, model.getAddressBook());
         assertThrows(CommandException.class,
                 AddCommand.MESSAGE_DUPLICATE_PERSON, () -> logic.execute("add n/Tagged Player p/999 t/Goalkeeper"));
         assertThrows(CommandException.class,

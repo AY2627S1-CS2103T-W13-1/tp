@@ -22,8 +22,6 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.Messages;
@@ -47,10 +45,13 @@ public class AddCommandParserTest {
 
     @Test
     public void parse_anyInvalidTag_rejectsWholeCommand() {
-        for (String labels : List.of(" t/", " t/Striker t/", " t/Bad!", " t/"
-                + "a".repeat(Tag.MAX_LENGTH + 1))) {
-            assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + labels, Tag.MESSAGE_CONSTRAINTS);
-        }
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " t/", Tag.MESSAGE_EMPTY);
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " t/Striker t/", Tag.MESSAGE_EMPTY);
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " t/Bad!",
+                String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"));
+        String tooLong = "a".repeat(Tag.MAX_LENGTH + 1);
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " t/" + tooLong,
+                String.format(Tag.MESSAGE_TOO_LONG, tooLong, Tag.MAX_LENGTH + 1));
     }
 
     @Test

@@ -12,6 +12,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalPersons;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -71,7 +72,7 @@ public class MainWindowTest {
             assertEquals("1 player listed!", resultDisplay.getText());
             assertEquals("Tag Trialist", model.getFilteredPersonList().getFirst().getName().fullName);
             enterCommand("filter t/");
-            assertEquals(Tag.MESSAGE_CONSTRAINTS, resultDisplay.getText());
+            assertEquals(Tag.MESSAGE_EMPTY, resultDisplay.getText());
             assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
             assertEquals(1, model.getFilteredPersonList().size());
             enterCommand("filter t/NoSuchTag");
@@ -127,17 +128,22 @@ public class MainWindowTest {
             enterCommand("edit 1 t/" + "A".repeat(Tag.MAX_LENGTH));
             assertTrue(resultDisplay.getText().contains("Tags: " + "A".repeat(Tag.MAX_LENGTH)));
             AddressBook originalData = new AddressBook(model.getAddressBook());
-            for (String input : List.of("edit 1 t/Bad!", "edit 1 t/" + "A".repeat(Tag.MAX_LENGTH + 1),
-                    "edit 1 t/ t/Striker")) {
+            String tooLong = "A".repeat(Tag.MAX_LENGTH + 1);
+            Map<String, String> expectedErrors = Map.of(
+                    "edit 1 t/Bad!", String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"),
+                    "edit 1 t/" + tooLong, String.format(Tag.MESSAGE_TOO_LONG, tooLong, Tag.MAX_LENGTH + 1),
+                    "edit 1 t/ t/Striker", Tag.MESSAGE_EMPTY);
+            for (String input : expectedErrors.keySet()) {
                 enterCommand(input);
-                assertEquals(Tag.MESSAGE_CONSTRAINTS, resultDisplay.getText());
+                assertEquals(expectedErrors.get(input), resultDisplay.getText());
                 assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                 assertEquals(originalData, model.getAddressBook());
             }
             enterCommand("find Trialist");
             enterCommand("edit 1 t/");
             assertPlayerPanelShown();
-            assertEquals(getTypicalPersons().size() + 1, model.getFilteredPersonList().size());
+            // edit keeps the search, so only the edited player is still shown
+            assertEquals(1, model.getFilteredPersonList().size());
             assertTrue(model.getFilteredPersonList().getLast().getTags().isEmpty());
             assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
         });

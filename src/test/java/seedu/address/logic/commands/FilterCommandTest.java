@@ -77,6 +77,14 @@ public class FilterCommandTest {
     }
 
     @Test
+    public void execute_unicodeCaseVariant_matchesTag() {
+        Person forward = new PersonBuilder().withName("Dee").withTags("İleri").build();
+        model.addPerson(forward);
+        commandFor("ileri").execute(model);
+        assertEquals(List.of(forward), model.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_injuryStatusAlone_listsPlayersWithThatStatus() {
         FilterCommand injured = new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.INJURED));
         assertEquals("1 player listed!", injured.execute(model).getFeedbackToUser());

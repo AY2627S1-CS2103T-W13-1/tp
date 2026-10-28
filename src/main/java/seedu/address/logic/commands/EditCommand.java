@@ -5,12 +5,12 @@ import static seedu.address.logic.parser.CliSyntax.PREFIX_JERSEY_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_TAG;
-import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.commons.util.CollectionUtil;
@@ -47,6 +47,9 @@ public class EditCommand extends Command {
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited player: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
     public static final String MESSAGE_DUPLICATE_PERSON = "This player already exists in the team.";
+    public static final String MESSAGE_NO_CHANGE = "No changes made: %1$s already has these details.";
+    public static final String MESSAGE_JERSEY_NUMBER_REMOVED = " (jersey number removed)";
+    public static final String MESSAGE_TAGS_CLEARED = " (tags cleared)";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -81,8 +84,13 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
+        if (isUnchanged(personToEdit, editedPerson)) {
+            return new CommandResult(String.format(MESSAGE_NO_CHANGE, personToEdit.getName()));
+        }
+
+        // The displayed list is not reset, so the next index still refers to the same search results.
+        // An edited player who no longer matches the search drops out of the displayed list.
         model.setPerson(personToEdit, editedPerson);
-        model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         // Only warn when this edit sets the jersey number, so that editing other details does not repeat it
         String warning = editPersonDescriptor.isJerseyNumberEdited()
                 ? DuplicateJerseyNumberChecker.getWarning(model, editedPerson)
@@ -91,7 +99,34 @@ public class EditCommand extends Command {
         if (editPersonDescriptor.getName().isPresent()) {
             warning += SimilarNameChecker.getWarning(model, editedPerson);
         }
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)) + warning);
+        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + describeRemovals(personToEdit, editedPerson) + warning);
+    }
+
+    /**
+     * Returns true if {@code editedPerson} looks exactly like {@code personToEdit}. {@link Person#equals} is
+     * not enough on its own, as tags are equal regardless of capitalisation, so it would treat changing a tag
+     * from {@code STRIKER} to {@code Striker} as no change, although the stored spelling changes.
+     */
+    private static boolean isUnchanged(Person personToEdit, Person editedPerson) {
+        return editedPerson.equals(personToEdit)
+                && getTagSpellings(editedPerson).equals(getTagSpellings(personToEdit));
+    }
+
+    private static Set<String> getTagSpellings(Person person) {
+        return person.getTags().stream().map(Tag::toString).collect(Collectors.toSet());
+    }
+
+    /**
+     * Returns notes on the details this edit removed, which the success message would otherwise not
+     * mention because {@link Messages#format(Person)} leaves out empty details.
+     */
+    private static String describeRemovals(Person personToEdit, Person editedPerson) {
+        boolean isJerseyNumberRemoved = personToEdit.getJerseyNumber().isPresent()
+                && editedPerson.getJerseyNumber().isEmpty();
+        boolean areTagsCleared = !personToEdit.getTags().isEmpty() && editedPerson.getTags().isEmpty();
+        return (isJerseyNumberRemoved ? MESSAGE_JERSEY_NUMBER_REMOVED : "")
+                + (areTagsCleared ? MESSAGE_TAGS_CLEARED : "");
     }
 
     /**
