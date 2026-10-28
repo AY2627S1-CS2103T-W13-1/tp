@@ -160,6 +160,8 @@ Orders the displayed players by their performance rating.
 Format: `sort rating [asc|desc]`
 
 * `sort rating` and `sort rating desc` show the highest rating first.
+* `rating`, `asc` and `desc` can be typed in any letter case, e.g. `sort Rating ASC`.
+  The command word `sort` itself must be lower case.
 * `sort rating asc` shows the lowest rating first. **Unrated** players appear last
   in both directions; a score of `0` still appears before unrated players.
 * Players with the same rating keep their original insertion order.
