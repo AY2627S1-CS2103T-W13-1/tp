@@ -19,6 +19,8 @@ public class Messages {
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The player index provided is invalid.";
     public static final String MESSAGE_DUPLICATE_JERSEY_NUMBER =
             "\nWarning: jersey number %1$s is also used by %2$s.";
+    public static final String MESSAGE_SIMILAR_NAME =
+            "\nWarning: this name looks like %1$s. Check that this is not the same player.";
     public static final String MESSAGE_DUPLICATE_FIELDS =
                 "Multiple values specified for the following single-valued field(s): ";
 

@@ -38,11 +38,14 @@ public class NameTest {
         assertFalse(Name.isValidName("^")); // only disallowed characters
         assertFalse(Name.isValidName("peter*")); // contains disallowed characters
         assertFalse(Name.isValidName("Tan @ Ming")); // contains '@'
-        assertFalse(Name.isValidName("Tan (GK)")); // parentheses are not allowed
         assertFalse(Name.isValidName("a".repeat(Name.MAX_LENGTH + 1))); // exceeds maximum length
 
         // valid name
         assertTrue(Name.isValidName("Muthu s/o Ramasamy")); // slash
+        assertTrue(Name.isValidName("José García")); // accented letters
+        assertTrue(Name.isValidName("Zhang Wei 张伟")); // non-English letters
+        assertTrue(Name.isValidName("Dr. Lim, Jr")); // comma
+        assertTrue(Name.isValidName("Lim Ah Kow (Ah Boy)")); // brackets
         assertTrue(Name.isValidName("Nur'ain Binte Hassan")); // apostrophe
         assertTrue(Name.isValidName("Anne-Marie Tan Jr.")); // hyphen and full stop
         assertTrue(Name.isValidName("peter jack")); // alphabets only
@@ -92,6 +95,22 @@ public class NameTest {
         // different name -> returns false
         assertFalse(name.isSameName(new Name("Tan Wei Ming 2")));
         assertFalse(name.isSameName(new Name("TanWei Ming")));
+    }
+
+    @Test
+    public void isSimilarTo() {
+        Name name = new Name("Tan Wei Ming");
+
+        // same letters and digits, ignoring spaces, punctuation and case -> returns true
+        assertTrue(name.isSimilarTo(new Name("TanWei Ming")));
+        assertTrue(name.isSimilarTo(new Name("tan-wei-ming")));
+        assertTrue(name.isSimilarTo(new Name("Tan Wei Ming")));
+
+        // different letters or digits -> returns false
+        assertFalse(name.isSimilarTo(new Name("Tan Wei Ming 2")));
+        assertFalse(name.isSimilarTo(new Name("Tan Wei Min")));
+
+        assertThrows(NullPointerException.class, () -> name.isSimilarTo(null));
     }
 
     @Test
