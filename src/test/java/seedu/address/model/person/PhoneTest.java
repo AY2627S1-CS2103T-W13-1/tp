@@ -63,6 +63,10 @@ public class PhoneTest {
         assertEquals("81234567", Phone.normalize("8123-4567"));
         assertEquals("+6598765432", Phone.normalize("+65 9876-5432"));
 
+        // dots and brackets -> removed
+        assertEquals("6591234567", Phone.normalize("(65) 9123 4567"));
+        assertEquals("91234567", Phone.normalize("9123.4567"));
+
         // other characters -> kept, so that validation can reject them
         assertEquals("9123ABCD", Phone.normalize("9123ABCD"));
     }
