@@ -20,6 +20,8 @@ npm run build --prefix docs
 npm run serve --prefix docs
 ```
 
+`package.json` pins the MarkBind CLI version, while the committed `package-lock.json` also pins its transitive dependency graph for reproducible `npm ci` installations. Keep both files in sync when upgrading: the older MarkBind 5 lock cannot be used with the 7.2.1 dependency. The deployment workflow separately pins the same CLI version; that version pin does not replace the local dependency lock.
+
 `build` generates `docs/_site`; `serve` opens a local preview. Do not commit `_site` or `node_modules`. Before opening a documentation PR, inspect the generated UG, DG, navigation, tables, screenshot and diagrams, including narrow-screen and print layouts. Deployment runs on `master`; building a PR locally does not publish it. The inherited `team/johndoe.md` portfolio example is excluded from published pages; it is a template, not a team member or a record of implemented features.
 
 Edit PlantUML sources in `docs/diagrams`, using the existing component colors in `style.puml`. The site renders `<puml>` elements at build time. If a diagram also has a generated HTML view, refresh it after changing its source:

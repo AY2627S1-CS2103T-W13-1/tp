@@ -629,11 +629,11 @@ Field | Allowed values | If missing
 `name` | Same rules as `n/NAME` in [`add`](#adding-a-player-add) | Required
 `phone` | Digits only, optionally starting with `+`, 3 to 15 digits (no spaces) | Required
 `selectionStatus` | `PENDING`, `KEPT` or `CUT`, in any letter case | Pending
-`rating` | A digit string from `"0"` to `"10"`, or `null`; the app writes rated values as strings | Unrated
+`rating` | `"0"` to `"10"`, a plain whole number from `0` to `10`, or `null`; the app writes rated values as strings | Unrated
 `tags` | A list of labels following the [tag rules](#tagging-a-player-tag-us08) | No tags
 `remark` | Any text | No remark
 `injuryStatus` | `fit` or `injured`, in any letter case | Fit
-`jerseyNumber` | A digit string for a whole number from `0` to `99`, e.g. `"7"`; leading zeros are accepted | No jersey number
+`jerseyNumber` | A digit string or plain whole number from `0` to `99`, e.g. `"7"` or `7`; the app writes strings, and leading zeros are accepted in strings | No jersey number
 
 <box type="warning" seamless>
 

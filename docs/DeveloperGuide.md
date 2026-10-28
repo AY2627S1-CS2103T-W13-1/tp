@@ -214,7 +214,7 @@ and `Tag#isValidTagName`. `JsonSerializableAddressBook#toModelType()` additional
 **Defaults and backward compatibility.** A missing optional field takes the default a new player would have; name and phone remain required:
 `PENDING` selection status, unrated, fit, no tags, an empty remark and no jersey number. Data files saved by earlier
 versions, which lack the newer fields, therefore still load. Conversely, `JsonAdaptedPerson` leaves out an unset
-jersey number when saving, and writes a `null` rating for an unrated player.
+jersey number when saving, and writes a `null` rating for an unrated player. Jackson also accepts plain integer JSON values for rating and jersey number by converting them to strings before model validation; the next save writes their canonical digit strings.
 
 **Loading at startup.** `MainApp#initModelManager` reads the team once, when the app starts:
 
@@ -281,6 +281,8 @@ This section describes some noteworthy details on how certain features are imple
 ### Shared command parsing and prefix boundaries
 
 `AddressBookParser` separates a lowercase command word from its arguments. It accepts ordinary whitespace and non-breaking spaces around that word. `ArgumentTokenizer` recognises only the prefixes supplied by the command parser, each preceded by an ordinary space, tab or non-breaking space. It scans separator positions, so an empty prefix cannot cause an infinite loop. Joined text such as `Amy p/123` has a valid phone delimiter; `Amyp/123` does not. Line breaks do not delimit prefixes.
+
+`CommandBox` converts pasted tabs to spaces for JavaFX input, but the parser and tokenizer are also called directly by logic clients and tests. Keep tab recognition in `ArgumentTokenizer` so raw command strings have the same prefix boundaries without depending on a UI preprocessing step. The command-box formatter protects the paste path; tokenizer support preserves the parser contract for other callers. Non-breaking spaces are not converted by the formatter and still need tokenizer support.
 
 The tokenizer trims ordinary control/space padding and non-breaking spaces from each value and the preamble; it preserves internal text for the field validator. `ArgumentMultimap` retains repeated values. Parsers reject repeated single-value prefixes, while `t/` deliberately repeats. Unknown prefixes remain part of the preceding value unless a parser explicitly recognises them to provide targeted guidance, as `add` and `edit` do for `r/` and `i/`.
 
