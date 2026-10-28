@@ -127,8 +127,8 @@ alphabetical order on player cards and command feedback. They do not affect dupl
 player detection: the same name is still rejected even if tags differ.
 
 Tags are saved automatically and restored when you restart. Older data files without
-a `tags` field load with no tags. Tag edits use the displayed list's index and restore
-the full team after success, just like other edits.
+a `tags` field load with no tags. Tag edits use the displayed list's index and keep the
+current search or filter, just like other edits.
 
 Changing tags, names, or phone numbers keeps the player's selection status and rating.
 The `keep`, `cut`, `pending`, and `rate` commands keep existing tags. `squad` displays
@@ -161,7 +161,7 @@ Format: `sort rating [asc|desc]`
 * Indices are renumbered to match the sorted display. `rate`, `edit` and `delete` use
   these displayed indices. Check the list again after a rating change, as the player may move.
 * The active sort remains when adding or editing players; new players appear at their
-  sorted position. `add` and `edit` still clear the search filter as usual.
+  sorted position. `add` still clears the search filter as usual, while `edit` keeps it.
 * `list` clears the filter and sorting, restoring the full team in insertion order.
 * Sorting an empty team is allowed. Invalid fields, directions or extra arguments are
   rejected without changing the current list.
@@ -253,6 +253,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`
 * Omit `j/` to keep the player's current jersey number. Type `j/` with nothing after it to remove the jersey number. An empty `j/` works only with `edit`; `add` rejects it.
 * If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
 * Repeat `t/TAG` to replace all of the player's tags. Omit `t/` to keep them. Use a single empty `t/` to clear them; combining empty and non-empty tags is rejected.
+* The displayed list stays as it is, so you can keep editing the results of a `find` or `filter` with their numbers unchanged. If the edited player no longer matches the search, e.g. after a name change, they drop out of the displayed list; use `list` to see everyone.
+* The result box shows the player's new details, and notes any jersey number or tags you removed. If the values you typed are the same as the current ones, it says no changes were made.
 
 Examples:
 *  `edit 1 p/91234567` Edits the phone number of the 1st player to be `91234567`.
@@ -315,8 +317,8 @@ Format: `filter t/TAG [t/TAG]...`
 * Repeat `t/` to match **any** requested tag (OR). A player matching multiple tags is listed once.
 * Filter the whole team, including players hidden by a previous `find`, `filter`, or `squad`.
   Results keep roster order and are numbered from 1.
-* `delete` and `edit` use the displayed indices. Deleting retains the filter; a successful
-  `add` or `edit` restores the full list. `find` replaces the tag filter with its name search.
+* `delete` and `edit` use the displayed indices and keep the filter; a successful `add`
+  restores the full list. `find` replaces the tag filter with its name search.
 * `keep`, `cut`, `pending`, and `rate` also use displayed indices and preserve tags.
   `squad` replaces the tag filter with the kept-player view.
 * `list` restores the full roster. Filtering changes no player data and does not save.

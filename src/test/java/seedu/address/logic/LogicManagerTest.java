@@ -75,14 +75,17 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_addAndEditAfterFilter_restoreFullRosterAndPersistTags() throws Exception {
+    public void execute_editKeepsFilterAndAddRestoresFullRoster_persistTags() throws Exception {
         logic.execute("add n/Amy p/123 t/Striker");
         logic.execute("add n/Bob p/456 t/Goalkeeper");
         logic.execute("filter t/Goalkeeper");
+        logic.execute("edit 1 p/4567");
+        assertEquals(List.of("Bob"), model.getFilteredPersonList().stream().map(p -> p.getName().fullName).toList());
+
+        // Bob no longer has the filtered tag, so he drops out of the filtered list
         logic.execute("edit 1 t/Captain");
-        assertEquals("Bob", model.getFilteredPersonList().getLast().getName().fullName);
-        assertEquals(Set.of(new Tag("Captain")), model.getFilteredPersonList().getLast().getTags());
-        assertEquals(2, model.getFilteredPersonList().size());
+        assertEquals(0, model.getFilteredPersonList().size());
+        assertEquals(Set.of(new Tag("Captain")), model.getAddressBook().getPersonList().getLast().getTags());
         logic.execute("filter t/Striker");
         logic.execute("add n/Charlie p/789 t/Captain");
         assertEquals(3, model.getFilteredPersonList().size());
