@@ -118,11 +118,14 @@ Add your own labels for a position, role, season, or trial group with `t/TAG`:
 * `edit 1 p/98765432` changes the phone while keeping existing tags.
 * `edit 1 t/` removes all tags from the first displayed player.
 
-Each tag must start with a letter or digit and contain only letters (A-Z, a-z), digits,
-spaces, or hyphens. A tag can contain up to 30 characters after surrounding spaces are
+Each tag must start with a letter or digit, and can contain letters (including accented and
+non-English letters), digits, spaces, and the symbols `-` `&` `/` `_` `+` `'` `.`, e.g. `U18 & Under`,
+`Centre Back/Wing` or `Défenseur`. Text that looks like another parameter, such as ` p/`, is
+rejected, as it is usually a typo. A tag can contain up to 30 characters after surrounding spaces are
 trimmed and repeated internal whitespace is collapsed. For example, `t/ Trial   Group 2`
 is saved as `Trial Group 2`. Blank labels are invalid except for the single clearing
-`edit ... t/` form. An invalid tag rejects the whole command.
+`edit ... t/` form. An invalid tag rejects the whole command, and the error names the problem,
+e.g. the tag that is too long or the character that is not allowed.
 
 Repeat `t/` for multiple tags. Duplicate labels are combined ignoring capitalisation,
 so `t/Striker t/striker` keeps the first spelling, `Striker`, once. Tags appear in
@@ -344,7 +347,7 @@ For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tag
 
 Use the lowercase command word `filter`; `Filter` is unrecognized. `filter` without
 parameters displays the format error and syntax example. `filter t/` is rejected
-with the tag constraint message; it does not clear anything.
+because a tag cannot be empty; it does not clear anything.
 
 ### Deleting a player: `delete`
 

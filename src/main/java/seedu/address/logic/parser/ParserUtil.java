@@ -6,6 +6,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDE
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.core.index.Index;
@@ -42,8 +43,9 @@ public class ParserUtil {
         requireNonNull(labels);
         Set<Tag> tags = new LinkedHashSet<>();
         for (String label : labels) {
-            if (!Tag.isValidTagName(label)) {
-                throw new ParseException(Tag.MESSAGE_CONSTRAINTS);
+            Optional<String> error = Tag.getValidationError(label);
+            if (error.isPresent()) {
+                throw new ParseException(error.get());
             }
             tags.add(new Tag(label));
         }

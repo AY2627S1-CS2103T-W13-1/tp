@@ -118,11 +118,14 @@ public class LogicManagerTest {
         logic.execute("add n/Tagged Player p/123 t/Striker");
         AddressBook original = new AddressBook(model.getAddressBook());
         logic = createLogicWithFailingSave();
-        for (String command : List.of("add n/Other p/456 t/", "edit 1 t/Bad!", "edit 1 t/ t/Striker",
-                "edit 1 t/Striker t/", "edit 1 t/ t/")) {
-            assertThrows(ParseException.class, Tag.MESSAGE_CONSTRAINTS, () -> logic.execute(command));
+        for (String command : List.of("add n/Other p/456 t/", "edit 1 t/ t/Striker", "edit 1 t/Striker t/",
+                "edit 1 t/ t/")) {
+            assertThrows(ParseException.class, Tag.MESSAGE_EMPTY, () -> logic.execute(command));
             assertEquals(original, model.getAddressBook());
         }
+        assertThrows(ParseException.class, String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"), () ->
+                logic.execute("edit 1 t/Bad!"));
+        assertEquals(original, model.getAddressBook());
         assertThrows(CommandException.class,
                 AddCommand.MESSAGE_DUPLICATE_PERSON, () -> logic.execute("add n/Tagged Player p/999 t/Goalkeeper"));
         assertThrows(CommandException.class,

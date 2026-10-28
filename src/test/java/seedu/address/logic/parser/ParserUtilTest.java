@@ -7,12 +7,16 @@ import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
+import java.util.List;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
+import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
     private static final String USAGE = "cmd: Does something.";
@@ -43,6 +47,13 @@ public class ParserUtilTest {
 
         // Leading and trailing whitespaces
         assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  "));
+    }
+
+    @Test
+    public void parseTags_unicodeCaseVariants_keepsFirstSpellingOnce() throws Exception {
+        Set<Tag> tags = ParserUtil.parseTags(List.of("İleri", "ileri"));
+        assertEquals(1, tags.size());
+        assertEquals("İleri", tags.iterator().next().toString());
     }
 
     @Test
