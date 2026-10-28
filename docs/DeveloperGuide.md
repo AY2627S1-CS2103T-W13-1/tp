@@ -208,6 +208,13 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Jersey number normalization
+
+`JerseyNumber` validates a numeric value from 0 to 99 with optional leading zeros.
+The immutable numeric value supplies equality, display, and JSON serialization, so `099`
+and `99` produce the same stored number and duplicate warning. Validation rejects
+out-of-range digits before integer parsing, including padded values such as `0100`.
+
 ### Player ratings (US12)
 
 `RateCommandParser` parses `rate INDEX RATING` into a `RateCommand`. It validates the
@@ -999,11 +1006,6 @@ these checks and verify that both remain unchanged afterwards.
 1. _{ more test cases … }_
 
 ### Jersey number zero padding: manual regression checks
-
-`JerseyNumber` validates a numeric value from 0 to 99 with optional leading zeros.
-The immutable numeric value supplies equality, display, and JSON serialization, so `099`
-and `99` produce the same stored number and duplicate warning. Validation rejects
-out-of-range digits before integer parsing, including padded values such as `0100`.
 
 Use a disposable empty team and run these commands in order:
 
