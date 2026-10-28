@@ -1,6 +1,8 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -22,6 +24,13 @@ import seedu.address.model.tag.Tag;
 public class ParserUtil {
 
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+
+    /** Shown when {@code add} or {@code edit} is given a detail that only its own command can set. */
+    public static final String MESSAGE_DETAIL_NEEDS_OWN_COMMAND = "%1$s cannot set a remark or injury status. "
+            + "Use \"remark INDEX r/REMARK\" or \"injury INDEX i/STATUS\" instead.";
+
+    /** Matches input the user meant as an index, i.e. a whole number with an optional sign. */
+    private static final String WHOLE_NUMBER_REGEX = "[+-]?\\d+";
 
     /**
      * Parses a collection of labels into distinct tags, retaining their first spelling and order.
@@ -54,6 +63,41 @@ public class ParserUtil {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
         return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Parses {@code oneBasedIndex} into an {@code Index}, reporting a whole number that is not a valid index
+     * (e.g. 0, -1, or too large to store) the same way as an index beyond the end of the displayed list.
+     * Input that is not a whole number at all is a format error, so it is reported with {@code messageUsage}.
+     *
+     * @param oneBasedIndex The index typed by the user.
+     * @param messageUsage The usage message of the command being parsed.
+     * @throws ParseException if {@code oneBasedIndex} is not a positive whole number.
+     */
+    public static Index parseIndex(String oneBasedIndex, String messageUsage) throws ParseException {
+        requireNonNull(messageUsage);
+        String trimmedIndex = oneBasedIndex.trim();
+        if (!trimmedIndex.matches(WHOLE_NUMBER_REGEX)) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, messageUsage));
+        }
+        if (!StringUtil.isNonZeroUnsignedInteger(trimmedIndex)) {
+            throw new ParseException(MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        }
+        return Index.fromOneBased(Integer.parseInt(trimmedIndex));
+    }
+
+    /**
+     * Throws a {@code ParseException} if {@code argMultimap} contains a remark or injury status, which
+     * {@code commandWord} cannot set. Without this check, such a detail would be read as part of the
+     * value before it, and the error would wrongly blame that value.
+     */
+    public static void requireNoRemarkOrInjury(ArgumentMultimap argMultimap, String commandWord)
+            throws ParseException {
+        boolean hasRemark = argMultimap.getValue(CliSyntax.PREFIX_REMARK).isPresent();
+        boolean hasInjury = argMultimap.getValue(CliSyntax.PREFIX_INJURY).isPresent();
+        if (hasRemark || hasInjury) {
+            throw new ParseException(String.format(MESSAGE_DETAIL_NEEDS_OWN_COMMAND, commandWord));
+        }
     }
 
     /**

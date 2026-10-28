@@ -47,8 +47,10 @@ public class InjuryCommandTest {
     public void execute_replaceAndRepeatStatus_success() throws Exception {
         new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.INJURED).execute(model);
         assertEquals(InjuryStatus.INJURED, model.getFilteredPersonList().getFirst().getInjuryStatus());
-        new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.INJURED).execute(model);
-        assertEquals(InjuryStatus.INJURED, model.getFilteredPersonList().getFirst().getInjuryStatus());
+        Person injuredPlayer = model.getFilteredPersonList().getFirst();
+        assertEquals(String.format(InjuryCommand.MESSAGE_ALREADY_SET, injuredPlayer.getName(), "injured"),
+                new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.INJURED).execute(model).getFeedbackToUser());
+        assertEquals(injuredPlayer, model.getFilteredPersonList().getFirst());
         new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.FIT).execute(model);
         assertEquals(InjuryStatus.FIT, model.getFilteredPersonList().getFirst().getInjuryStatus());
         new InjuryCommand(INDEX_FIRST_PERSON, InjuryStatus.FIT).execute(model);

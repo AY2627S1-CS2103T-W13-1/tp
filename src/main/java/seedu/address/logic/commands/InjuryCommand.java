@@ -24,6 +24,7 @@ public class InjuryCommand extends Command {
             + "Parameters: INDEX (must be a positive integer) " + PREFIX_INJURY + "STATUS (injured or fit)\n"
             + "Example: " + COMMAND_WORD + " 1 " + PREFIX_INJURY + "injured";
     public static final String MESSAGE_SUCCESS = "Updated injury status for %1$s: %2$s";
+    public static final String MESSAGE_ALREADY_SET = "%1$s is already marked as %2$s.";
 
     private static final Logger logger = LogsCenter.getLogger(InjuryCommand.class);
 
@@ -48,6 +49,9 @@ public class InjuryCommand extends Command {
         }
 
         Person player = displayedPlayers.get(index.getZeroBased());
+        if (player.getInjuryStatus() == injuryStatus) {
+            return new CommandResult(String.format(MESSAGE_ALREADY_SET, player.getName(), injuryStatus));
+        }
         Person updatedPlayer = player.withInjuryStatus(injuryStatus);
         assert player.isSamePerson(updatedPlayer) : "Updating injury status must preserve player identity";
         model.setPerson(player, updatedPlayer);

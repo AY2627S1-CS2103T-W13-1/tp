@@ -39,3 +39,12 @@
 .selection-status-cut {
     -fx-background-color: #b04a3c;
 }
+
+/* Shown only for injured players. The badge always says "Injured", so it does not rely on colour alone. */
+.injury-badge {
+    -fx-font-size: 11px;
+    -fx-padding: 1 6 1 6;
+    -fx-background-radius: 3;
+    -fx-text-fill: white;
+    -fx-background-color: #b8711c;
+}

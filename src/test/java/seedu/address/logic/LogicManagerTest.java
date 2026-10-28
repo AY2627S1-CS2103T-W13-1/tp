@@ -1,5 +1,6 @@
 package seedu.address.logic;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -12,6 +13,7 @@ import static seedu.address.testutil.TypicalPersons.AMY;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
@@ -134,6 +136,29 @@ public class LogicManagerTest {
         JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
         StorageManager storage = new StorageManager(addressBookStorage, userPrefsStorage);
         logic = new LogicManager(model, storage);
+    }
+
+    @Test
+    public void execute_clearWithArguments_preservesTeamViewAndSavedFile() throws Exception {
+        logic.execute("add n/Amy p/123");
+        logic.execute("add n/Bob p/456");
+        logic.execute("find Amy");
+        AddressBook original = new AddressBook(model.getAddressBook());
+        List<Person> originalView = List.copyOf(model.getFilteredPersonList());
+        Path savedFile = temporaryFolder.resolve("addressBook.json");
+        byte[] originalFile = Files.readAllBytes(savedFile);
+
+        for (String input : List.of("clear 1", "clear everything", "clear n/Amy", "clear /")) {
+            assertThrows(ParseException.class, () -> logic.execute(input));
+            assertEquals(original, model.getAddressBook());
+            assertEquals(originalView, model.getFilteredPersonList());
+            assertArrayEquals(originalFile, Files.readAllBytes(savedFile));
+        }
+
+        logic.execute("  clear \t ");
+        assertEquals(new AddressBook(), model.getAddressBook());
+        assertEquals(List.of(), model.getFilteredPersonList());
+        assertEquals(new AddressBook(), new JsonAddressBookStorage(savedFile).readAddressBook().orElseThrow());
     }
 
     @Test

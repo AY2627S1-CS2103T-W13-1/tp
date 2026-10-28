@@ -58,6 +58,20 @@ public class AddCommandIntegrationTest {
     }
 
     @Test
+    public void execute_similarName_successWithWarning() {
+        Person teammate = new PersonBuilder().withName("Tan Wei Ming").build();
+        model.addPerson(teammate);
+        Person validPerson = new PersonBuilder().withName("TanWei Ming").build();
+
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        expectedModel.addPerson(validPerson);
+
+        String expectedMessage = String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson))
+                + String.format(Messages.MESSAGE_SIMILAR_NAME, "Tan Wei Ming");
+        assertCommandSuccess(new AddCommand(validPerson), model, expectedMessage, expectedModel);
+    }
+
+    @Test
     public void execute_newPerson_appendedToEndOfList() throws Exception {
         Person validPerson = new PersonBuilder().build();
 

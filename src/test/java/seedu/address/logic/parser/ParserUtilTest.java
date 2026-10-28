@@ -1,6 +1,8 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -17,6 +19,8 @@ import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
 public class ParserUtilTest {
+    private static final String USAGE = "cmd: Does something.";
+
     private static final String INVALID_NAME = "R@chel";
     private static final String INVALID_PHONE = "+65abcd";
 
@@ -50,6 +54,27 @@ public class ParserUtilTest {
         Set<Tag> tags = ParserUtil.parseTags(List.of("İleri", "ileri"));
         assertEquals(1, tags.size());
         assertEquals("İleri", tags.iterator().next().toString());
+    }
+
+    @Test
+    public void parseIndexWithUsage_validInput_success() throws Exception {
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseIndex("  1  ", USAGE));
+    }
+
+    @Test
+    public void parseIndexWithUsage_notWholeNumber_throwsUsage() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, USAGE);
+        for (String input : new String[] {"", "a", "1 2", "1.5", "1a"}) {
+            assertThrows(ParseException.class, expectedMessage, () -> ParserUtil.parseIndex(input, USAGE));
+        }
+    }
+
+    @Test
+    public void parseIndexWithUsage_wholeNumberNotValidIndex_throwsInvalidIndex() {
+        for (String input : new String[] {"0", "-1", "+1", "2147483648"}) {
+            assertThrows(ParseException.class, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () ->
+                    ParserUtil.parseIndex(input, USAGE));
+        }
     }
 
     @Test

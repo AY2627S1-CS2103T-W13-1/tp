@@ -15,7 +15,7 @@ public class RateCommandParser implements Parser<RateCommand> {
         if (parts.length != 2) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RateCommand.MESSAGE_USAGE));
         }
-        Index index = ParserUtil.parseIndex(parts[0]);
+        Index index = ParserUtil.parseIndex(parts[0], RateCommand.MESSAGE_USAGE);
         if (!Rating.isValidRating(parts[1])) {
             throw new ParseException(Rating.MESSAGE_CONSTRAINTS);
         }

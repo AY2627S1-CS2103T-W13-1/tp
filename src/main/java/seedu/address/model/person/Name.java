@@ -14,7 +14,8 @@ public class Name {
 
     /** Explains the allowed characters in a player's name. */
     public static final String MESSAGE_CONSTRAINTS =
-            "Names should contain only letters, digits, spaces, and the characters - ' / . and should not be blank.";
+            "Names should contain only letters (accented and non-English letters are fine), digits, spaces, "
+            + "and the characters - ' / . , ( ) and should not be blank.";
     /** Explains the maximum length of a player's name. */
     public static final String MESSAGE_LENGTH_CONSTRAINTS =
             "Names should not exceed " + MAX_LENGTH + " characters.";
@@ -23,7 +24,10 @@ public class Name {
      * The first character of the name must not be a whitespace,
      * otherwise " " (a blank string) becomes a valid input.
      */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}'/.-][\\p{Alnum} '/.-]*";
+    public static final String VALIDATION_REGEX = "[\\p{L}\\p{N}'/.,()-][\\p{L}\\p{M}\\p{N} '/.,()-]*";
+
+    /** Matches the characters ignored when checking whether two names look alike, i.e. all but letters and digits. */
+    private static final String NON_ALPHANUMERIC_REGEX = "[^\\p{L}\\p{M}\\p{N}]";
 
     /** The player's full name, preserving the supplied capitalization. */
     public final String fullName;
@@ -84,6 +88,20 @@ public class Name {
 
         return otherName != null
                 && normalize(otherName.fullName).equalsIgnoreCase(normalize(fullName));
+    }
+
+    /**
+     * Returns true if both names are the same once spaces and punctuation are ignored, ignoring case,
+     * e.g. {@code Tan Wei Ming} and {@code TanWei-Ming}. Such names are probably the same player, but are
+     * not treated as duplicates because they might genuinely differ, so callers should only warn.
+     */
+    public boolean isSimilarTo(Name otherName) {
+        requireNonNull(otherName);
+        return lettersAndDigits(fullName).equalsIgnoreCase(lettersAndDigits(otherName.fullName));
+    }
+
+    private static String lettersAndDigits(String name) {
+        return name.replaceAll(NON_ALPHANUMERIC_REGEX, "");
     }
 
     @Override

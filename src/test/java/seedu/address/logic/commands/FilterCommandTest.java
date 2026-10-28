@@ -7,6 +7,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,6 +18,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.TagsContainAnyPredicate;
@@ -26,7 +28,8 @@ import seedu.address.testutil.PersonBuilder;
 public class FilterCommandTest {
     private static final Person STRIKER = new PersonBuilder().withName("Amy").withTags("Striker", "Captain").build();
     private static final Person GOALKEEPER = new PersonBuilder().withName("Bob").withTags("Goalkeeper").build();
-    private static final Person CAPTAIN = new PersonBuilder().withName("Charlie").withTags("Captain").build();
+    private static final Person CAPTAIN = new PersonBuilder().withName("Charlie").withTags("Captain")
+            .withInjuryStatus(InjuryStatus.INJURED).build();
 
     private final Model model = createModel();
 
@@ -82,8 +85,34 @@ public class FilterCommandTest {
     }
 
     @Test
+    public void execute_injuryStatusAlone_listsPlayersWithThatStatus() {
+        FilterCommand injured = new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.INJURED));
+        assertEquals("1 player listed!", injured.execute(model).getFeedbackToUser());
+        assertEquals(List.of(CAPTAIN), model.getFilteredPersonList());
+
+        FilterCommand fit = new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.FIT));
+        assertEquals("2 players listed!", fit.execute(model).getFeedbackToUser());
+        assertEquals(List.of(STRIKER, GOALKEEPER), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_tagsAndInjuryStatus_playersMustMatchBoth() {
+        TagsContainAnyPredicate captains = new TagsContainAnyPredicate(Set.of(new Tag("Captain")));
+        new FilterCommand(Optional.of(captains), Optional.of(InjuryStatus.FIT)).execute(model);
+        assertEquals(List.of(STRIKER), model.getFilteredPersonList());
+        new FilterCommand(Optional.of(captains), Optional.of(InjuryStatus.INJURED)).execute(model);
+        assertEquals(List.of(CAPTAIN), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void constructor_noCondition_throwsIllegalArgumentException() {
+        assertThrows(IllegalArgumentException.class, () -> new FilterCommand(Optional.empty(), Optional.empty()));
+    }
+
+    @Test
     public void constructorAndExecute_nullsRejected() {
         assertThrows(NullPointerException.class, () -> new FilterCommand(null));
+        assertThrows(NullPointerException.class, () -> new FilterCommand(null, Optional.empty()));
         assertThrows(NullPointerException.class, () -> commandFor("Striker").execute(null));
     }
 
@@ -109,7 +138,10 @@ public class FilterCommandTest {
         assertFalse(command.equals(commandFor("Goalkeeper")));
         assertFalse(command.equals(null));
         assertFalse(command.equals("filter"));
+        assertFalse(command.equals(new FilterCommand(Optional.of(new TagsContainAnyPredicate(
+                Set.of(new Tag("Striker")))), Optional.of(InjuryStatus.FIT))));
         assertTrue(command.toString().contains("predicate="));
+        assertTrue(command.toString().contains("injuryStatus="));
     }
 
     private static Model createModel() {

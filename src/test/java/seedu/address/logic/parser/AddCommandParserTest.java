@@ -15,6 +15,7 @@ import static seedu.address.logic.commands.CommandTestUtil.PREAMBLE_WHITESPACE;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_JERSEY_NUMBER_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_NAME_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_PHONE_BOB;
+import static seedu.address.logic.parser.CliSyntax.PREFIX_JERSEY_NUMBER;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NAME;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_PHONE;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -23,6 +24,7 @@ import static seedu.address.testutil.TypicalPersons.BOB;
 
 import org.junit.jupiter.api.Test;
 
+import seedu.address.logic.Messages;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
@@ -72,10 +74,6 @@ public class AddCommandParserTest {
         assertParseSuccess(parser, JERSEY_NUMBER_DESC_BOB + NAME_DESC_BOB + PHONE_DESC_BOB,
                 new AddCommand(expectedPerson));
 
-        // multiple jersey numbers, last one used
-        assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_BOB + JERSEY_NUMBER_DESC_AMY + JERSEY_NUMBER_DESC_BOB,
-                new AddCommand(expectedPerson));
-
         // leading zero dropped
         assertParseSuccess(parser, " n/Tan Wei Ming p/91234567 j/07", new AddCommand(new PersonBuilder()
                 .withName("Tan Wei Ming").withPhone("91234567").withJerseyNumber("7").build()));
@@ -111,20 +109,34 @@ public class AddCommandParserTest {
     }
 
     @Test
-    public void parse_repeatedValue_lastValueUsed() {
+    public void parse_repeatedValue_failure() {
         // multiple names
-        assertParseSuccess(parser, NAME_DESC_AMY + NAME_DESC_BOB + PHONE_DESC_BOB, new AddCommand(BOB));
+        assertParseFailure(parser, NAME_DESC_AMY + NAME_DESC_BOB + PHONE_DESC_BOB,
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
 
         // multiple phones
-        assertParseSuccess(parser, NAME_DESC_BOB + PHONE_DESC_AMY + PHONE_DESC_BOB, new AddCommand(BOB));
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_AMY + PHONE_DESC_BOB,
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_PHONE));
 
-        // invalid value followed by valid value
-        assertParseSuccess(parser, INVALID_NAME_DESC + NAME_DESC_BOB + PHONE_DESC_BOB, new AddCommand(BOB));
-        assertParseSuccess(parser, NAME_DESC_BOB + INVALID_PHONE_DESC + PHONE_DESC_BOB, new AddCommand(BOB));
+        // multiple jersey numbers
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + JERSEY_NUMBER_DESC_AMY + JERSEY_NUMBER_DESC_BOB,
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_JERSEY_NUMBER));
 
-        // valid value followed by invalid value
-        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + INVALID_NAME_DESC, Name.MESSAGE_CONSTRAINTS);
-        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + INVALID_PHONE_DESC, Phone.MESSAGE_CONSTRAINTS);
+        // a repeated invalid value is reported as repeated, not as invalid
+        assertParseFailure(parser, INVALID_NAME_DESC + NAME_DESC_BOB + PHONE_DESC_BOB,
+                Messages.getErrorMessageForDuplicatePrefixes(PREFIX_NAME));
+    }
+
+    @Test
+    public void parse_remarkOrInjuryGiven_failure() {
+        String expectedMessage = String.format(ParserUtil.MESSAGE_DETAIL_NEEDS_OWN_COMMAND, AddCommand.COMMAND_WORD);
+
+        // without this check, the remark would be read as part of the phone number
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " r/Fast winger", expectedMessage);
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " i/injured", expectedMessage);
+
+        // without this check, the remark would be read as part of the tag
+        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + " t/Striker r/note", expectedMessage);
     }
 
     @Test

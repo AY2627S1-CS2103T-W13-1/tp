@@ -61,8 +61,9 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
 * Parameters can be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `squad`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for `help`, `list`, `squad`, and `exit` are ignored.<br>
   For example, `help 123` is interpreted as `help`.
+  The destructive `clear` command must be entered on its own; extra text is rejected.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
 </box>
@@ -86,13 +87,15 @@ Adds a player to the team.
 Format: `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...`
 
 * Both `NAME` and `PHONE` must be given, in any order. `JERSEY` and `TAG` are optional.
-* `NAME` can contain only letters, digits, spaces, and the characters `-` `'` `/` `.`, and can be at most 100 characters long.
+* `NAME` can contain letters (including accented and non-English letters, e.g. `José García` or `张伟`), digits, spaces, and the characters `-` `'` `/` `.` `,` `(` `)`, and can be at most 100 characters long.
 * `NAME` is saved with the capitalisation you type. Extra spaces at the start and end are removed, and repeated spaces inside the name are reduced to one.
-* `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces and hyphens are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567`.
+* `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces, hyphens, dots and brackets are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567` and `(65) 9123-4567` as `6591234567`. To note what a number is for, e.g. `HP`, use [`remark`](#recording-a-player-observation-remark-us21).
 * `JERSEY` must be a whole number from 0 to 99. A leading zero is dropped, e.g. `j/07` is saved as `7`.
 * A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan wei ming` counts as the same player as `Tan Wei Ming`. Phone numbers are not compared, so two players may share a contact number.
+* If the new name looks like an existing player's name once spaces and punctuation are ignored, e.g. `TanWei Ming` and `Tan Wei Ming`, the player is still added, but the result box warns you so you can check it is not the same player.
 * Players may share a jersey number, but the result box then warns you and names the other players with that number, e.g. `Warning: jersey number 7 is also used by Bernice Yu.` The player is still added.
-* If `n/`, `p/` or `j/` is given more than once, only the last one is used, e.g. `add n/Amy n/Bob p/91234567` adds `Bob`.
+* `n/`, `p/` and `j/` can each be given only once, e.g. `add n/Amy n/Bob p/91234567` is rejected, so that a typo does not save the wrong value.
+* `add` cannot set a remark or injury status. Add the player first, then use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-players-injury-status-injury-us13).
 * The new player appears at the bottom of the list, or at their sorted position if rating sorting is active. If the list was filtered by `find` or `filter`, the full list is shown again.
 
 <box type="tip" seamless>
@@ -210,8 +213,10 @@ Format: `injury INDEX i/STATUS`
   the whole command and leaves the team unchanged.
 * The current filter and all other player details are retained. Injury status is also
   preserved when you change a remark, name, phone, tags, rating or selection status.
-* The injury status appears on the player card, is saved automatically, and is restored
-  when you reopen CouchCoach. Repeating the current status leaves it unchanged.
+* Injured players have an **Injured** badge next to their name, so they stand out in the list.
+  Fit players have no badge. The status is saved automatically and restored when you reopen CouchCoach.
+* If the player already has that status, CouchCoach tells you so and nothing changes.
+* To see only injured (or fit) players, use [`filter i/injured`](#filtering-players-by-tag-filter-us16).
 
 Examples:
 
@@ -253,6 +258,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`
 * At least one of the optional fields must be provided.
 * Existing values will be updated to the input values. Names, phone numbers and jersey numbers follow the same rules as in `add`.
 * `n/`, `p/` and `j/` can each be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
+* `edit` cannot change a remark or injury status. Use `remark` or `injury` instead.
 * Omit `j/` to keep the player's current jersey number. Type `j/` with nothing after it to remove the jersey number. An empty `j/` works only with `edit`; `add` rejects it.
 * If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
 * Repeat `t/TAG` to replace all of the player's tags. Omit `t/` to keep them. Use a single empty `t/` to clear them; combining empty and non-empty tags is rejected.
@@ -308,11 +314,13 @@ case-sensitive: use `find`, as `Find` is unrecognized.
 
 ### Filtering players by tag: `filter` (US16)
 
-Show a group of players by the custom tags assigned using `add` or `edit`.
+Show a group of players by the custom tags assigned using `add` or `edit`, by injury status, or both.
 
-Format: `filter t/TAG [t/TAG]...`
+Format: `filter [t/TAG]... [i/STATUS]`
 
-* Supply at least one non-empty tag. Labels follow the [tag rules](#categorising-players-with-tags-us08).
+* Supply at least one `t/TAG` or an `i/STATUS`. `STATUS` is `injured` or `fit`, ignoring case, e.g. `filter i/injured` shows only injured players.
+* With both, a player must match both, e.g. `filter t/Striker i/fit` shows fit strikers.
+* Tags must be non-empty. Labels follow the [tag rules](#categorising-players-with-tags-us08).
 * Match complete labels, ignoring capitalisation: `filter t/striker` matches `Striker`,
   while `filter t/strik` does not. `filter t/Trial Group 2` treats the whole label as one tag.
 * Repeat `t/` to match **any** requested tag (OR). A player matching multiple tags is listed once.
@@ -395,6 +403,9 @@ Deletes all players from the team.
 
 Format: `clear`
 
+Use `clear` on its own. Extra arguments, such as `clear 1` or `clear everything`, show a usage error and leave all players unchanged.
+To remove one player, use `delete INDEX` instead.
+
 <box type="warning" seamless>
 
 **Caution:** `clear` cannot be undone and does not ask for confirmation.
@@ -420,7 +431,11 @@ Fixing the problem does not save the change by itself, and `exit` does not save 
 
 ### Editing the data file
 
-CouchCoach data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+CouchCoach data is saved automatically as a JSON file `[working directory]/data/addressbook.json`.
+The working directory is the terminal's current folder when you launch the app; it can differ from the folder containing the JAR.
+For example, if your terminal is in `/teams/trials` and you run `java -jar /apps/couchcoach.jar`, the team file is `/teams/trials/data/addressbook.json`.
+Launch from the same working directory each time to load the same team. The status bar shows the data file path.
+Advanced users are welcome to update data directly by editing that data file.
 
 <box type="warning" seamless>
 
@@ -455,7 +470,7 @@ Action     | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`
 **Exit**   | `exit`
-**Filter** | `filter t/TAG [t/TAG]...`<br> e.g., `filter t/Striker t/Captain`
+**Filter** | `filter [t/TAG]... [i/STATUS]`<br> e.g., `filter t/Striker t/Captain`, `filter i/injured`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Injury** | `injury INDEX i/STATUS`<br> e.g., `injury 1 i/injured`; mark fit again with `injury 1 i/fit`
 **Sort**   | `sort rating [asc|desc]`<br> e.g., `sort rating desc`
