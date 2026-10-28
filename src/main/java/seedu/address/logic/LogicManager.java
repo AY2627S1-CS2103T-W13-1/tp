@@ -13,6 +13,7 @@ import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.SaveCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.SquadCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
@@ -28,7 +29,8 @@ import seedu.address.storage.Storage;
 public class LogicManager implements Logic {
     /** Feedback shown when a change was applied in memory but could not be written to the data file. */
     public static final String MESSAGE_SAVE_FAILURE = "Your change was applied but could not be saved to disk. "
-            + "Fix the problem before closing CouchCoach, or the change will be lost.";
+            + "Fix the problem and type 'save' to retry before closing CouchCoach, or the change will be lost. "
+            + "Do not repeat the original command.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -65,7 +67,11 @@ public class LogicManager implements Logic {
         } catch (IOException ioe) {
             // The coach gets a plain-language message; the technical cause is kept in the log for diagnosis.
             logger.warning("Could not save data: " + ioe);
-            throw new CommandException(MESSAGE_SAVE_FAILURE, ioe);
+            // Execution succeeded: let the command box clear instead of inviting a repeated mutation.
+            if (command instanceof SaveCommand) {
+                return new CommandResult(SaveCommand.MESSAGE_FAILURE);
+            }
+            return new CommandResult(commandResult.getFeedbackToUser() + "\n" + MESSAGE_SAVE_FAILURE);
         }
 
         return commandResult;

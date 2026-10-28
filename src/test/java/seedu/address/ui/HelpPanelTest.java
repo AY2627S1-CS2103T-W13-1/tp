@@ -77,6 +77,10 @@ public class HelpPanelTest {
                     Map.entry("sortDescription", "Sort the current view, all players, or the kept squad\n"
                             + "Highest first by default; unrated players last. Use list to reset.\n"
                             + "e.g. sort rating squad desc"),
+                    Map.entry("saveSyntax", "save"),
+                    Map.entry("saveDescription", "Save the current team without changing players\n"
+                            + "After a save failure, fix the problem and use save\n"
+                            + "Do not repeat the original command"),
                     Map.entry("helpFooter", "Your data is saved automatically after every change."));
 
             expectedText.forEach((id, text) -> {
@@ -84,7 +88,7 @@ public class HelpPanelTest {
                 assertEquals(text, label.getText());
             });
             for (String command : List.of("add", "list", "find", "delete", "status", "squad",
-                    "help", "exit", "edit", "rate", "filter", "remark", "injury", "sort", "clear", "tag")) {
+                    "help", "exit", "edit", "rate", "filter", "remark", "injury", "sort", "clear", "tag", "save")) {
                 assertTrue(((Label) help.getContent().lookup("#" + command + "Description")).isWrapText());
             }
         });

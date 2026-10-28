@@ -555,25 +555,38 @@ Format: `exit`
 CouchCoach saves your team automatically after every successful change. You do not need to save manually.
 
 * These commands save: `add`, `edit`, `tag`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`.
-  Each save writes your whole team to the data file.
+  Each save writes your whole team to the data file. You can also use `save` without changing players.
 * These commands never save, as they do not change your data: `list`, `find`, `filter`, `sort`, `squad`,
   `help` and `exit`.
 * A command that is rejected, e.g. because of a wrong format or an invalid index, changes nothing and does not save.
 
-If a change cannot be saved, e.g. because the data file or its folder has been made read-only, the result box shows
-`Your change was applied but could not be saved to disk. Fix the problem before closing CouchCoach, or the change will be lost.`
-The change is kept in memory, but the save did not complete. The data file may be unchanged, empty or partially written;
-a failed save does not guarantee that the previous file remains intact. (If the `data` folder is deleted while CouchCoach
-is open, CouchCoach simply creates it again at the next save.)
+If a change cannot be saved (e.g. the data file or its folder is read-only, the disk is full,
+or a directory occupies the data file path),
+the result box shows the applied command's feedback followed by a warning that the change
+could not be saved. The change is still shown in CouchCoach, but it is not on disk yet.
+The data file may be unchanged, empty or partially written; a failed save does not guarantee that the
+previous file remains intact. If the `data` folder is deleted while CouchCoach is open, it is recreated
+at the next save.
+The command box clears because the operation has already happened. **Do not repeat the
+original command**: for example, repeating `delete 1` would delete the next player.
 
 Fixing the problem does not save the change by itself, and `exit` does not save either. To save it:
 
-1. Fix the problem, e.g. make the file and folder writable again.
-1. Make another successful change. As every save writes your whole team, it also saves the change that failed earlier.
-   If the failed command was `keep`, `cut` or `pending`, the simplest way is to repeat it: it says the player is
-   already marked, but still saves your team. Otherwise, add a temporary player and then delete it, e.g.
-   `add n/Temp Player p/000` followed by `delete INDEX`, using the temporary player's number.
-1. Check that the result box shows the normal success message, not the save error, before you exit.
+1. Fix the problem, e.g. make the data file or its folder writable, free up disk space, or remove the directory occupying the data file path.
+1. Enter `save` to write the current team without changing any players or their displayed order.
+1. Check for `Saved the current team to disk.` before you exit. If saving still fails, fix
+   the problem and retry `save`; unsaved changes remain in memory until you close CouchCoach.
+
+### Retrying a save: `save`
+
+Writes the current team to disk without reapplying a previous command. The current search,
+filter and rating sort are retained. Saving an empty team writes an empty roster.
+
+Format: `save`
+
+Use `save` on its own; extra arguments are rejected. This command is useful after a save
+failure, and can also be used at any time to save the current team. It replaces the data
+file with the team shown in CouchCoach, so back up any external file edits first.
 
 ### Editing the data file
 
@@ -591,10 +604,10 @@ What CouchCoach does with the file when it starts:
   saved decision is pending, without a rating is unrated, without an injury status is fit, and without
   tags, a remark or a jersey number has none.
 * **An invalid data file:** it starts with an empty team and the result box shows
-  `The data file is not in a readable format and will be replaced by an empty team when you make your next change.`
+  `The data file is not in a readable format. CouchCoach has started with an empty team. Your next change or 'save' will replace the file with the current team. Back up the file before continuing.`
   The invalid file is left untouched while you only use commands that do not save (see [Saving the data](#saving-the-data)),
-  so you can close CouchCoach, fix or restore the file, and reopen it. Your next change replaces the file with
-  the current (empty) team.
+  so you can close CouchCoach, fix or restore the file, and reopen it. Your next change or explicit `save`
+  replaces the file with the current team.
 
 Advanced users can edit the file directly while CouchCoach is closed. Each player is stored with these fields:
 
@@ -612,7 +625,7 @@ Field | Allowed values | If missing
 <box type="warning" seamless>
 
 **Caution:**
-If your edits make the file invalid, CouchCoach starts with an empty team (see above), and your next change
+If your edits make the file invalid, CouchCoach starts with an empty team (see above), and your next change or explicit `save`
 replaces the invalid file, so **back up the file before editing it**.<br>
 These all make the file invalid: a value outside the allowed values above, a missing `name` or `phone`,
 a malformed JSON file, an empty file, a file without a `persons` list, a `null` entry in the `persons` list,
@@ -636,7 +649,7 @@ on the old computer (see [Editing the data file](#editing-the-data-file)) into a
 you will launch it from on the new computer, replacing any file there. Then launch CouchCoach from that folder.
 
 **Q**: CouchCoach says my data file is not in a readable format. How do I get my team back?<br>
-**A**: Do not make any change yet: a change replaces the unreadable file with the current, empty team.
+**A**: Do not make any change or use `save` yet: either replaces the unreadable file with the current team.
 Close CouchCoach, then either restore your backup of `data/addressbook.json`, or fix the file using the rules in
 [Editing the data file](#editing-the-data-file). Reopen CouchCoach and check that your team is back.
 
@@ -672,5 +685,6 @@ Action     | Format, Examples
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`
 **List**   | `list` — show all players in insertion order; clear filters and sorting
 **Pending** | `pending INDEX`<br> e.g., `pending 3` (undoes a keep or cut)
+**Save**   | `save`
 **Squad**  | `squad`<br> shows only kept players
 **Help**   | `help`

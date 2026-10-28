@@ -36,6 +36,7 @@ import javafx.stage.Window;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.SaveCommand;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -194,6 +195,36 @@ public class MainWindowTest {
             assertTrue(model.getFilteredPersonList().getLast().getTags().isEmpty());
             assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
         });
+    }
+
+    @Test
+    public void execute_deleteWithFailedSave_clearsInputAndRetriesWithoutDeletingAgain() throws Exception {
+        Path dataFile = testDirectory.resolve("players.json");
+        Files.createDirectory(dataFile);
+        runOnFxThread(() -> {
+            enterCommand("help");
+            enterCommand("delete 1");
+            assertTrue(resultDisplay.getText().endsWith("\n" + LogicManager.MESSAGE_SAVE_FAILURE));
+            assertEquals("", commandField.getText());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(getTypicalPersons().subList(1, getTypicalPersons().size()), model.getFilteredPersonList());
+            assertPlayerPanelShown();
+            enterCommand(commandField.getText());
+            assertEquals(Messages.MESSAGE_UNKNOWN_COMMAND, resultDisplay.getText());
+            enterCommand("save");
+            assertEquals(SaveCommand.MESSAGE_FAILURE, resultDisplay.getText());
+            assertEquals("", commandField.getText());
+            assertEquals(getTypicalPersons().subList(1, getTypicalPersons().size()), model.getFilteredPersonList());
+        });
+        Files.delete(dataFile);
+        runOnFxThread(() -> {
+            enterCommand("save");
+            assertEquals(SaveCommand.MESSAGE_SUCCESS, resultDisplay.getText());
+            assertEquals("", commandField.getText());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(dataFile).readAddressBook().orElseThrow());
+        assertEquals(getTypicalPersons().subList(1, getTypicalPersons().size()), model.getFilteredPersonList());
     }
 
     @BeforeEach
