@@ -924,6 +924,7 @@ as well as apostrophes, hyphens, and periods.
 | `find We` | Empty panel; `0 players listed!` (no partial matching). |
 | `find 91234567` | Empty panel; phone numbers are not searched. |
 | `find S/O` | Muthu only; `1 player listed!`. |
+| `find s` | Muthu only; `1 player listed!` (a part of `s/o` between punctuation matches). |
 | `find n/Wei` | Empty panel; the slash keyword is literal, not a name prefix. |
 | `find` or `find` followed only by spaces | Exact four-line format error documented in the UG; previous displayed list unchanged. |
 | `Find wei` | Unknown-command error; previous displayed list unchanged. |
@@ -944,7 +945,8 @@ and confirm that `find s/o` still finds it, checking that the slash survives sto
 
 Implementation: `FindCommandParser` splits plain keywords on whitespace;
 `NameContainsKeywordsPredicate` uses case-insensitive whole-word OR matching over
-names. Updating the model's filtered list replaces the previous predicate, so each
+names. A keyword also matches a part of a word between punctuation, so `Ming` matches
+`Tan Wei-Ming`. Updating the model's filtered list replaces the previous predicate, so each
 search considers the full team. The existing JavaFX list cells supply displayed
 indices. `LogicManager` returns a successful find result without saving player data.
 

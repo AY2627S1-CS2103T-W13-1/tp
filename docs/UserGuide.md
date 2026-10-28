@@ -290,8 +290,11 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
 * Only names are searched. A phone number matches only if it is also a whole word in a player's name.
 * A player matching **any** keyword is shown (an `OR` search). Keyword order does not matter.
 * Each matching player appears once, even when several keywords match or a keyword is repeated.
-* Slashes and other allowed name punctuation are part of a word: `find s/o` matches
-  `Muthu s/o Ramasamy`. No tagged parameters are used; `find n/Wei` searches for the literal word `n/Wei`.
+* A word joined by punctuation such as `-`, `'`, `.` or `/` matches as a whole, and so does each part
+  between the punctuation: `find Wei-Ming` and `find Ming` both match `Tan Wei-Ming`, `find Neil` matches
+  `Shaun O'Neil`, `find Jr` matches `Lim Jr.`, and `find s/o` matches `Muthu s/o Ramasamy`. Each part
+  must still match in full, so `find Min` does not match `Tan Wei-Ming`.
+* No tagged parameters are used; `find n/Wei` searches for the literal word `n/Wei`.
 * Each search searches the whole team, including players hidden by an earlier search.
 * Results follow the active rating sort, or insertion order when no sort is active and are numbered from 1. After `find`, `delete 1`
   deletes the first displayed match. The search filter remains active after deletion.
