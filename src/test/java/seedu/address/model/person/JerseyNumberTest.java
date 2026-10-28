@@ -29,6 +29,16 @@ public class JerseyNumberTest {
     }
 
     @Test
+    public void constructor_paddedBoundaryNumbers_normalizesWithoutOverflow() {
+        assertEquals("10", new JerseyNumber("010").toString());
+        assertEquals("99", new JerseyNumber("099").toString());
+        assertEquals("0", new JerseyNumber("0".repeat(300)).toString());
+        assertEquals(new JerseyNumber("99"), new JerseyNumber("0".repeat(300) + "99"));
+        assertFalse(JerseyNumber.isValidJerseyNumber("0100"));
+        assertFalse(JerseyNumber.isValidJerseyNumber("0002147483648"));
+    }
+
+    @Test
     public void isValidJerseyNumber() {
         // null jersey number
         assertThrows(NullPointerException.class, () -> JerseyNumber.isValidJerseyNumber(null));

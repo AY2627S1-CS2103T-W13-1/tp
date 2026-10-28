@@ -39,6 +39,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.SelectionStatus;
 import seedu.address.model.tag.Tag;
@@ -273,6 +274,26 @@ public class MainWindowTest {
             assertSame(help, getDisplayedHelp());
             assertEquals(originalData, model.getAddressBook());
             assertEquals(originalList, model.getFilteredPersonList());
+        });
+    }
+
+    @Test
+    public void execute_paddedJerseysThroughCommandBox_normalizesWarnsAndRejectsInvalid() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("clear");
+            enterCommand("add n/Amy p/123 j/099");
+            assertEquals("99", model.getFilteredPersonList().getFirst().getJerseyNumber().orElseThrow().toString());
+            enterCommand("add n/Bob p/456 j/99");
+            assertTrue(resultDisplay.getText().contains("Warning: jersey number 99 is also used by Amy."));
+            enterCommand("edit 2 j/010");
+            assertEquals("10", model.getFilteredPersonList().getLast().getJerseyNumber().orElseThrow().toString());
+            AddressBook savedTeam = new AddressBook(model.getAddressBook());
+            enterCommand("edit 2 j/0100");
+            assertEquals(JerseyNumber.MESSAGE_CONSTRAINTS, resultDisplay.getText());
+            assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(savedTeam, model.getAddressBook());
+            enterCommand("edit 2 j/000");
+            assertEquals("0", model.getFilteredPersonList().getLast().getJerseyNumber().orElseThrow().toString());
         });
     }
 
