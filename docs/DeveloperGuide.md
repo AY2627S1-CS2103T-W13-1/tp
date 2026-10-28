@@ -517,7 +517,7 @@ This partial UML shows the tag-matching path; the optional injury-status conditi
 
 ### Player remarks and injury status (US21 / US13)
 
-`RemarkCommandParser` requires a displayed index and exactly one `r/`. An empty value constructs an empty `Remark` to clear the note; repeated `r/` delimiters reject the whole command. `Remark` is an immutable free-text value without a length limit. Other prefix-like text is literal because this parser recognises only `r/`. `RemarkCommand` selects the displayed player and replaces it using `Person#withRemark`, then reports the text or `(cleared)`.
+`RemarkCommandParser` requires a displayed index and exactly one `r/`. An empty value constructs an empty `Remark` to clear the note; repeated `r/` delimiters reject the whole command. `Remark` is an immutable free-text value without a length limit. Other prefix-like text is literal because this parser recognises only `r/`. `RemarkCommand` selects the displayed player and replaces it using `Person#withRemark`, then reports the text or `(cleared)`. If the new remark equals the current one, it returns the shared `No changes made` result instead and does not replace the player.
 
 `InjuryCommandParser` requires an index and exactly one `i/`. `ParserUtil#parseInjuryStatus` accepts `fit` or `injured` in any letter case. `InjuryCommand` uses `Person#withInjuryStatus`; if the value is already set it returns already-set feedback without replacement. Injury is independent of selection and rating: an injured player can still be kept and appear in `squad`.
 
@@ -1400,6 +1400,7 @@ rate 2 8
 | --- | --- |
 | `find Amy`, `remark 1 r/Strong left foot`, then `remark 1 r/Improved passing`. | Amy's note is replaced, not appended; feedback names Amy. Other Player stays unchanged. Amy remains Kept, rated 8, jersey 7, tagged Trial and fit. |
 | `find Amy`, `remark 1 r/Note`, then `remark 1 r/`. | `Updated remark for Amy: (cleared)`; the remark row disappears without a blank gap. |
+| Then `remark 1 r/` again. | `No changes made: Amy already has these details.` |
 | `find Amy`, then `remark 1 r/See n/coach for drills`. | The whole text is stored literally; `n/` is not a remark parameter. |
 | `find Amy`, then try `remark 1`, `remark 1 r/One r/Two`, `remark 0 r/Note` and `remark 2 r/Note`. | Missing/duplicate-prefix or index errors; no player, view or file changes. |
 | `find Amy`, `injury 1 i/INJURED`, repeat `injury 1 i/injured`, then `injury 1 i/fit`. | Injured badge appears, repeated status gives already-set feedback, then the badge disappears. The selection badge remains Kept throughout. |

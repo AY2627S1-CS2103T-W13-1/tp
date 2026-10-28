@@ -49,6 +49,10 @@ public class RemarkCommand extends Command {
         }
 
         Person player = displayedPlayers.get(index.getZeroBased());
+        if (player.getRemark().equals(remark)) {
+            return new CommandResult(String.format(EditCommand.MESSAGE_NO_CHANGE, player.getName()));
+        }
+
         Person updatedPlayer = player.withRemark(remark);
         assert player.isSamePerson(updatedPlayer) : "Updating remark must preserve player identity";
         model.setPerson(player, updatedPlayer);

@@ -55,6 +55,25 @@ public class RemarkCommandTest {
     }
 
     @Test
+    public void execute_sameRemark_reportsNoChange() throws Exception {
+        new RemarkCommand(INDEX_FIRST_PERSON, new Remark("Strong left foot")).execute(model);
+        Person player = model.getFilteredPersonList().getFirst();
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+
+        assertCommandSuccess(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("Strong left foot")), model,
+                String.format(EditCommand.MESSAGE_NO_CHANGE, player.getName()), expectedModel);
+    }
+
+    @Test
+    public void execute_clearEmptyRemark_reportsNoChange() {
+        Person player = model.getFilteredPersonList().getFirst();
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+
+        assertCommandSuccess(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("")), model,
+                String.format(EditCommand.MESSAGE_NO_CHANGE, player.getName()), expectedModel);
+    }
+
+    @Test
     public void execute_filteredList_usesDisplayedIndexAndPreservesFilter() throws Exception {
         showPersonAtIndex(model, INDEX_SECOND_PERSON);
         Person target = model.getFilteredPersonList().getFirst();
