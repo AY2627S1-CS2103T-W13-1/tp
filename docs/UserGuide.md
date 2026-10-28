@@ -443,6 +443,10 @@ Fixing the problem does not save the change by itself, and `exit` does not save 
 
 ### Editing the data file
 
+A file containing only `null` is invalid team data and follows the recovery below.
+Invalid application preferences, including `null` window settings in `preferences.json`,
+are replaced with defaults at startup. This resets window preferences without changing your team.
+
 CouchCoach data is saved automatically as a JSON file `[working directory]/data/addressbook.json`.
 The working directory is the terminal's current folder when you launch the app; it can differ from the folder containing the JAR.
 For example, if your terminal is in `/teams/trials` and you run `java -jar /apps/couchcoach.jar`, the team file is `/teams/trials/data/addressbook.json`.

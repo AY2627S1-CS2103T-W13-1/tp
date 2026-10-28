@@ -992,6 +992,23 @@ these checks and verify that both remain unchanged afterwards.
 
 ### Saving data
 
+#### Null data and preference recovery
+
+Use Java 25 and a disposable launch folder. Close the app before editing files.
+Keep a backup of the valid team file before each independent case.
+
+| Setup and action | Expected result |
+| --- | --- |
+| Set `data/addressbook.json` to `null`, then launch. | Empty team and the unreadable-data warning; the file still contains `null`. |
+| Run `list`, `help`, then `exit` after that recovery. | The invalid team file remains unchanged. |
+| Relaunch, then add `add n/Recovery Player p/123`. | The new team replaces the invalid file; restarting restores Recovery Player. |
+| With valid team data, set `preferences.json` to `null`, then launch. | Default window preferences, no team-data warning, and the same players; preferences are rewritten as valid JSON. |
+| Repeat with `preferences.json` set to `{"guiSettings":null}`. | The same default-preference recovery; team file bytes remain unchanged. |
+
+`JsonUtil.readJsonFile` rejects a null document with `DataLoadingException`.
+`JsonUserPrefsStorage` also rejects null GUI settings before the model copies preferences.
+These checks use the existing startup fallbacks rather than catching unrelated runtime errors.
+
 1. Dealing with missing/corrupted data files
 
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
