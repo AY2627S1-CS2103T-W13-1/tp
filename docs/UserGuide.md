@@ -15,23 +15,31 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
 
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
-   **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
+1. Check that Java `25` is installed. Open a terminal and run `java -version`; the first line should mention version `25`.<br>
+   If it does not, install Java 25 by following [this guide](https://se-education.org/guides/tutorials/javaInstallation.html).<br>
+   **Mac users:** install the exact Azul JDK 25 build *with JavaFX* (JDK+FX) prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html). CouchCoach is tested with this build.
 
-1. Download the latest `couchcoach.jar` file from [here](https://github.com/AY2627S1-CS2103T-W13-1/tp/releases).
+1. Download `couchcoach.jar` from the **Assets** of the [latest release](https://github.com/AY2627S1-CS2103T-W13-1/tp/releases/latest).
 
-1. Copy the file to the folder you want to use as the _home folder_ for CouchCoach.
+1. Create a folder for CouchCoach that you can save files in, e.g. a `CouchCoach` folder in your home folder, and move `couchcoach.jar` into it.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar couchcoach.jar`.<br>
-   A window like the one below should appear in a few seconds. The first time you run it, CouchCoach contains some sample players.<br>
-   ![Ui](images/Ui.png)
+1. Open a terminal, `cd` into that folder, and run `java -jar couchcoach.jar`. For example, on macOS or Linux:
+
+   ```text
+   cd ~/CouchCoach
+   java -jar couchcoach.jar
+   ```
+
+   On Windows, use `cd %USERPROFILE%\CouchCoach` in Command Prompt instead of the first line.<br>
+   A window like the one below should appear in a few seconds. The first time you run it, CouchCoach contains some sample players for you to try commands on. Type `clear` to remove them when you are ready to enter your own team.<br>
+   <pic src="images/Ui.png" width="450" alt="CouchCoach window showing a team of players with their status, rating, jersey number, tags and remarks" />
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to see a summary of all commands.<br>
    Some example commands you can try:
 
    * `list` : Lists all players.
 
-   * `add n/Tan Wei Ming p/91234567` : Adds a player named `Tan Wei Ming` to the team.
+   * `add n/Tan Wei Ming p/91234567 j/10` : Adds a player named `Tan Wei Ming` with jersey number 10 to the team.
 
    * `delete 3` : Deletes the 3rd player shown in the current list.
 
@@ -40,6 +48,15 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
    * `exit` : Exits the app.
 
 1. Refer to the [Features](#features) section below for details of each command.
+
+<box type="warning" seamless>
+
+**Launching CouchCoach:**
+
+* CouchCoach keeps your team in a `data` folder inside the terminal's current folder (the _working directory_), not necessarily next to the JAR. Launch it from the same folder every time, or it will not find your team. See [Editing the data file](#editing-the-data-file) for details.
+* CouchCoach must be able to save files in the folder you launch it from. If you launch it from a folder you cannot write to, it closes straight away, prints an error in the terminal, and no window appears. Move the JAR to a folder you own, e.g. in your home folder, and launch it from there.
+* Double-clicking `couchcoach.jar` may also start CouchCoach on some computers, but it may then use a different Java version or a different working folder. Use the terminal command above so that the same team loads each time.
+</box>
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -53,7 +70,7 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `edit INDEX [n/NAME] [p/PHONE] [t/TAG]...` can be used as `edit 1 n/Tan Wei Ming` or as `edit 1 p/91234567`.
+  For example, `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...` can be used as `edit 1 n/Tan Wei Ming` or as `edit 1 p/91234567`.
 
 * Items followed by `...` can appear zero or more times.<br>
   For example, `find KEYWORD [MORE_KEYWORDS]...` can be used as `find wei` or as `find wei ming`.
@@ -89,27 +106,38 @@ Format: `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...`
 * Both `NAME` and `PHONE` must be given, in any order. `JERSEY` and `TAG` are optional.
 * `NAME` can contain letters (including accented and non-English letters, e.g. `José García` or `张伟`), digits, spaces, and the characters `-` `'` `/` `.` `,` `(` `)`, and can be at most 100 characters long.
 * `NAME` is saved with the capitalisation you type. Extra spaces at the start and end are removed, and repeated spaces inside the name are reduced to one.
-* `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces, hyphens, dots and brackets are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567` and `(65) 9123-4567` as `6591234567`. To note what a number is for, e.g. `HP`, use [`remark`](#recording-a-player-observation-remark-us21).
+* `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces, hyphens, dots and brackets are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567` and `(65) 9123-4567` as `6591234567`. Letters, such as `ext 2`, are not allowed. To note what a number is for, e.g. `HP`, use [`remark`](#recording-a-player-observation-remark-us21).
 * `JERSEY` must be a whole number from 0 to 99. Leading zeros are dropped, e.g. `j/07` is saved as `7`, `j/010` as `10`, and `j/099` as `99`.
   Only digits are accepted; signs and decimal points are invalid. Zero padding does not change
   the 0–99 range, so `j/0100` is rejected.
-* A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan wei ming` counts as the same player as `Tan Wei Ming`. Phone numbers are not compared, so two players may share a contact number.
+* Tags follow the [tag rules](#categorising-players-with-tags-us08).
+* A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan  WEI ming` counts as the same player as `Tan Wei Ming`, and the result box shows `This player already exists in the team.` Phone numbers are not compared, so two players may share a contact number, e.g. siblings who give a parent's number.
 * If the new name looks like an existing player's name once spaces and punctuation are ignored, e.g. `TanWei Ming` and `Tan Wei Ming`, the player is still added, but the result box warns you so you can check it is not the same player.
-* Players may share a jersey number, but the result box then warns you and names the other players with that number, e.g. `Warning: jersey number 7 is also used by Bernice Yu.` The player is still added.
+* Players may share a jersey number, e.g. when trialists wear training bibs. The player is still added, but the result box warns you and names every other player with that number, including players hidden by an earlier `find` or `filter`.
 * `n/`, `p/` and `j/` can each be given only once, e.g. `add n/Amy n/Bob p/91234567` is rejected, so that a typo does not save the wrong value.
-* `add` cannot set a remark or injury status. Add the player first, then use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-players-injury-status-injury-us13).
-* The new player appears at the bottom of the list, or at their sorted position if rating sorting is active. If the list was filtered by `find` or `filter`, the full list is shown again.
+* `add` cannot set a remark or injury status. Add the player first, then use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-player-s-injury-status-injury-us13).
+* CouchCoach has no email or address fields. Text such as `e/amy@x.com` is read as part of the value before it, so `add n/Amy p/91234567 e/amy@x.com` is rejected with the phone number rules.
+* A new player starts as **Pending**, **Unrated** and fit, with no remark.
+* After adding, CouchCoach shows the full team again, even if the list was filtered by `find`, `filter` or `squad`, so that you can see the new player. The new player appears at the bottom of the list. This is also true while the list is sorted by rating, as new players are unrated and unrated players are listed last.
 
 <box type="tip" seamless>
 
 **Tip:** To add two players with the same name, add something to tell them apart, e.g. `n/Tan Wei Ming 2` or `n/Tan Wei Ming Jr`.
 </box>
 
-Examples:
-* `add n/Tan Wei Ming p/91234567`
-* `add n/Lim Wei Jie p/98765432 j/10`
-* `add p/+6598765432 n/Nur'ain Binte Hassan`
-* `add n/Muthu s/o Ramasamy p/8123 4567`
+Examples, starting from a team that already contains `Nur'ain Binte Hassan` with jersey number 7:
+
+| Command | Result box shows |
+| --- | --- |
+| `add n/Tan Wei Ming p/91234567` | `New player added: Tan Wei Ming; Phone: 91234567` |
+| `add n/José García p/8123 4567 j/10 t/Striker` | `New player added: José García; Phone: 81234567; Jersey: 10; Tags: Striker` |
+| `add p/(65) 9876-5432 n/Muthu s/o Ramasamy` | `New player added: Muthu s/o Ramasamy; Phone: 6598765432` |
+| `add n/Lim Wei Jie p/98765432 j/07` | `New player added: Lim Wei Jie; Phone: 98765432; Jersey: 7`<br>`Warning: jersey number 7 is also used by Nur'ain Binte Hassan.` |
+| `add n/TanWei Ming p/90000000` | `New player added: TanWei Ming; Phone: 90000000`<br>`Warning: this name looks like Tan Wei Ming. Check that this is not the same player.` |
+| `add n/tan wei ming p/81112222` | `This player already exists in the team.` |
+| `add n/Amy p/12` | The phone number rules; nothing is added. |
+| `add n/Amy p/91234567 j/100` | `Jersey numbers should be whole numbers from 0 to 99, e.g. 7 or 23.` |
+| `add n/Amy p/91234567 r/Strong left foot` | `add cannot set a remark or injury status. Use "remark INDEX r/REMARK" or "injury INDEX i/STATUS" instead.` |
 
 ### Categorising players with tags (US08)
 
@@ -258,27 +286,33 @@ Examples:
 
 ### Editing a player: `edit`
 
-Edits an existing player in the team.
+Changes the name, phone number, jersey number or tags of a player in the displayed list.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`
 
-* Edits the player at the specified `INDEX`. The index refers to the index number shown in the displayed player list. The index **must be a positive whole number** 1, 2, 3, ...
-* At least one of the optional fields must be provided.
-* Existing values will be updated to the input values. Names, phone numbers and jersey numbers follow the same rules as in `add`.
-* `n/`, `p/` and `j/` can each be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
-* If you rename a player to a name that looks like another player's, e.g. `TanWei Ming` when `Tan Wei Ming` exists, the change is made, but the result box warns you, as with `add`.
-* `edit` cannot change a remark or injury status. Use `remark` or `injury` instead.
+* Edits the player at the specified `INDEX`, the number shown beside the player in the displayed list. `INDEX` must be a positive whole number such as 1, 2 or 3. An index that is `0` or larger than the list shows `The player index provided is invalid.`
+* At least one of the optional fields must be provided; `edit 1` on its own shows `At least one field to edit must be provided.`
+* Each value you give replaces the current one. Names, phone numbers and jersey numbers follow the same rules as in [`add`](#adding-a-player-add), and `n/`, `p/` and `j/` can each be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
+* A player cannot be renamed to another player's name: names are compared as in `add`, and the result box shows `This player already exists in the team.` Changing only the capitalisation or spacing of a player's own name, e.g. `Tan Wei Ming` to `TAN WEI MING`, is allowed.
+* If the new name looks like another player's, e.g. `TanWei Ming` when `Tan Wei Ming` exists, the change is made, but the result box warns you, as with `add`. Editing other details does not repeat this warning.
 * Omit `j/` to keep the player's current jersey number. Type `j/` with nothing after it to remove the jersey number. An empty `j/` works only with `edit`; `add` rejects it.
-* If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
+* If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`, naming players hidden by an earlier `find` or `filter` too. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
 * Repeat `t/TAG` to replace all of the player's tags. Omit `t/` to keep them. Use a single empty `t/` to clear them; combining empty and non-empty tags is rejected.
-* The displayed list stays as it is, so you can keep editing the results of a `find` or `filter` with their numbers unchanged. If the edited player no longer matches the search, e.g. after a name change, they drop out of the displayed list; use `list` to see everyone.
-* The result box shows the player's new details, and notes any jersey number or tags you removed. If the values you typed are the same as the current ones, it says no changes were made.
+* `edit` cannot change a remark or injury status. Use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-player-s-injury-status-injury-us13) instead.
+* Details you do not edit stay as they are. In particular, editing never changes a player's selection status, rating, remark or injury status.
+* The displayed list stays as it is, so you can keep editing the results of a `find` or `filter` with their numbers unchanged. An active rating sort also stays. If the edited player no longer matches the search, e.g. after a name change, they drop out of the displayed list; use `list` to see everyone.
+* The result box shows the player's new details, and notes any jersey number or tags you removed. If the values you typed are the same as the current ones, including a phone number typed with different spacing, it says `No changes made: NAME already has these details.`
 
-Examples:
-*  `edit 1 p/91234567` Edits the phone number of the 1st player to be `91234567`.
-*  `edit 2 n/Lim Wei Jie` Edits the name of the 2nd player to be `Lim Wei Jie`.
-*  `edit 3 j/23` Sets the jersey number of the 3rd player to be `23`.
-*  `edit 3 j/` Removes the jersey number of the 3rd player.
+Examples, for a team where the 1st player is `Tan Wei Ming`, with jersey number 10, and `Nur'ain Binte Hassan` wears 7:
+
+| Command | Result box shows |
+| --- | --- |
+| `edit 1 p/9123 4567` | `Edited player: Tan Wei Ming; Phone: 91234567; Jersey: 10` |
+| `edit 1 n/Tan Wei Ming Jr` | `Edited player: Tan Wei Ming Jr; Phone: 91234567; Jersey: 10` |
+| `edit 1 j/7` | `Edited player: Tan Wei Ming Jr; Phone: 91234567; Jersey: 7`<br>`Warning: jersey number 7 is also used by Nur'ain Binte Hassan.` |
+| `edit 1 j/` | `Edited player: Tan Wei Ming Jr; Phone: 91234567 (jersey number removed)` |
+| `edit 1 j/` again | `No changes made: Tan Wei Ming Jr already has these details.` |
+| `edit 0 n/Amy` | `The player index provided is invalid.` |
 
 ### Finding players by name: `find`
 
@@ -478,11 +512,11 @@ Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...` <br> e.g., `add n/Tan Wei Ming p/91234567 j/10`
+**Add**    | `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...` <br> e.g., `add n/Tan Wei Ming p/91234567 j/10 t/Striker`
 **Clear**  | `clear`
 **Cut**    | `cut INDEX`<br> e.g., `cut 3`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`; remove a jersey number with `edit 3 j/`
 **Exit**   | `exit`
 **Filter** | `filter [t/TAG]... [i/STATUS]`<br> e.g., `filter t/Striker t/Captain`, `filter i/injured`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`

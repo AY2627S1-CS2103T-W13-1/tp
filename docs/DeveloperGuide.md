@@ -215,6 +215,62 @@ The immutable numeric value supplies equality, display, and JSON serialization, 
 and `99` produce the same stored number and duplicate warning. Validation rejects
 out-of-range digits before integer parsing, including padded values such as `0100`.
 
+### Adding players, jersey numbers and duplicate warnings
+
+#### Implementation
+
+`add` creates a new `Person` from a name, a phone number, an optional jersey number and optional tags. The sequence diagram below shows how `add n/Amy Tan p/91234567 j/7` is executed.
+
+<puml src="diagrams/AddSequenceDiagram.puml" alt="Interactions inside the Logic, Model and Storage components for an add command with a jersey number" />
+
+<box type="info" seamless>
+
+**Note:** The lifeline for `AddCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
+</box>
+
+1. `AddCommandParser` tokenizes the arguments. It also looks for `r/` and `i/`, but only so that `ParserUtil#requireNoRemarkOrInjury()` can reject them with a message that names the right command. Without this, `r/...` would be read as part of the value before it, and the error would blame that value instead. `n/` and `p/` are compulsory, and `ArgumentMultimap#verifyNoDuplicatePrefixesFor()` rejects a repeated `n/`, `p/` or `j/`.
+1. `ParserUtil` parses each value. `parseName()` collapses repeated spaces with `Name#normalize()` before checking the allowed characters and the 100-character limit separately, so that each problem has its own message. `parsePhone()` removes spaces, hyphens, dots and brackets with `Phone#normalize()` before checking for 3 to 15 digits. `parseJerseyNumber()` accepts values from 0 to 99 with optional leading zeros, and `JerseyNumber` stores the value as an `int`, so `07` and `7` are the same number.
+1. The parser creates the player with `new Person(name, phone, tags)`, which starts as `PENDING`, `UNRATED`, `FIT` and with an empty remark, and sets the jersey number with `Person#withJerseyNumber()`. A `Person` stores a missing jersey number as `null` but exposes it only as an `Optional<JerseyNumber>` from `getJerseyNumber()`.
+1. `AddCommand#execute()` rejects the player if `Model#hasPerson()` finds a player with the same name. This uses `Person#isSamePerson()`, which compares names with `Name#isSameName()`, ignoring case and repeated spaces. Otherwise, `Model#addPerson()` adds the player and resets the filtered list to show the whole team, so the coach sees the new player.
+1. `AddCommand` then asks two package-private helpers in the `logic.commands` package for warnings. `DuplicateJerseyNumberChecker#getWarning()` looks for other players with the same jersey number (`Person#hasSameJerseyNumber()`), and `SimilarNameChecker#getWarning()` looks for names that are equal once spaces and punctuation are ignored (`Name#isSimilarTo()`). Both search `Model#getAddressBook()`, i.e. the whole team rather than the filtered list, so they also find players hidden by `find` or `filter`. Each returns an empty string or a warning line, which is appended to the success message.
+1. `LogicManager` saves the team through `Storage`. `JsonAdaptedPerson` writes `jerseyNumber` only for a player who has one, and reads a missing field as no jersey number.
+
+`edit` reuses the same parsing and checks, with these differences:
+
+* `EditPersonDescriptor` records whether `j/` was given in `isJerseyNumberEdited`, as a `null` jersey number can mean either "not given" or "remove it". `EditCommandParser#parseJerseyNumberForEdit()` turns an empty `j/` into `null`, which removes the jersey number.
+* The duplicate-name check runs only when the new name belongs to another player (`!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)`), so a coach can change the capitalisation or spacing of a player's own name.
+* `EditCommand` builds the edited player from the old one, so the selection status, rating, remark and injury status are always kept, and so are the tags and jersey number unless `t/` or `j/` is given. If the result equals the old player, the command reports that nothing changed instead of replacing it.
+* The jersey number warning is checked only when the edit includes `j/`, and the similar-name warning only when the name actually changes. This stops edits to other details from repeating a warning the coach has already seen.
+* `Model#setPerson()` replaces the player without resetting the filtered list, so the coach can keep editing search results by the same indices.
+
+#### Design considerations
+
+**Aspect: How to handle a jersey number that is already in use**
+
+* **Alternative 1 (current choice):** Accept it and warn the coach, naming the other players with that number.
+  * Pros: Numbers can legitimately repeat, e.g. training bibs at trials, or players from different age groups in one team. Swapping two players' numbers needs one moment where both share a number, which a hard rule would block.
+  * Cons: A coach who ignores the warning can end up with two players on the same number.
+* **Alternative 2:** Reject the command, like a duplicate name.
+  * Pros: Every jersey number identifies one player.
+  * Cons: Blocks the legitimate cases above, and makes a swap take three commands.
+
+**Aspect: What makes two players the same player**
+
+* **Alternative 1 (current choice):** The same name, ignoring case and repeated spaces. Names that differ only in punctuation or spacing within words, such as `TanWei Ming` and `Tan Wei Ming`, are allowed but trigger a warning.
+  * Pros: Catches the common mistake of adding the same player twice, while still allowing two players who share a phone number or jersey number. A warning, rather than a rejection, allows names that are spelt differently on purpose.
+  * Cons: Two different players with exactly the same name need something added to one name, e.g. `Jr`.
+* **Alternative 2:** The same name and phone number.
+  * Pros: Two players with the same name can be added without changing either name.
+  * Cons: The same player added twice with different contact numbers is not caught.
+
+**Aspect: Where the warning checks live**
+
+* **Alternative 1 (current choice):** Separate helper classes in `logic.commands`, called by `AddCommand` and `EditCommand` after the change is made.
+  * Pros: The warning text is command feedback, so the `Model` stays unaware of it. Both commands share one implementation.
+  * Cons: Each check scans the whole team once per command. This is fast enough for the 1000-player limit in the non-functional requirements.
+* **Alternative 2:** Check inside `UniquePersonList` when a player is added or replaced.
+  * Cons: The model would have to return warnings alongside its changes, mixing presentation into the model.
+
 ### Player ratings (US12)
 
 `RateCommandParser` parses `rate INDEX RATING` into a `RateCommand`. It validates the
@@ -540,18 +596,23 @@ The following rules apply throughout:
 
 1. Coach requests to find a player by name.
 2. CouchCoach displays the matching players.
-3. Coach identifies a player from the displayed list and submits the details
-   to change.
-4. CouchCoach updates the selected player's details, saves the updated data,
-   and displays the updated details.
+3. Coach identifies a player from the displayed list and submits a new name,
+   phone number and/or jersey number for them.
+4. CouchCoach updates the selected player's details, keeping their other
+   details, saves the updated data, and displays the updated details. The
+   displayed list stays filtered.
 
    Use case ends.
 
 **Extensions**
 
-* 1a. The search request has no keywords.
+* 1a. Coach requests to list all players instead.
 
-    * 1a1. CouchCoach displays an error and leaves the displayed list unchanged.
+  Use case resumes at step 2, displaying all players.
+
+* 1b. The search request has no keywords.
+
+    * 1b1. CouchCoach displays an error and leaves the displayed list unchanged.
 
       Use case resumes at step 1.
 
@@ -565,8 +626,8 @@ The following rules apply throughout:
 
       Use case resumes at step 3.
 
-* 3b. The edit request contains invalid details or does not specify any
-  details to change.
+* 3b. The edit request contains invalid details, repeats a detail, or does
+  not specify any details to change.
 
     * 3b1. CouchCoach explains the input error and leaves the data unchanged.
 
@@ -579,9 +640,43 @@ The following rules apply throughout:
 
       Use case resumes at step 3.
 
-* 4a. CouchCoach cannot save the updated data.
+* 3d. The Coach requests to remove the player's jersey number.
 
-    * 4a1. CouchCoach informs the Coach that the edits were applied in the
+    * 3d1. CouchCoach removes the jersey number, saves the updated data, and
+      states that the jersey number was removed.
+
+      Use case ends.
+
+* 3e. The submitted details are the same as the player's current details.
+
+    * 3e1. CouchCoach reports that no changes were made.
+
+      Use case ends.
+
+* 4a. The new jersey number is already used by other players.
+
+    * 4a1. CouchCoach keeps the change and warns the Coach, naming every
+      other player with that number, including players not in the displayed list.
+
+      Use case ends.
+
+* 4b. The new name looks like another player's name once spaces and
+  punctuation are ignored.
+
+    * 4b1. CouchCoach keeps the change and warns the Coach, naming the
+      player with the similar name.
+
+      Use case ends.
+
+* 4c. The edited player no longer matches the search.
+
+    * 4c1. CouchCoach removes the player from the displayed list.
+
+      Use case ends.
+
+* 4d. CouchCoach cannot save the updated data.
+
+    * 4d1. CouchCoach informs the Coach that the edits were applied in the
       current session but could not be saved and may be lost after closing.
 
       Use case ends.
@@ -809,63 +904,145 @@ testers are expected to do more *exploratory* testing.
 
 1. Initial launch
 
-   1. Download the JAR file and copy it into an empty folder.
+   1. Copy `couchcoach.jar` into an empty folder that you can write to.
 
-   1. Double-click the JAR file.<br>
-      Expected: The GUI opens with a set of sample contacts. The window size may not be optimal.
+   1. Open a terminal in that folder and run `java -jar couchcoach.jar` with Java 25.<br>
+      Expected: The GUI opens with a set of sample players. The window size may not be optimal. A `preferences.json` file and a log file appear in the folder; the `data` folder appears after the first change to player data.
 
 1. Saving window preferences
 
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
-   1. Relaunch the app by double-clicking the JAR file.<br>
+   1. Relaunch the app with `java -jar couchcoach.jar` from the same folder.<br>
        Expected: The most recent window size and location are retained.
 
-1. _{ more test cases … }_
+1. Launching from another working directory
+
+   1. Open a terminal in a different folder and run the JAR using its full path, e.g. `java -jar ~/CouchCoach/couchcoach.jar`.<br>
+      Expected: The sample players appear instead of your team, because the team file is read from `data/addressbook.json` in the terminal's current folder.
 
 ### Adding a player
+
+Use a disposable folder. Run `clear` first, then `add n/Nur'ain Binte Hassan p/91112222 j/7`.
 
 1. Adding a player with valid details
 
    1. Test case: `add n/Tan Wei Ming p/91234567`<br>
-      Expected: `Tan Wei Ming` appears at the bottom of the list. The status message shows `New player added: Tan Wei Ming; Phone: 91234567`.
+      Expected: `Tan Wei Ming` appears at the bottom of the list as Pending and Unrated, with no jersey number. The result box shows `New player added: Tan Wei Ming; Phone: 91234567`.
 
-   1. Test case: `add p/+65 9876-5432 n/Nur'ain   Binte Hassan`<br>
-      Expected: The player is added as `Nur'ain Binte Hassan` with phone `+6598765432`. Parameter order does not matter, repeated spaces in the name are collapsed, and spaces and hyphens in the phone are removed.
+   1. Test case: `add p/+65 9876-5432 n/Muthu   s/o Ramasamy j/10 t/Striker`<br>
+      Expected: The player is added as `Muthu s/o Ramasamy` with phone `+6598765432`, jersey number 10 and the Striker tag. Parameter order does not matter, repeated spaces in the name are collapsed, and spaces and hyphens in the phone are removed.
 
-   1. Test case: `add n/Muthu s/o Ramasamy p/8123 4567`<br>
-      Expected: The player is added. The `/` in the name is accepted and the phone is stored as `81234567`.
+   1. Test case: `add n/José García p/(65) 8123.4567`<br>
+      Expected: The player is added with phone `6581234567`. Accented letters, brackets and dots are accepted.
 
-1. Adding a player while the list is filtered
+1. Boundary values
 
-   1. Prerequisites: Filter the list using `find`, e.g. `find Tan`.
+   1. Test case: `add n/Zero Keeper p/123 j/0`, then `add n/Ninety Nine p/123456789012345 j/99`<br>
+      Expected: Both are added. A 3-digit and a 15-digit phone number, and jersey numbers 0 and 99, are accepted.
 
-   1. Test case: `add n/Lim Wei Jie p/98765432`<br>
-      Expected: The full list is shown again, with `Lim Wei Jie` at the bottom.
+   1. Test case: `add n/Leading Zero p/91230000 j/08`<br>
+      Expected: The player is added with `Jersey: 8`.
 
-1. Adding a duplicate player
+   1. Test case: a name of exactly 100 characters, then the same name with one more letter<br>
+      Expected: The first is added. The second is rejected with `Names should not exceed 100 characters.`
 
-   1. Prerequisites: `Tan Wei Ming` is in the list.
+1. Duplicate players and shared jersey numbers
 
    1. Test case: `add n/tan  WEI ming p/81112222`<br>
-      Expected: No player is added. The status message shows `This player already exists in the team.`
+      Expected: No player is added. The result box shows `This player already exists in the team.`
 
-   1. Test case: `add n/Tan Wei Ming 2 p/91234567`<br>
-      Expected: The player is added, because only the name is checked for duplicates.
+   1. Test case: `add n/TanWei Ming p/90000000`<br>
+      Expected: The player is added. The result box also shows `Warning: this name looks like Tan Wei Ming. Check that this is not the same player.`
+
+   1. Test case: `find Tan`, then `add n/Lim Wei Jie p/98765432 j/7`<br>
+      Expected: The full list is shown again, with `Lim Wei Jie` at the bottom. The result box also shows `Warning: jersey number 7 is also used by Nur'ain Binte Hassan.`, although Nur'ain was hidden by the search.
+
+   1. Test case: `add n/Lim Kai Jie p/98765432 j/7`<br>
+      Expected: The player is added, as phone numbers may repeat. The warning names both `Nur'ain Binte Hassan` and `Lim Wei Jie`.
 
 1. Adding a player with invalid details
 
-   1. Test case: `add n/Tan Wei Ming`<br>
-      Expected: No player is added. The status message shows the invalid command format error with the `add` usage.
+   1. Test case: `add n/Amy p/12`, `add n/Amy p/1234567890123456`, `add n/Amy p/9123ABCD`<br>
+      Expected: No player is added. The result box shows the phone number rules.
 
-   1. Test case: `add n/Tan @ Ming p/91234567`<br>
-      Expected: No player is added. The status message shows the name constraints.
+   1. Test case: `add n/Amy p/91234567 j/100`, then `j/010`, `j/-1`, `j/7.5` and an empty `j/` in place of `j/100`<br>
+      Expected: No player is added. The result box shows `Jersey numbers should be whole numbers from 0 to 99, e.g. 7 or 23.`
 
-   1. Test case: `add n/Amy p/12`<br>
-      Expected: No player is added. The status message shows the phone constraints.
+   1. Test case: `add n/Amy n/Bob p/91234567`<br>
+      Expected: No player is added. The result box says that `n/` can be given only once.
 
-   1. Other incorrect add commands to try: `add`, `add n/ p/91234567`, `add n/Amy p/9123ABCD`, `add n/Amy p/91234567 e/amy@x.com`, a name longer than 100 characters<br>
+   1. Test case: `add n/Amy p/91234567 r/Strong left foot`<br>
+      Expected: No player is added. The result box says that `add` cannot set a remark or injury status.
+
+   1. Other incorrect add commands to try: `add`, `add n/Amy`, `add n/ p/91234567`, `add n/Amy @ Home p/91234567`, `add n/Amy p/91234567 e/amy@x.com`<br>
       Expected: No player is added, and an error message is shown.
+
+1. Persistence
+
+   1. Close CouchCoach with `exit`, then relaunch it from the same folder.<br>
+      Expected: The players added above are listed with the same details. In `data/addressbook.json`, players with a jersey number have a `jerseyNumber` field, and players without one have none.
+
+Cleanup: delete the disposable folder.
+
+### Editing a player
+
+Use a disposable folder. Run `clear`, then `add n/Tan Wei Ming p/81234567 j/10` and `add n/Nur'ain Binte Hassan p/98765432 j/7`.
+
+1. Editing names, phone numbers and jersey numbers
+
+   1. Test case: `edit 1 p/9123 4567`<br>
+      Expected: The result box shows `Edited player: Tan Wei Ming; Phone: 91234567; Jersey: 10`.
+
+   1. Test case: `edit 1 p/91234567`<br>
+      Expected: `No changes made: Tan Wei Ming already has these details.`
+
+   1. Test case: `edit 1 n/TAN WEI MING`<br>
+      Expected: The name changes to `TAN WEI MING`. Changing only the capitalisation of a player's own name is not a duplicate.
+
+   1. Test case: `edit 1 n/Nur'ain Binte Hassan`<br>
+      Expected: No change. The result box shows `This player already exists in the team.`
+
+1. Jersey numbers and the duplicate warning
+
+   1. Test case: `edit 1 j/7`<br>
+      Expected: The jersey number changes to 7. The result box also shows `Warning: jersey number 7 is also used by Nur'ain Binte Hassan.`
+
+   1. Test case: `edit 1 p/90001111`<br>
+      Expected: The phone number changes, and the jersey warning is not repeated.
+
+   1. Test case: `edit 1 j/`, then `edit 1 j/` again<br>
+      Expected: The first removes the jersey number and the result box ends with `(jersey number removed)`. The second shows `No changes made: ...`.
+
+1. Details that edit keeps
+
+   1. Prerequisites: `keep 1`, `rate 1 8`, `remark 1 r/Strong left foot`, `injury 1 i/injured`.
+
+   1. Test case: `edit 1 n/Tan Wei Ming p/91112222 j/23`<br>
+      Expected: The card shows the new name, phone and jersey number, still with Kept, Injured, `Rating: 8/10` and the remark.
+
+1. Editing a filtered list
+
+   1. Test case: `find Tan`, then `edit 1 n/Ali Rahman`<br>
+      Expected: The edit succeeds and the player drops out of the displayed list, which now shows 0 players. `list` shows them again.
+
+1. Invalid edits
+
+   1. Test case: `edit 0 n/Amy`, then `edit 99 n/Amy`<br>
+      Expected: `The player index provided is invalid.` No player changes.
+
+   1. Test case: `edit 1`<br>
+      Expected: `At least one field to edit must be provided.`
+
+   1. Other incorrect edit commands to try: `edit x n/Amy`, `edit 1 n/Amy n/Bob`, `edit 1 j/7 j/8`, `edit 1 j/100`, `edit 1 r/note`<br>
+      Expected: An error message is shown, and no player changes.
+
+1. Persistence
+
+   1. Close CouchCoach with `exit`, then relaunch it from the same folder.<br>
+      Expected: The edited details remain.
+
+Cleanup: delete the disposable folder. Tag-specific edit checks are in [Custom player tags (US08): manual regression checks](#custom-player-tags-us08-manual-regression-checks).
 
 ### Listing all players (F2 / US02)
 
