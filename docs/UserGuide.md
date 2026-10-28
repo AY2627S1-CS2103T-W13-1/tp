@@ -504,9 +504,16 @@ Advanced users are welcome to update data directly by editing that data file.
 
 **Caution:**
 If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `tag`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` or `clear`), which replaces it, so back up the file before editing it.<br>
+A file containing only `null` also counts as invalid.<br>
 A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
 Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
+
+### Application preferences
+
+Window settings are saved in `[working directory]/preferences.json`.
+Invalid preferences, including a file containing only `null` or `null` window settings,
+are replaced with defaults at startup. Your team data remains unchanged.
 
 --------------------------------------------------------------------------------------------------------------------
 

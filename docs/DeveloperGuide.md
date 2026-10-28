@@ -198,6 +198,10 @@ The `Storage` component,
 * writes the jersey number only for a player who has one; for a player without one, the field is left out of the file.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
+`JsonUtil.readJsonFile` rejects a null document with `DataLoadingException`.
+`JsonUserPrefsStorage` also rejects null GUI settings before the model copies preferences.
+These checks use the existing startup fallbacks rather than catching unrelated runtime errors.
+
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
@@ -1183,11 +1187,20 @@ these checks and verify that both remain unchanged afterwards.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+#### Null data and preference recovery
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+Use Java 25 and a disposable launch folder. Close the app before editing files.
+Keep a backup of the valid team file before each independent case.
 
-1. _{ more test cases … }_
+| Setup and action | Expected result |
+| --- | --- |
+| Set `data/addressbook.json` to `null`, then launch. | Empty team and the unreadable-data warning; the file still contains `null`. |
+| Run `list`, `help`, then `exit` after that recovery. | The invalid team file remains unchanged. |
+| Relaunch, then add `add n/Recovery Player p/123`. | The new team replaces the invalid file; restarting restores Recovery Player. |
+| With valid team data, set `preferences.json` to `null`, then launch. | Default window preferences, no team-data warning, and the same players; preferences are rewritten as valid JSON. |
+| Repeat with `preferences.json` set to `{"guiSettings":null}`. | The same default-preference recovery; team file bytes remain unchanged. |
+| Delete `data/addressbook.json`, then launch. | Sample players appear; a subsequent data change creates a valid team file. |
+| Replace the team file with malformed JSON, then launch. | Empty team and the unreadable-data warning; the invalid file stays unchanged until a data change. |
 
 ### Jersey number zero padding: manual regression checks
 
