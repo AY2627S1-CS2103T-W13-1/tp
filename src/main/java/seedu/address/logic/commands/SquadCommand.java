@@ -1,10 +1,9 @@
 package seedu.address.logic.commands;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.model.person.HasSelectionStatusPredicate.IS_KEPT;
 
 import seedu.address.model.Model;
-import seedu.address.model.person.HasSelectionStatusPredicate;
-import seedu.address.model.person.SelectionStatus;
 
 /**
  * Lists only the players marked as kept, i.e. the coach's squad.
@@ -22,8 +21,6 @@ public class SquadCommand extends Command {
     /** Feedback when no player is kept yet, telling the coach how to build the squad. */
     public static final String MESSAGE_EMPTY_SQUAD = "No players in your squad yet. "
             + "Use 'keep INDEX' to keep a player, or 'list' to see all players.";
-
-    private static final HasSelectionStatusPredicate IS_KEPT = new HasSelectionStatusPredicate(SelectionStatus.KEPT);
 
     @Override
     public CommandResult execute(Model model) {

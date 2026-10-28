@@ -9,13 +9,16 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.SortCommand.Direction;
 import seedu.address.logic.parser.SortCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.person.Rating;
+import seedu.address.model.person.SelectionStatus;
 import seedu.address.testutil.PersonBuilder;
 
 public class SortCommandTest {
@@ -25,20 +28,60 @@ public class SortCommandTest {
     private final Person unrated = new PersonBuilder().withName("Unrated Lee").build();
 
     @Test
-    public void equals_comparesSortDirection() {
-        SortCommand ascending = new SortCommand(true);
-        SortCommand descending = new SortCommand(false);
+    public void execute_explicitScope_replacesFilterAndPreservesRoster() {
+        ModelManager model = createModel();
+        Person keptLow = low.withSelectionStatus(SelectionStatus.KEPT);
+        Person keptHigh = high.withSelectionStatus(SelectionStatus.KEPT);
+        model.setPerson(low, keptLow);
+        model.setPerson(high, keptHigh);
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Low")));
+        List<Person> roster = List.copyOf(model.getAddressBook().getPersonList());
+
+        new SortCommand(Direction.DESCENDING, SortCommand.Scope.SQUAD).execute(model);
+        assertEquals(List.of(keptHigh, keptLow), model.getFilteredPersonList());
+        new SortCommand(Direction.ASCENDING, SortCommand.Scope.ALL).execute(model);
+        assertEquals(List.of(keptLow, keptHigh, tied, unrated), model.getFilteredPersonList());
+        new SquadCommand().execute(model);
+        assertEquals(List.of(keptLow, keptHigh), model.getFilteredPersonList());
+        assertEquals(roster, model.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void execute_emptySquadAndRoster_success() {
+        ModelManager model = createModel();
+        new SortCommand(Direction.DESCENDING, SortCommand.Scope.SQUAD).execute(model);
+        assertEquals(List.of(), model.getFilteredPersonList());
+        model.setAddressBook(new AddressBook());
+        new SortCommand(Direction.ASCENDING, SortCommand.Scope.ALL).execute(model);
+        assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void equals_comparesSortDirectionAndScope() {
+        SortCommand ascending = new SortCommand(Direction.ASCENDING);
+        SortCommand descending = new SortCommand(Direction.DESCENDING);
         assertEquals(ascending, ascending);
-        assertEquals(ascending, new SortCommand(true));
-        assertEquals(descending, new SortCommand(false));
+        assertEquals(ascending, new SortCommand(Direction.ASCENDING));
+        assertEquals(descending, new SortCommand(Direction.DESCENDING));
         assertFalse(ascending.equals(descending));
+        assertFalse(ascending.equals(new SortCommand(Direction.ASCENDING, SortCommand.Scope.ALL)));
         assertFalse(ascending.equals(null));
         assertFalse(ascending.equals(new ListCommand()));
     }
 
     @Test
+    public void constructor_nullScope_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new SortCommand(Direction.DESCENDING, null));
+    }
+
+    @Test
+    public void constructor_nullDirection_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new SortCommand(null));
+    }
+
+    @Test
     public void execute_nullModel_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new SortCommand(true).execute(null));
+        assertThrows(NullPointerException.class, () -> new SortCommand(Direction.ASCENDING).execute(null));
     }
 
     @Test
@@ -47,10 +90,11 @@ public class SortCommandTest {
         Person anotherUnrated = new PersonBuilder().withName("Another Player").build();
         model.addPerson(unrated);
         model.addPerson(anotherUnrated);
-        for (boolean ascending : new boolean[] {true, false}) {
-            CommandResult result = new SortCommand(ascending).execute(model);
+        for (Direction direction : Direction.values()) {
+            CommandResult result = new SortCommand(direction).execute(model);
             assertEquals(List.of(unrated, anotherUnrated), model.getFilteredPersonList());
-            assertEquals(String.format(SortCommand.MESSAGE_SUCCESS, ascending ? "ascending" : "descending"),
+            assertEquals(String.format(SortCommand.MESSAGE_SUCCESS,
+                    direction == Direction.ASCENDING ? "ascending" : "descending"),
                     result.getFeedbackToUser());
         }
     }
@@ -58,9 +102,9 @@ public class SortCommandTest {
     @Test
     public void execute_bothDirections_keepsUnratedLastAndTiesInInsertionOrder() {
         ModelManager model = createModel();
-        new SortCommand(false).execute(model);
+        new SortCommand(Direction.DESCENDING).execute(model);
         assertEquals(List.of(high, tied, low, unrated), model.getFilteredPersonList());
-        new SortCommand(true).execute(model);
+        new SortCommand(Direction.ASCENDING).execute(model);
         assertEquals(List.of(low, high, tied, unrated), model.getFilteredPersonList());
         assertEquals(List.of(unrated, low, high, tied), model.getAddressBook().getPersonList());
         new ListCommand().execute(model);
@@ -71,7 +115,7 @@ public class SortCommandTest {
     public void execute_filteredList_keepsFilterAndUsesDisplayedIndices() throws Exception {
         ModelManager model = createModel();
         model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Tan")));
-        new SortCommand(false).execute(model);
+        new SortCommand(Direction.DESCENDING).execute(model);
         assertEquals(List.of(high, tied, low), model.getFilteredPersonList());
         new RateCommand(Index.fromOneBased(1), new Rating("0")).execute(model);
         assertEquals(List.of(tied, low, new PersonBuilder(high).withRating("0").build()),
@@ -83,17 +127,17 @@ public class SortCommandTest {
     @Test
     public void execute_emptyAndUnratedLists_success() {
         ModelManager model = new ModelManager();
-        new SortCommand(false).execute(model);
+        new SortCommand(Direction.DESCENDING).execute(model);
         assertEquals(List.of(), model.getFilteredPersonList());
         model.addPerson(unrated);
-        new SortCommand(true).execute(model);
+        new SortCommand(Direction.ASCENDING).execute(model);
         assertEquals(List.of(unrated), model.getFilteredPersonList());
     }
 
     @Test
     public void execute_addEditAndInvalidCommands_preservesSorting() throws Exception {
         ModelManager model = createModel();
-        new SortCommand(false).execute(model);
+        new SortCommand(Direction.DESCENDING).execute(model);
         Person added = new PersonBuilder().withName("Added Player").withRating("5").build();
         model.addPerson(added);
         assertEquals(List.of(high, tied, added, low, unrated), model.getFilteredPersonList());

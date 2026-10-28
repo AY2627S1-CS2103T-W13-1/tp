@@ -201,15 +201,20 @@ Run `list` again before using an index if you need to see the full team.
 
 Orders the displayed players by their performance rating.
 
-Format: `sort rating [asc|desc]`
+Format: `sort rating [all|squad] [asc|desc]`
 
 * `sort rating` and `sort rating desc` show the highest rating first.
-* `rating`, `asc` and `desc` can be typed in any letter case, e.g. `sort Rating ASC`.
+* `rating`, `all`, `squad`, `asc` and `desc` can be typed in any letter case, e.g. `sort Rating ALL ASC`.
   The command word `sort` itself must be lower case.
 * `sort rating asc` shows the lowest rating first. **Unrated** players appear last
   in both directions; a score of `0` still appears before unrated players.
 * Players with the same rating keep their original insertion order.
-* Sorting keeps the current `find` filter. Later searches use the active sort order too.
+* Without a scope, sorting keeps the current view, including a `find`, `filter` or `squad` filter.
+* `sort rating all` replaces any filter with the full roster, then sorts it.
+* `sort rating squad asc` replaces any filter with all kept players, then sorts them lowest first.
+  Scope and direction can appear in either order, e.g. `sort rating asc all`. Both explicit scopes include players hidden by an earlier search.
+* Later searches and `squad` use the active sort order. The scope selects a view once;
+  subsequent view-changing commands can replace it as usual.
 * Indices are renumbered to match the sorted display. `rate`, `edit` and `delete` use
   these displayed indices. Check the list again after a rating change, as the player may move.
 * The active sort remains when adding or editing players; new players appear at their
@@ -450,7 +455,8 @@ Shows only the players you have marked as kept, so you can see your squad at a g
 
 Format: `squad`
 
-* The players are shown in the same order as in `list`.
+* Players keep the active rating sort, or insertion order if no sort is active.
+  Use `sort rating squad` to sort the whole kept squad directly; `list` clears sorting.
 * The result box shows how many players are in your squad, e.g. `3 players in your squad.`
 * If you have not kept anyone yet, the list is empty and the result box tells you how to keep a player.
 * `squad` shows your whole squad, even if you ran `find` before it.
@@ -544,7 +550,7 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Injury** | `injury INDEX i/STATUS`<br> e.g., `injury 1 i/injured`; mark fit again with `injury 1 i/fit`
 **Tag**    | `tag INDEX t/TAG [t/TAG]...`<br> e.g., `tag 1 t/Striker`, `tag 1 t/`
-**Sort**   | `sort rating [asc|desc]`<br> e.g., `sort rating desc`
+**Sort**   | `sort rating [all|squad] [asc|desc]`<br> e.g., `sort rating squad desc`
 **Rate**   | `rate INDEX RATING`<br> e.g., `rate 1 8`; remove with `rate 1 unrated`
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Strong left foot`; clear with `remark 1 r/`
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`
