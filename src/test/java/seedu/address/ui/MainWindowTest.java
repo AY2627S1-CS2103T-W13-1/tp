@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -34,10 +36,12 @@ import javafx.stage.Window;
 import seedu.address.logic.LogicManager;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.HelpCommand;
+import seedu.address.logic.commands.TagCommand;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.SelectionStatus;
 import seedu.address.model.tag.Tag;
@@ -54,6 +58,44 @@ public class MainWindowTest {
     private TextField commandField;
     private TextArea resultDisplay;
     private StackPane playerArea;
+
+    @Test
+    public void execute_sortEmptySquadThroughCommandBox_showsEmptyList() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("sort rating squad");
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            enterCommand("sort rating asc all");
+            assertEquals(getTypicalPersons(), model.getFilteredPersonList());
+        });
+    }
+
+    @Test
+    public void execute_sortScopesThroughCommandBox_changesViewWithoutSaving() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("clear");
+            enterCommand("add n/Amy p/123");
+            enterCommand("add n/Bob p/456");
+            enterCommand("rate 1 0");
+            enterCommand("rate 2 10");
+            enterCommand("keep 1");
+            Path savedFile = testDirectory.resolve("players.json");
+            byte[] originalFile = assertDoesNotThrow(() -> Files.readAllBytes(savedFile));
+            enterCommand("squad");
+            enterCommand("sort rating all");
+            assertEquals("Bob", model.getFilteredPersonList().getFirst().getName().fullName);
+            assertEquals(2, model.getFilteredPersonList().size());
+            enterCommand("sort rating squad asc");
+            assertEquals("Amy", model.getFilteredPersonList().getFirst().getName().fullName);
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand("sort rating squad up");
+            assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand("list");
+            assertEquals("Amy", model.getFilteredPersonList().getFirst().getName().fullName);
+            assertArrayEquals(originalFile, assertDoesNotThrow(() -> Files.readAllBytes(savedFile)));
+        });
+    }
 
     @Test
     public void execute_filterThroughCommandBox_matchingErrorsAndHelp() throws Exception {
@@ -106,7 +148,7 @@ public class MainWindowTest {
             assertEquals(keptPlayer.getTags(), ratedPlayer.getTags());
             assertEquals(SelectionStatus.KEPT, ratedPlayer.getSelectionStatus());
             AddressBook original = new AddressBook(model.getAddressBook());
-            for (String invalid : List.of("rate 1 11", "edit 1 t/Bad!", "keep 2")) {
+            for (String invalid : List.of("rate 1 11", "tag 1 t/Bad!", "keep 2")) {
                 enterCommand(invalid);
                 assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
                 assertEquals(original, model.getAddressBook());
@@ -119,20 +161,24 @@ public class MainWindowTest {
     }
 
     @Test
-    public void execute_tagEditsThroughCommandBox_normalBoundaryAndErrors() throws Exception {
+    public void execute_tagThroughCommandBox_normalBoundaryAndErrors() throws Exception {
         runOnFxThread(() -> {
             enterCommand("add n/Tag Trialist p/123 t/Striker t/Trial Group 2");
             assertPlayerPanelShown();
             assertTrue(resultDisplay.getText().contains("Tags: Striker, Trial Group 2"));
             enterCommand("find Trialist");
-            enterCommand("edit 1 t/" + "A".repeat(Tag.MAX_LENGTH));
-            assertTrue(resultDisplay.getText().contains("Tags: " + "A".repeat(Tag.MAX_LENGTH)));
+            enterCommand("help");
+            assertHelpSummaryShown();
+            enterCommand("tag 1 t/" + "A".repeat(Tag.MAX_LENGTH));
+            assertPlayerPanelShown();
+            assertEquals("Updated tags for Tag Trialist: " + "A".repeat(Tag.MAX_LENGTH), resultDisplay.getText());
             AddressBook originalData = new AddressBook(model.getAddressBook());
             String tooLong = "A".repeat(Tag.MAX_LENGTH + 1);
             Map<String, String> expectedErrors = Map.of(
-                    "edit 1 t/Bad!", String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"),
-                    "edit 1 t/" + tooLong, String.format(Tag.MESSAGE_TOO_LONG, tooLong, Tag.MAX_LENGTH + 1),
-                    "edit 1 t/ t/Striker", Tag.MESSAGE_EMPTY);
+                    "tag 1 t/Bad!", String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"),
+                    "tag 1 t/" + tooLong, String.format(Tag.MESSAGE_TOO_LONG, tooLong, Tag.MAX_LENGTH + 1),
+                    "tag 1 t/ t/Striker", Tag.MESSAGE_EMPTY,
+                    "edit 1 p/789 t/Captain", TagCommand.MESSAGE_USE_TAG);
             for (String input : expectedErrors.keySet()) {
                 enterCommand(input);
                 assertEquals(expectedErrors.get(input), resultDisplay.getText());
@@ -140,9 +186,10 @@ public class MainWindowTest {
                 assertEquals(originalData, model.getAddressBook());
             }
             enterCommand("find Trialist");
-            enterCommand("edit 1 t/");
+            enterCommand("tag 1 t/");
+            assertEquals("Tag Trialist: tags cleared.", resultDisplay.getText());
             assertPlayerPanelShown();
-            // edit keeps the search, so only the edited player is still shown
+            // Tag updates keep the search, so only the updated player is still shown
             assertEquals(1, model.getFilteredPersonList().size());
             assertTrue(model.getFilteredPersonList().getLast().getTags().isEmpty());
             assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
@@ -267,6 +314,26 @@ public class MainWindowTest {
             assertSame(help, getDisplayedHelp());
             assertEquals(originalData, model.getAddressBook());
             assertEquals(originalList, model.getFilteredPersonList());
+        });
+    }
+
+    @Test
+    public void execute_paddedJerseysThroughCommandBox_normalizesWarnsAndRejectsInvalid() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("clear");
+            enterCommand("add n/Amy p/123 j/099");
+            assertEquals("99", model.getFilteredPersonList().getFirst().getJerseyNumber().orElseThrow().toString());
+            enterCommand("add n/Bob p/456 j/99");
+            assertTrue(resultDisplay.getText().contains("Warning: jersey number 99 is also used by Amy."));
+            enterCommand("edit 2 j/010");
+            assertEquals("10", model.getFilteredPersonList().getLast().getJerseyNumber().orElseThrow().toString());
+            AddressBook savedTeam = new AddressBook(model.getAddressBook());
+            enterCommand("edit 2 j/0100");
+            assertEquals(JerseyNumber.MESSAGE_CONSTRAINTS, resultDisplay.getText());
+            assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            assertEquals(savedTeam, model.getAddressBook());
+            enterCommand("edit 2 j/000");
+            assertEquals("0", model.getFilteredPersonList().getLast().getJerseyNumber().orElseThrow().toString());
         });
     }
 

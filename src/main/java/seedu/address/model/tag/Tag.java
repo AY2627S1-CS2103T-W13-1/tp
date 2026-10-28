@@ -23,7 +23,7 @@ public class Tag {
 
     /** Shown for an empty tag. */
     public static final String MESSAGE_EMPTY = "A tag cannot be empty. "
-            + "To remove all of a player's tags, use \"edit INDEX t/\" with no other tags.";
+            + "To remove all of a player's tags, use \"tag INDEX t/\" with no other tags.";
 
     /** Shown for a tag longer than {@link #MAX_LENGTH}, with the tag and its length. */
     public static final String MESSAGE_TOO_LONG = "The tag \"%1$s\" is %2$d characters long. "

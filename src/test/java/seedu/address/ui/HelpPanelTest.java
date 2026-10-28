@@ -35,10 +35,13 @@ public class HelpPanelTest {
                     Map.entry("addSyntax", "add n/NAME p/PHONE\n[j/JERSEY] [t/TAG]..."),
                     Map.entry("addDescription", "Add a player with an optional jersey number and tags\n"
                             + "e.g. add n/Tan Wei Ming p/91234567 j/10 t/Striker"),
-                    Map.entry("editSyntax", "edit INDEX [n/NAME]\n[p/PHONE] [j/JERSEY]\n[t/TAG]..."),
-                    Map.entry("editDescription", "Edit the displayed player; tags replace existing tags\n"
-                            + "A single empty t/ clears tags; omit t/ to keep them\n"
-                            + "An empty j/ removes the jersey number\ne.g. edit 1 t/Striker t/Captain"),
+                    Map.entry("editSyntax", "edit INDEX [n/NAME]\n[p/PHONE] [j/JERSEY]"),
+                    Map.entry("editDescription", "Edit name, phone, or jersey; other details are kept\n"
+                            + "An empty j/ removes the jersey number\n"
+                            + "Use tag to update tags. e.g. edit 1 j/23"),
+                    Map.entry("tagSyntax", "tag INDEX t/TAG\n[t/TAG]..."),
+                    Map.entry("tagDescription", "Replace tags; a single empty t/ clears them\n"
+                            + "e.g. tag 1 t/Striker t/Captain"),
                     Map.entry("filterSyntax", "filter [t/TAG]...\n[i/STATUS]"),
                     Map.entry("filterDescription", "Show players with any requested tag, the injury\n"
                             + "status, or both. Tags match complete labels, ignoring\n"
@@ -70,9 +73,10 @@ public class HelpPanelTest {
                     Map.entry("remarkDescription", "Set or replace a player remark; empty r/ clears it\n"
                             + "Use r/ only once; a second r/ after a space is rejected\n"
                             + "e.g. remark 1 r/Strong left foot"),
-                    Map.entry("sortSyntax", "sort rating [asc|desc]"),
-                    Map.entry("sortDescription", "Sort displayed players by rating; highest first by default\n"
-                            + "Unrated players come last. Use list to reset.\ne.g. sort rating desc"),
+                    Map.entry("sortSyntax", "sort rating [all|squad]\n[asc|desc]"),
+                    Map.entry("sortDescription", "Sort the current view, all players, or the kept squad\n"
+                            + "Highest first by default; unrated players last. Use list to reset.\n"
+                            + "e.g. sort rating squad desc"),
                     Map.entry("helpFooter", "Your data is saved automatically after every change."));
 
             expectedText.forEach((id, text) -> {
@@ -80,7 +84,7 @@ public class HelpPanelTest {
                 assertEquals(text, label.getText());
             });
             for (String command : List.of("add", "list", "find", "delete", "status", "squad",
-                    "help", "exit", "edit", "rate", "filter", "remark", "injury", "sort", "clear")) {
+                    "help", "exit", "edit", "rate", "filter", "remark", "injury", "sort", "clear", "tag")) {
                 assertTrue(((Label) help.getContent().lookup("#" + command + "Description")).isWrapText());
             }
         });

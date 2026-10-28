@@ -112,7 +112,7 @@ The `DeleteCommandParser` lifeline should end at its destroy marker (X); PlantUM
 
 The parser helper diagram is partial: `XYZCommandParser` denotes a family of real
 classes, including `RateCommandParser`, `SortCommandParser`, `SetStatusCommandParser`,
-`RemarkCommandParser` and `InjuryCommandParser`. `keep`, `cut` and `pending` share
+`RemarkCommandParser`, `InjuryCommandParser` and `TagCommandParser`. `keep`, `cut` and `pending` share
 `SetStatusCommand` and its status-specific parser instance. Tagged arguments use
 `ArgumentTokenizer`, `ArgumentMultimap`, `CliSyntax` and `Prefix`; positional rating
 and sort arguments use whitespace splitting instead.
@@ -203,6 +203,10 @@ The `Storage` component,
 * writes the jersey number only for a player who has one; for a player without one, the field is left out of the file.
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 
+`JsonUtil.readJsonFile` rejects a null document with `DataLoadingException`.
+`JsonUserPrefsStorage` also rejects null GUI settings before the model copies preferences.
+These checks use the existing startup fallbacks rather than catching unrelated runtime errors.
+
 ### Common classes
 
 Classes used by multiple components are in the `seedu.address.commons` package.
@@ -212,6 +216,13 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Jersey number normalization
+
+`JerseyNumber` validates a numeric value from 0 to 99 with optional leading zeros.
+The immutable numeric value supplies equality, display, and JSON serialization, so `099`
+and `99` produce the same stored number and duplicate warning. Validation rejects
+out-of-range digits before integer parsing, including padded values such as `0100`.
 
 ### Adding players, jersey numbers and duplicate warnings
 
@@ -227,7 +238,7 @@ This section describes some noteworthy details on how certain features are imple
 </box>
 
 1. `AddCommandParser` tokenizes the arguments. It also looks for `r/` and `i/`, but only so that `ParserUtil#requireNoRemarkOrInjury()` can reject them with a message that names the right command. Without this, `r/...` would be read as part of the value before it, and the error would blame that value instead. `n/` and `p/` are compulsory, and `ArgumentMultimap#verifyNoDuplicatePrefixesFor()` rejects a repeated `n/`, `p/` or `j/`.
-1. `ParserUtil` parses each value. `parseName()` collapses repeated spaces with `Name#normalize()` before checking the allowed characters and the 100-character limit separately, so that each problem has its own message. `parsePhone()` removes spaces, hyphens, dots and brackets with `Phone#normalize()` before checking for 3 to 15 digits. `parseJerseyNumber()` accepts one or two digits, and `JerseyNumber` stores the value as an `int`, so `07` and `7` are the same number.
+1. `ParserUtil` parses each value. `parseName()` collapses repeated spaces with `Name#normalize()` before checking the allowed characters and the 100-character limit separately, so that each problem has its own message. `parsePhone()` removes spaces, hyphens, dots and brackets with `Phone#normalize()` before checking for 3 to 15 digits. `parseJerseyNumber()` accepts values from 0 to 99 with optional leading zeros, and `JerseyNumber` stores the value as an `int`, so `07` and `7` are the same number.
 1. The parser creates the player with `new Person(name, phone, tags)`, which starts as `PENDING`, `UNRATED`, `FIT` and with an empty remark, and sets the jersey number with `Person#withJerseyNumber()`. A `Person` stores a missing jersey number as `null` but exposes it only as an `Optional<JerseyNumber>` from `getJerseyNumber()`.
 1. `AddCommand#execute()` rejects the player if `Model#hasPerson()` finds a player with the same name. This uses `Person#isSamePerson()`, which compares names with `Name#isSameName()`, ignoring case and repeated spaces. Otherwise, `Model#addPerson()` adds the player and resets the filtered list to show the whole team, so the coach sees the new player.
 1. `AddCommand` then asks two package-private helpers in the `logic.commands` package for warnings. `DuplicateJerseyNumberChecker#getWarning()` looks for other players with the same jersey number (`Person#hasSameJerseyNumber()`), and `SimilarNameChecker#getWarning()` looks for names that are equal once spaces and punctuation are ignored (`Name#isSimilarTo()`). Both search `Model#getAddressBook()`, i.e. the whole team rather than the filtered list, so they also find players hidden by `find` or `filter`. Each returns an empty string or a warning line, which is appended to the success message.
@@ -237,7 +248,7 @@ This section describes some noteworthy details on how certain features are imple
 
 * `EditPersonDescriptor` records whether `j/` was given in `isJerseyNumberEdited`, as a `null` jersey number can mean either "not given" or "remove it". `EditCommandParser#parseJerseyNumberForEdit()` turns an empty `j/` into `null`, which removes the jersey number.
 * The duplicate-name check runs only when the new name belongs to another player (`!personToEdit.isSamePerson(editedPerson) && model.hasPerson(editedPerson)`), so a coach can change the capitalisation or spacing of a player's own name.
-* `EditCommand` builds the edited player from the old one, so the selection status, rating, remark and injury status are always kept, and so are the tags and jersey number unless `t/` or `j/` is given. If the result equals the old player, the command reports that nothing changed instead of replacing it.
+* `EditCommand` builds the edited player from the old one, so the selection status, rating, remark and injury status are always kept, and so are the tags. The jersey number is kept unless `j/` is given. `TagCommand` reuses the edit descriptor internally to replace tags. If the result equals the old player, the command reports that nothing changed instead of replacing it.
 * The jersey number warning is checked only when the edit includes `j/`, and the similar-name warning only when the name actually changes. This stops edits to other details from repeating a warning the coach has already seen.
 * `Model#setPerson()` replaces the player without resetting the filtered list, so the coach can keep editing search results by the same indices.
 
@@ -306,13 +317,19 @@ Its [HTML view](diagrams/RateSequenceDiagram.html) is generated with
 
 ### Rating sorting (US17) and list reset (US02)
 
-`SortCommandParser` accepts `rating` and an optional `asc`/`desc`, case-insensitively;
-omitting the direction means descending. It does not accept a roster/squad scope
-argument in this version. `SortCommand` changes only `Model#setPersonComparator`,
-so it sorts the existing name/tag/injury/squad view without selecting hidden players.
-`find`, `filter` and `squad` replace the predicate but retain the comparator. `add`
-restores the all-player predicate while retaining the comparator; `edit` and `rate`
-retain both, with automatic removal/repositioning when an update affects the view.
+`SortCommandParser` accepts `rating` with an optional `all`/`squad` scope and
+`asc`/`desc` direction, in either order and any letter case. No direction means
+`DESCENDING`; no scope means `CURRENT`. Duplicate, unknown and conflicting options
+are rejected before execution. `SortCommand` stores `Direction` and `Scope` enum
+values. Its `updateScope(model)` retains the predicate for `CURRENT`, replaces it
+with `PREDICATE_SHOW_ALL_PERSONS` for `ALL`, or uses the shared
+`HasSelectionStatusPredicate.IS_KEPT` for `SQUAD`, then applies its rating comparator.
+
+A scope is a one-time view selection rather than a persistent restriction. `find`,
+`filter` and `squad` replace the predicate but retain the comparator. `add` restores
+the all-player predicate while retaining the comparator; `edit`, `tag` and `rate`
+retain both. Tag/name updates may remove a player from a filtered view; a rating
+update may move the player within the sorted view.
 
 **Comparator design.** Rated players precede unrated players in both directions.
 Only the comparison of numeric scores is reversed for descending order; reversing
@@ -336,6 +353,20 @@ new unfiltered, unsorted views; scores persist, predicates/comparators do not.
 `updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)`. It succeeds on an empty roster,
 does not restore deletions, and reports `Listed all players`. `AddressBookParser`
 ignores its arguments, so `list all` remains equivalent to `list`.
+
+### Rating sort scopes
+
+`SortCommandParser` accepts `sort rating [all|squad] [asc|desc]`, ignoring letter case
+for arguments, with scope and direction accepted in either order. A missing scope maps to `Scope.CURRENT`, preserving the current predicate.
+`Scope.ALL` selects all players; `Scope.SQUAD` installs the shared `HasSelectionStatusPredicate.IS_KEPT` predicate.
+Explicit scope selection replaces rather than intersects a previous name/tag/injury filter.
+
+`Direction.ASCENDING` and `Direction.DESCENDING` express the requested order.
+`SortCommand` applies its comparator to the model's displayed list. Rated players are ordered
+numerically and unrated players stay last in either direction. `ModelManager` breaks ties by
+source insertion order. The roster and saved file are unchanged, and later view commands may
+replace the chosen scope while retaining the comparator. `list` clears both filter and comparator.
+The existing no-scope syntax remains compatible with workflows that sort a search result.
 
 ### Selection status feature
 
@@ -387,11 +418,18 @@ its zero-to-many association with tags. Tags are shared values rather than part 
 player identity: duplicate detection remains based on the normalized player name.
 `Tag` validates and normalizes labels and compares them ignoring case.
 
-`AddCommandParser` collects all `t/` values through `ParserUtil.parseTags`.
-`EditCommandParser` distinguishes an omitted tag prefix (preserve tags), supplied
-labels (replace the set), and a single empty prefix (clear the set). Empty labels
-mixed with other labels are invalid. The edit descriptor and player defensively
-copy their sets. `JsonAdaptedPerson` writes tag strings and accepts missing/null
+`AddCommandParser` collects initial `t/` values through `ParserUtil.parseTags`.
+`TagCommandParser` parses `tag INDEX t/TAG [t/TAG]...`: supplied labels replace the set,
+and a single empty prefix clears it. Missing prefixes and empty labels mixed with
+other labels are invalid. `EditCommandParser` rejects tag prefixes with migration guidance
+before changing any fields; its public syntax only accepts name, phone, and jersey edits.
+
+`TagCommand` delegates to an `EditCommand` containing only a tag replacement descriptor.
+This shares immutable player replacement, field preservation, no-change/removal feedback,
+and filter handling instead of duplicating that behaviour. The descriptor defensively
+copies the requested set, and `LogicManager` saves successful tag updates as player changes.
+The current filter and sort remain active; removing a matching tag may hide the player.
+`JsonAdaptedPerson` writes tag strings and accepts missing/null
 `tags` from older records as an empty collection; invalid/null entries are rejected.
 `PersonCard` displays tags alphabetically in a wrapping `FlowPane`.
 
@@ -1130,7 +1168,7 @@ the directory before modifying players or closing the app.
 Use Java 25 and a candidate JAR built from the version under review. Put it in a
 **separate disposable working directory**, launch with `java -jar couchcoach.jar`,
 and record the commit/JAR identity. These instructions describe the merged command
-syntax `sort rating [asc|desc]`; do not assume a scope argument exists.
+syntax `sort rating [all|squad] [asc|desc]`, including current-view and explicit scopes.
 
 Prepare this fixture in insertion order. Re-run the complete setup before each
 independent table row; commands within a row are sequential. Setup changes player data.
@@ -1181,6 +1219,13 @@ Abbreviations below use the fixture players' first names.
 | `sort rating desc`, `sort rating asc`, `sort rating desc` | Direction changes preserve insertion-order ties; the final order is Bob, Cy, Amy, Dee, Eli. |
 | `filter t/Trial`, `sort rating` | Bob, Amy, Dee only; Cy and Eli remain hidden. |
 | `filter i/injured`, `sort rating asc` | Amy only, still injured and kept. |
+| `find Dee`, `sort rating all` | The search is replaced by Bob, Cy, Amy, Dee, Eli. Feedback names all players and descending order. |
+| `filter t/Trial`, `sort rating ALL ASC` | Full roster, Amy, Bob, Cy, Dee, Eli; ascending feedback names all players. |
+| `list`, `pending 2`, `find Dee`, `sort rating squad` | Bob is pending and excluded. All kept players are restored: Cy, Amy; feedback names kept players and descending order. |
+| `find Dee`, `sort rating asc squad` | Scope/direction order is accepted. All kept players appear: Amy, Bob, Cy. |
+| `sort rating squad`, `find Unrated` | The name search replaces the squad filter; pending Dee and Eli appear in insertion order. The comparator remains active. |
+| `list`, `pending 1`, `pending 2`, `pending 3`, `sort rating squad` | Empty kept-player view; no error. |
+| `sort rating all squad`, `sort rating asc desc`, `sort rating all all`, `sort rating squad squad` | Format error before changing the predicate or comparator. Previous view/data unchanged. |
 | `find Ten`, `sort rating`, `find Unrated` | First Bob only; the later search replaces the old filter and shows Dee then Eli. |
 | `squad`, `sort rating` | Bob, Cy, Amy only. Sorting does not add pending players. |
 | `sort rating`, `find Unrated`, `squad` | Squad replaces the search and restores all kept players in active rating order: Bob, Cy, Amy. |
@@ -1190,9 +1235,10 @@ Abbreviations below use the fixture players' first names.
 | `sort rating`, `delete 1`, `list` | Bob is deleted; list shows Amy, Cy, Dee, Eli in insertion order. |
 | `filter t/Trial`, `sort rating`, `add n/Fay New p/678` | Full roster returns, retaining the sort: Bob, Cy, Amy, Dee, Eli, Fay. Fay is Unrated. |
 | `filter t/Trial`, `sort rating`, `edit 1 n/Bob Changed` | Bob's details change, current tag filter and sort stay active: Bob, Amy, Dee. |
+| `filter t/Trial`, `sort rating`, `tag 1 t/Other` | Bob's tags change and he leaves the Trial view; Amy, Dee remain in active rating order. |
 | `sort rating`, then `list all` | Full insertion order Amy, Bob, Cy, Dee, Eli; `Listed all players`. Sorting is cleared. |
 | `sort`, `sort name`, `sort rating up`, `sort rating asc extra` | Format error with sort usage. Previous displayed view and order unchanged. |
-| `clear`, `sort rating`, `sort rating asc`, `list` | Empty view; both sorts succeed and list reports `Listed all players`. |
+| `clear`, `sort rating`, `sort rating asc`, `sort rating all asc`, `sort rating squad`, `list` | Empty view; all sorts succeed and list reports `Listed all players`. |
 | `sort rating`, then restart from the same directory | Amy, Bob, Cy, Dee, Eli in insertion order; ratings 0, 10, 10, Unrated, Unrated persist. The previous filter/sort does not. |
 
 For a sort/list-only row, record the file's bytes and modification time after setup;
@@ -1300,11 +1346,33 @@ these checks and verify that both remain unchanged afterwards.
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+#### Null data and preference recovery
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+Use Java 25 and a disposable launch folder. Close the app before editing files.
+Keep a backup of the valid team file before each independent case.
 
-1. _{ more test cases … }_
+| Setup and action | Expected result |
+| --- | --- |
+| Set `data/addressbook.json` to `null`, then launch. | Empty team and the unreadable-data warning; the file still contains `null`. |
+| Run `list`, `help`, then `exit` after that recovery. | The invalid team file remains unchanged. |
+| Relaunch, then add `add n/Recovery Player p/123`. | The new team replaces the invalid file; restarting restores Recovery Player. |
+| With valid team data, set `preferences.json` to `null`, then launch. | Default window preferences, no team-data warning, and the same players; preferences are rewritten as valid JSON. |
+| Repeat with `preferences.json` set to `{"guiSettings":null}`. | The same default-preference recovery; team file bytes remain unchanged. |
+| Delete `data/addressbook.json`, then launch. | Sample players appear; a subsequent data change creates a valid team file. |
+| Replace the team file with malformed JSON, then launch. | Empty team and the unreadable-data warning; the invalid file stays unchanged until a data change. |
+
+### Jersey number zero padding: manual regression checks
+
+Use a disposable empty team and run these commands in order:
+
+| Action | Expected result |
+| --- | --- |
+| `add n/Amy p/123 j/099` | Amy shows Jersey #99. |
+| `add n/Bob p/456 j/99` | Bob is added with a warning naming Amy for jersey 99. |
+| `edit 2 j/010` | Bob shows Jersey #10; other player fields are retained. |
+| `edit 2 j/0100`, `edit 2 j/+10`, `edit 2 j/10.0` | Jersey constraint error; the team and file remain unchanged. |
+| `edit 2 j/000` | Bob shows Jersey #0. |
+| Restart. | Amy remains #99 and Bob #0; the saved numbers have no leading zeros. |
 
 ### Custom player tags (US08): manual regression checks
 
@@ -1314,19 +1382,20 @@ Use a disposable data folder. Start with `add n/Tag Tester p/123 t/Striker t/Tri
 | --- | --- |
 | Inspect the new card and result box. | Both tags appear, alphabetically, without hiding name or phone. |
 | `edit 1 p/456` | Tags remain. |
-| `edit 1 t/Captain t/captain` | Previous tags are replaced by one Captain tag. |
-| `edit 1 t/` | Tags are cleared; name and phone remain. |
-| `edit 1 t/` again | Successful idempotent clearing. |
-| `edit 1 t/` followed by `edit 1 t/Trial   Group 2` | One tag, Trial Group 2, with collapsed whitespace. |
-| `add n/Invalid p/456 t/`, `edit 1 t/Bad!`, `edit 1 t/ t/Striker` | Tag constraint error; records and displayed list unchanged. |
+| `tag 1 t/Captain t/captain` | Previous tags are replaced by one Captain tag; feedback says `Updated tags for Tag Tester: Captain`. |
+| `tag 1 t/` | Tags are cleared; name and phone remain. Feedback names the player and says `tags cleared`. |
+| `tag 1 t/` again | Successful idempotent clearing. |
+| `edit 1 p/789 t/Captain` | Guidance to use `tag`; neither the phone nor tags change, and the file remains unchanged. |
+| `tag 1 t/` followed by `tag 1 t/Trial   Group 2` | One tag, Trial Group 2, with collapsed whitespace. |
+| `add n/Invalid p/456 t/`, `tag 1 t/Bad!`, `tag 1 t/ t/Striker` | Tag constraint error; records and displayed list unchanged. |
 | Try 30-character and 31-character tags. | The first succeeds; the second is rejected with the tag constraint error. |
-| `find Tag`, then `edit 1 t/Striker` | The displayed player is edited; the full team is restored. |
+| `find Tag`, then `tag 1 t/Striker` | The displayed player is updated; the name search remains active. |
 | Restart, then inspect cards and JSON. | Tags persist. A legacy record with no tags field still loads. |
-| Open `help` at normal and minimum window width. | Add/edit syntax, examples, and tag-clearing guidance remain readable. |
-| `edit 1 t/Striker`, `keep 1`, then `rate 1 10` | The same player shows Striker, Kept, and Rating: 10/10 together. |
+| Open `help` at normal and minimum window width. | Add/edit/tag syntax, examples, and tag-clearing guidance remain readable. |
+| `tag 1 t/Striker`, `keep 1`, then `rate 1 10` | The same player shows Striker, Kept, and Rating: 10/10 together. |
 | `squad`, then `rate 1 0` | The kept player remains visible with Striker and Rating: 0/10. |
-| `edit 1 t/Captain`, then `edit 1 p/456` | Kept and Rating: 0/10 remain; the Captain tag survives the phone edit. |
-| `edit 1 t/`, then restart | Only tags are cleared; the player remains kept and rated 0/10. |
+| `tag 1 t/Captain`, then `edit 1 p/456` | Kept and Rating: 0/10 remain; the Captain tag survives the phone edit. |
+| `tag 1 t/`, then restart | Only tags are cleared; the player remains kept and rated 0/10. |
 | `cut 1`, then `squad`; use `list` to inspect the player again | The cut player leaves the squad; their rating and other details remain. |
 
 Run the existing add, edit, find, delete and saving regressions as well. Back up data
@@ -1349,7 +1418,7 @@ Charlie with Captain, in that order. Confirm tags are visible on their cards.
 | `filter t/`, `filter`, `filter Striker`, `filter t/Bad!`, `Filter t/Striker` | Error; previous list and player data unchanged. |
 | Use tags of 30 and 31 characters. | A valid 30-character label is searched; 31 is rejected. |
 | `filter t/Captain`, then `delete 1` | Amy is deleted; Charlie remains numbered 1, Bob stays hidden. |
-| `edit 1 t/Striker` after the previous step | Charlie's tags change; full roster returns. |
+| `tag 1 t/Striker` after the previous step | Charlie's tags change; the Captain filter remains, so Charlie disappears. |
 | `filter t/Goalkeeper`, then add a new player. | Full roster returns, with the new player last. |
 | `help`, then `filter t/Goalkeeper` | Player panel returns showing Bob. Help includes filter syntax and examples. |
 | `list` after any filter | Full roster restored in its original order. |

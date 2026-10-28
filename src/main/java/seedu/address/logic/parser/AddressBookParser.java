@@ -24,6 +24,7 @@ import seedu.address.logic.commands.RemarkCommand;
 import seedu.address.logic.commands.SetStatusCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.SquadCommand;
+import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.SelectionStatus;
 
@@ -62,6 +63,7 @@ public class AddressBookParser {
         return switch (commandWord) {
             case AddCommand.COMMAND_WORD -> new AddCommandParser().parse(arguments);
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
+            case TagCommand.COMMAND_WORD -> new TagCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> {
                 if (!arguments.isBlank()) {

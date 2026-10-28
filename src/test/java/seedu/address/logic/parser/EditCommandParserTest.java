@@ -29,6 +29,7 @@ import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
+import seedu.address.logic.commands.TagCommand;
 import seedu.address.model.person.JerseyNumber;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
@@ -40,6 +41,13 @@ public class EditCommandParserTest {
             String.format(MESSAGE_INVALID_COMMAND_FORMAT, EditCommand.MESSAGE_USAGE);
 
     private EditCommandParser parser = new EditCommandParser();
+
+    @Test
+    public void parse_tagsGiven_redirectsToTagCommand() {
+        assertParseFailure(parser, "1 t/Captain", TagCommand.MESSAGE_USE_TAG);
+        assertParseFailure(parser, "1 t/", TagCommand.MESSAGE_USE_TAG);
+        assertParseFailure(parser, "1 p/456 t/Captain", TagCommand.MESSAGE_USE_TAG);
+    }
 
     @Test
     public void parse_missingParts_failure() {
