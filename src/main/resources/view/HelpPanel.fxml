@@ -57,10 +57,10 @@
                text="Show players whose names contain a keyword&#10;Matches whole words only, ignores capitalisation&#10;e.g. find wei ming"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="4" GridPane.valignment="TOP" />
-        <Label fx:id="filterSyntax" text="filter t/TAG [t/TAG]..."
+        <Label fx:id="filterSyntax" text="filter [t/TAG]...&#10;[i/STATUS]"
                GridPane.columnIndex="0" GridPane.rowIndex="5" GridPane.valignment="TOP" />
         <Label fx:id="filterDescription"
-               text="Show players with any requested tag&#10;Matches complete labels, ignores capitalisation&#10;e.g. filter t/Striker t/Trial Group 2"
+               text="Show players with any requested tag, the injury&#10;status, or both. Tags match complete labels, ignoring&#10;capitalisation. e.g. filter t/Striker i/injured"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="5" GridPane.valignment="TOP" />
         <Label fx:id="sortSyntax" text="sort rating [asc|desc]"
