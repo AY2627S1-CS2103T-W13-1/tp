@@ -192,47 +192,48 @@ Changing only a tag's capitalisation, e.g. from `STRIKER` to `Striker`, updates 
 
 ### Listing all players: `list`
 
-Shows every player and clears any filter from a previous `find` or `filter` command.
+Shows the whole team, including players hidden by a name search, tag/injury filter or squad view.
 
 Format: `list`
 
-This command also clears rating sorting. Players appear in the order they were added, numbered from 1. The result box shows
-`Listed all players`, even when the team is empty. This command does not change player data.
-Any text after `list` is ignored, so `list all` has the same effect as `list`.
+* Clears both the current filter and rating sorting. Remaining players appear in the order they were added, numbered from 1. Editing a player does not change their place in this order.
+* The result box shows `Listed all players`, including when the roster is empty. Listing does not restore deleted players or change any player details.
+* Extra arguments are ignored: `list all` and `list n/Tan` have the same effect as `list`. Use the lowercase command word; `List` is not recognised.
+* Listing does not save player data. It works even if the data file is currently unwritable.
 
-Indices refer to positions in the currently displayed list and can change after deletion.
-Run `list` again before using an index if you need to see the full team.
+After `sort rating`, run `list` to restore insertion order. Check the newly displayed numbers before using an index in another command.
 
 ### Sorting players by rating: `sort`
 
-Orders the displayed players by their performance rating.
+Orders the players currently displayed so you can compare their performance ratings.
 
 Format: `sort rating [all|squad] [asc|desc]`
 
-* `sort rating` and `sort rating desc` show the highest rating first.
-* `rating`, `all`, `squad`, `asc` and `desc` can be typed in any letter case, e.g. `sort Rating ALL ASC`.
-  The command word `sort` itself must be lower case.
-* `sort rating asc` shows the lowest rating first. **Unrated** players appear last
-  in both directions; a score of `0` still appears before unrated players.
-* Players with the same rating keep their original insertion order.
-* Without a scope, sorting keeps the current view, including a `find`, `filter` or `squad` filter.
-* `sort rating all` replaces any filter with the full roster, then sorts it.
-* `sort rating squad asc` replaces any filter with all kept players, then sorts them lowest first.
-  Scope and direction can appear in either order, e.g. `sort rating asc all`. Both explicit scopes include players hidden by an earlier search.
-* Later searches and `squad` use the active sort order. The scope selects a view once;
-  subsequent view-changing commands can replace it as usual.
-* Indices are renumbered to match the sorted display. `rate`, `edit` and `delete` use
-  these displayed indices. Check the list again after a rating change, as the player may move.
-* The active sort remains when adding or editing players; new players appear at their
-  sorted position. `add` still clears the search filter as usual, while `edit` keeps it.
-* `list` clears the filter and sorting, restoring the full team in insertion order.
-* Sorting an empty team is allowed. Invalid fields, directions or extra arguments are
-  rejected without changing the current list.
-* Sorting changes no saved player data and does not save. After a restart the list
-  returns to insertion order.
+* `sort rating` and `sort rating desc` show the highest rating first; `sort rating asc` shows the lowest first.
+* **Unrated** players are last in both directions. A score of **0** is a real rating and appears before every unrated player.
+* Equal scores keep the order in which those players were added. Unrated players also keep insertion order, even when you switch directions or update a player.
+* `rating`, `all`, `squad`, `asc` and `desc` are case-insensitive, e.g. `sort Rating ALL ASC`. The command word `sort` must be lowercase. Scope and direction can appear in either order, so `sort rating asc squad` also works.
+* With no scope, sorting keeps the current view: after `find`, `filter` or `squad`, only the displayed players are sorted.
+* `sort rating all` replaces any name, tag, injury or squad filter with the full roster, then sorts it. `sort rating squad` replaces the filter with all kept players, including kept players hidden by the previous view.
+* The scope selects the view for this command; it does not restrict later searches. A subsequent `find`, `filter` or `squad` replaces that view while keeping the rating sort.
+* Displayed indices are renumbered. Commands such as `rate`, `edit`, `tag`, `delete`, `keep`, `cut`, `pending`, `remark` and `injury` act on these current positions. Recheck the list after a change removes or moves a player.
+* Sorting an empty view succeeds. Missing/unsupported fields, invalid or repeated options, conflicting scopes/directions and extra arguments show a format error and leave the previous view and order unchanged. For example, `sort name`, `sort rating up`, `sort rating all squad` and `sort rating asc desc` are invalid.
+* Sorting does not change or save player records or stored roster order. After restarting from the same working directory, the full team appears in insertion order; filters and sorting are not restored.
 
-Example: after `rate 1 3` and `rate 2 9`, `sort rating` shows the player rated 9 before
-those rated 3 or Unrated. `sort rating asc` puts the player rated 3 first.
+Without an explicit scope, the result box shows `Sorted players by rating (descending); unrated players last` or the corresponding `ascending` message. Scoped sorting names the chosen group: `Sorted all players by rating (descending); unrated players last` or `Sorted kept players by rating (ascending); unrated players last`.
+
+| Next command | Effect while a rating sort is active |
+| --- | --- |
+| `add` | Shows the full roster again, keeping the sort. New players start Unrated and appear after the rated players and earlier unrated players. |
+| `edit` | Keeps the sort and current filter. A renamed player may disappear if they no longer match a name search. |
+| `tag` | Keeps the sort and current filter. A player may disappear if their replacement tags no longer match a tag filter. |
+| `rate` | Keeps the filter and sort; the player moves to their new rated/unrated position. Other displayed indices can change. |
+| `find` | Searches the whole team, replacing the old filter; matches use the active sort. |
+| `filter` | Replaces the old filter with the requested tag/injury conditions; matches use the active sort. |
+| `squad` | Shows all kept players using the active sort, even if a previous search hid them. |
+| `list` | Shows the full roster and clears sorting, restoring insertion order. |
+
+For example, add Amy, Bob and Cy in that order, then give them ratings 0, 10 and 10. `sort rating` shows Bob, Cy, Amy; `sort rating asc` shows Amy, Bob, Cy. Any unrated players follow them in insertion order in both cases.
 
 ### Rating a player: `rate`
 
@@ -240,25 +241,25 @@ Sets or removes a player's performance rating and saves it automatically.
 
 Format: `rate INDEX RATING`
 
-* `INDEX` is the positive whole number shown beside the player in the current list,
-  including a list filtered by `find`.
-* `RATING` must be a whole number from **0 to 10**, inclusive. Decimal values, signs,
-  leading zeros such as `08`, extra arguments and values outside this range are rejected.
-* To remove a rating, type `unrated` as `RATING`, in any letter case. The player becomes
-  **Unrated** again and appears with the unrated players when sorting. If the player is
-  already unrated, the result box says so and nothing changes.
-* New players and players saved before ratings were introduced start as **Unrated**.
-  A rating of `0` is a real rating and is different from Unrated.
-* The rating appears on the player card and is retained when their name or phone is edited.
-* Rating a player keeps the current search filter. An invalid command changes nothing.
-* Ratings are saved with the rest of your team and restored when you reopen CouchCoach.
+* `INDEX` is the positive whole number beside the player in the **current displayed list**, including a sorted list, name search, tag/injury filter or squad view. It must identify a player in that view.
+* `RATING` is a whole number from **0 to 10**, inclusive. Signs (`+8`, `-1`), decimals (`8.0`), leading zeros (`08`), values above 10, missing arguments and extra arguments are rejected.
+* Use `unrated` in any letter case to remove the rating, e.g. `rate 1 UNRATED`. **Unrated** means not assessed; **0** means assessed with a score of zero. New players and players loaded from files without a rating start Unrated.
+* Rating changes preserve the player's name, phone, selection status, tags, remark, injury status and jersey number.
+* The current filter and sort stay active. A rating change can move the player in a sorted list, so check the displayed numbers before rating another player. Removing a rating moves the player among the unrated players in insertion order.
+* Invalid input leaves both player data and the current view unchanged. An index outside the displayed list shows `The player index provided is invalid.`
+* Successfully saved ratings and removals survive a restart. If saving fails, the change remains visible in this session and the result box warns that it could not be saved; follow [Saving the data](#saving-the-data) before closing the app.
 
-Examples:
+Examples below assume the first displayed player is Amy:
 
-* `rate 1 8` gives the first displayed player a rating of 8/10.
-* `find Tan` followed by `rate 1 10` gives the first search result a rating of 10/10.
-* `rate 1 unrated` removes the first displayed player's rating.
-* `rate 1 11` shows `Rating must be a whole number from 0 to 10. To remove a rating, use: rate INDEX unrated`
+| Command | Feedback / result |
+| --- | --- |
+| `rate 1 0` | `Rated player: Amy; Rating: 0/10` |
+| `rate 1 10` | `Rated player: Amy; Rating: 10/10` |
+| `rate 1 unrated` | `Removed the rating of player: Amy; Rating: Unrated` |
+| `rate 1 unrated` again | `Amy is already unrated.`; player details stay unchanged. |
+| `rate 1 11` | `Rating must be a whole number from 0 to 10. To remove a rating, use: rate INDEX unrated` |
+
+After `find Tan`, `rate 1 8` rates the first displayed match rather than the first player in the full roster. The same displayed-index rule applies after filtering or sorting.
 
 ### Marking a player's injury status: `injury` (US13)
 
@@ -660,11 +661,11 @@ Action     | Format, Examples
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Injury** | `injury INDEX i/STATUS`<br> e.g., `injury 1 i/injured`; mark fit again with `injury 1 i/fit`
 **Tag**    | `tag INDEX t/TAG [t/TAG]...`<br> e.g., `tag 1 t/Striker`, `tag 1 t/`
-**Sort**   | `sort rating [all|squad] [asc|desc]`<br> e.g., `sort rating squad desc`
-**Rate**   | `rate INDEX RATING`<br> e.g., `rate 1 8`; remove with `rate 1 unrated`
+**Sort**   | `sort rating [all\|squad] [asc\|desc]`<br> e.g., `sort rating` (current view), `sort rating squad asc`
+**Rate**   | `rate INDEX RATING` (0–10 or `unrated`)<br> e.g., `rate 1 8`; remove with `rate 1 unrated`
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Strong left foot`; clear with `remark 1 r/`
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`
-**List**   | `list`
+**List**   | `list` — show all players in insertion order; clear filters and sorting
 **Pending** | `pending INDEX`<br> e.g., `pending 3` (undoes a keep or cut)
 **Squad**  | `squad`<br> shows only kept players
 **Help**   | `help`

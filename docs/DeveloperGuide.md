@@ -33,43 +33,41 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 ### Architecture
 
-<puml src="diagrams/ArchitectureDiagram.puml" width="280" />
+<puml src="diagrams/ArchitectureDiagram.puml" width="560" alt="CouchCoach component dependencies" />
 
-The ***Architecture Diagram*** given above explains the high-level design of the App.
+CouchCoach retains AB3's component boundaries. [`Main`](https://github.com/AY2627S1-CS2103T-W13-1/tp/blob/master/src/main/java/seedu/address/Main.java)
+launches JavaFX's [`MainApp`](https://github.com/AY2627S1-CS2103T-W13-1/tp/blob/master/src/main/java/seedu/address/MainApp.java),
+which loads preferences and player data, constructs `ModelManager`, `StorageManager`,
+`LogicManager` and `UiManager`, and connects them through their interfaces.
+On shutdown, `MainApp#stop()` saves user preferences. Player data is saved after a
+successful data-changing command, rather than on exit.
 
-The following provides a quick overview of the main components and their interactions.
+* [UI](#ui-component) accepts coach commands and displays the observable player view and feedback.
+* [Logic](#logic-component) parses commands, executes them against `Model`, and decides whether to save.
+* [Model](#model-component) holds the roster, immutable player values, preferences and the current display view.
+* [Storage](#storage-component) reads/writes roster and preference JSON through separate storage classes.
+* [Commons](#common-classes) supplies shared utilities, indices, logging and exceptions; it is not a fifth command-processing stage.
 
-**Main components of the architecture**
+`UI` calls the `Logic` interface and displays model types such as `Person`; it does
+not write player files. `LogicManager` holds `Model` and `Storage` references.
+Storage depends on model contracts to convert and persist data. Model does not
+reference the UI, Logic or Storage components.
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
-* At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
-* At shut down, it shuts down the other components and invokes cleanup methods where necessary.
+The existing sequence illustrates the **mutating** path for `delete 1`:
 
-The bulk of the app's work is done by the following four components:
+<puml src="diagrams/ArchitectureSequenceDiagram.puml" width="650" alt="Delete command updates Model and then saves through Storage" />
 
-* [**`UI`**](#ui-component): The UI of the App.
-* [**`Logic`**](#logic-component): The command executor.
-* [**`Model`**](#model-component): Holds the data of the App in memory.
-* [**`Storage`**](#storage-component): Reads data from, and writes data to, the hard disk.
+For view commands (`list`, `find`, `filter`, `sort`, `squad`) and `help`/`exit`,
+`LogicManager` returns without saving player data. A read-only command can still
+change a filter or comparator in memory. Parse/command errors return before saving;
+an I/O failure after mutation leaves the change in memory and produces the
+save-failure `CommandException`. The UI observes changes to the displayed list,
+rather than needing a saved-file reload after each command.
 
-[**`Commons`**](#common-classes) represents a collection of classes used by multiple other components.
+Each component defines an interface and a manager implementation. The following
+partial diagram retains the shared contracts without expanding feature internals:
 
-**How the architecture components interact with each other**
-
-The *Sequence Diagram* below shows how the components interact with each other for the scenario where the user issues the command `delete 1`.
-
-<puml src="diagrams/ArchitectureSequenceDiagram.puml" width="574" />
-
-Each of the four main components (also shown in the diagram above),
-
-* defines its *API* in an `interface` with the same name as the Component.
-* provides its functionality through a concrete `{Component Name}Manager` class that implements the corresponding API interface.
-
-For example, the `Logic` component defines its API in `Logic.java` and implements it in `LogicManager.java`. Other components interact with a component through its interface rather than its concrete class, preventing them from coupling to that component's implementation, as illustrated in the following partial class diagram.
-
-<puml src="diagrams/ComponentManagers.puml" width="300" />
-
-The sections below give more details of each component.
+<puml src="diagrams/ComponentManagers.puml" width="420" alt="LogicManager depends on Model and Storage interfaces" />
 
 ### UI component
 
@@ -93,40 +91,38 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API:** [`Logic.java`](https://github.com/AY2627S1-CS2103T-W13-1/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
-Here's a (partial) class diagram of the `Logic` component:
+<puml src="diagrams/LogicClassDiagram.puml" width="720" alt="LogicManager coordinates parsing, command execution, Model and Storage" />
 
-<puml src="diagrams/LogicClassDiagram.puml" width="550"/>
+`LogicManager#execute(commandText)` performs the following steps:
 
-The sequence diagram below illustrates the interactions within the `Logic` component, taking `execute("delete 1")` API call as an example.
+1. `AddressBookParser#parseCommand` identifies the lowercase command word. Commands needing arguments delegate to their command parser; parameterless commands such as `list`, `squad`, `help` and `exit` are constructed directly. `clear` also checks that its arguments are blank.
+2. The parser returns a concrete `Command`. Shared `ParserUtil` operations validate values and map one-based input to an `Index`; they do not resolve which player occupies that index.
+3. An index-based `Command#execute(model)` resolves the index against `Model#getFilteredPersonList()`, which is the **displayed sorted view**, despite the historical method name. A mutation replaces a `Person` or changes the roster; a view command changes a predicate/comparator.
+4. `LogicManager` skips `Storage#saveAddressBook` for `FindCommand`, `FilterCommand`, `SortCommand`, `ListCommand`, `SquadCommand`, `HelpCommand` and `ExitCommand`. Other successful command types save `model.getAddressBook()`, even if their feedback reports no data change.
+5. A successful `CommandResult` contains feedback and flags for showing help or exiting. An `IOException` while saving is translated into the existing save-failure `CommandException`; the model is not rolled back.
 
-<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions Inside the Logic Component for the `delete 1` Command" />
+The existing command-level sequence remains a useful example:
+
+<puml src="diagrams/DeleteSequenceDiagram.puml" alt="Interactions inside Logic for delete 1" />
 
 <box type="info" seamless>
 
-**Note:** The lifeline for `DeleteCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, the lifeline continues till the end of diagram.
+The `DeleteCommandParser` lifeline should end at its destroy marker (X); PlantUML continues the lifeline visually.
 </box>
 
+The parser helper diagram is partial: `XYZCommandParser` denotes a family of real
+classes, including `RateCommandParser`, `SortCommandParser`, `SetStatusCommandParser`,
+`RemarkCommandParser`, `InjuryCommandParser` and `TagCommandParser`. `keep`, `cut` and `pending` share
+`SetStatusCommand` and its status-specific parser instance. Tagged arguments use
+`ArgumentTokenizer`, `ArgumentMultimap`, `CliSyntax` and `Prefix`; positional rating
+and sort arguments use whitespace splitting instead.
 
-How the `Logic` component works:
-
-1. When `Logic` is called upon to execute a command, the command is passed to an `AddressBookParser` object, which in turn creates a parser that matches the command (e.g., `DeleteCommandParser`) and uses it to parse the command.
-1. This results in a `Command` object (more precisely, an object of one of its subclasses e.g., `DeleteCommand`) which is executed by the `LogicManager`.
-1. The command can communicate with the `Model` when it is executed (e.g. to delete a player from the team).<br>
-   Note that although this is shown as a single step in the diagram above for simplicity, the code can require several interactions between the command object and the `Model` to complete the operation.
-1. The result of the command execution is encapsulated as a `CommandResult` object which is returned from `Logic`.
-
-Here are the other classes in `Logic` (omitted from the class diagram above) that are used for parsing a user command:
-
-<puml src="diagrams/ParserClasses.puml" width="600"/>
-
-How the parsing works:
-* When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
-* All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+<puml src="diagrams/ParserClasses.puml" width="650" alt="Command parser family and shared argument helpers" />
 
 ### Model component
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API:** [`Model.java`](https://github.com/AY2627S1-CS2103T-W13-1/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
 The model is shown in four class views: contracts, roster data, identity, and player assessments. Repeated class
 names refer to the same classes across views. Interface realization uses a dashed
@@ -148,7 +144,7 @@ The corresponding PlantUML sources are
 The `Model` component,
 
 * stores the team's player data as `Person` objects, which are contained in a `UniquePersonList` object.
-* stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* derives a `FilteredList<Person>` from the roster, a `SortedList<Person>` from that filtered list, and an unmodifiable observable wrapper for display. `getFilteredPersonList()` exposes that final displayed view; these wrappers reference the same immutable players rather than making player copies.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -159,8 +155,17 @@ and unrated ratings are present value objects, so their multiplicity is still `1
 These are ordinary associations: immutable
 values can be shared between player versions, so deleting one player does not imply
 deleting its value objects. `AddressBook` exclusively contains its `UniquePersonList`,
-which is shown using composition. The full roster and filtered view reference the
-same player objects; filtering does not create copies.
+which is shown using composition. The full roster and displayed view reference the
+same player objects; filtering and sorting do not create copies.
+
+The view pipeline is `AddressBook#getPersonList()` → `filteredPersons` →
+`sortedPersons` → `displayedPersons`. `updateFilteredPersonList(predicate)` changes
+which roster entries are visible; `setPersonComparator(comparator)` changes their
+display order. Neither operation changes the source roster. `PersonListPanel` binds
+to the observable display and numbers its cells from 1. Index-based commands use
+that same view, so they must select the target before replacing it: replacement may
+change filter membership or sorted position. `ListCommand` clears the comparator
+and restores `PREDICATE_SHOW_ALL_PERSONS`.
 
 `UniquePersonList` uses `Person#isSamePerson` to reject duplicates: two players are the
 same if their names match after ignoring case and repeated spaces. Phone numbers,
@@ -177,10 +182,10 @@ separately. This keeps one diagramming source for each displayed figure. The HTM
 also includes the editable source text. The shared legend lists only relationships
 used across the four views.
 
-The assessment view reflects the merged selection, rating, remarks, and injury features.
-Jersey numbers are now an optional field of `Person`, but these diagrams do not show
-them yet; reconcile that field in the model diagrams. The [rating and sorting UML](diagrams/player-rating-sorting-uml.html)
-provides the separate command-level design view.
+The identity view includes the optional jersey number; the assessment view includes
+selection, rating, remarks and injury status. The [rating and sorting UML](diagrams/player-rating-sorting-uml.html)
+retains the separate command-level view. Feature authors maintain their detailed
+implementation diagrams; these shared views describe component/model relationships.
 
 
 ### Storage component
@@ -331,45 +336,81 @@ out-of-range digits before integer parsing, including padded values such as `010
 
 ### Player ratings (US12)
 
-`RateCommandParser` parses `rate INDEX RATING` into a `RateCommand`. It validates the
-positive displayed index and a whole-number rating from 0 to 10. The word `unrated`, in
-any letter case, is parsed as `Rating.UNRATED` instead, so the same command removes a
-rating. The command checks that the index exists in the displayed list before changing
-the model. Removing the rating of a player who is already unrated changes nothing.
+`RateCommandParser` requires two positional arguments for `rate INDEX RATING`.
+`ParserUtil#parseIndex` validates the positive one-based index; `RateCommand#execute`
+checks that it exists in the displayed view. `Rating#isValidRating` accepts only
+`0`–`9` or `10`, so decimals, signs and padded scores such as `08` are rejected.
+The case-insensitive keyword `unrated` maps to `Rating.UNRATED`.
 
-The sequence below follows successful execution of `rate 1 8`:
+<puml src="diagrams/RateSequenceDiagram.puml" alt="Parse rate 1 8, replace the selected player and save the roster" />
 
-<puml src="diagrams/RateSequenceDiagram.puml" alt="Sequence of parsing, player replacement and saving for the rate 1 8 command" />
+The command selects the immutable `Person` from `Model#getFilteredPersonList()`
+and replaces it through `Model#setPerson`, preserving name, phone, selection status,
+tags, remark, injury status and optional jersey number. The current predicate and
+comparator remain active, so a rating update may immediately change displayed indices.
+Removing an already absent rating returns the already-unrated feedback without a
+replacement. `LogicManager` nevertheless saves after every successful `RateCommand`,
+because saving is classified by command type. Invalid requests return before saving.
+If the write fails, the changed model remains visible and the save-failure feedback
+explains that it has not reached disk.
 
-`RateCommand` replaces the selected immutable `Person` with a copy containing the new
-rating. Name, phone, selection status, tags, remark, injury status and jersey number
-are preserved. The current filter stays active; an active rating sort may move the
-player and change displayed indices.
+**Design decisions.** `Rating` is a value object with an explicit `UNRATED` value,
+rather than using zero as a sentinel or nullable ratings throughout commands. This
+keeps a legitimate score of 0 distinct from not assessed and gives every `Person`
+a rating value. Immutable player replacement preserves unrelated fields and sends
+observable list events through the existing UI pipeline; it requires copying those
+fields correctly, which is covered by `RateCommandTest` and persistence tests.
 
-After command execution, `LogicManager` saves the team through `Storage` before
-returning the result. An invalid displayed index raises `CommandException` before
-replacement. If saving fails, the update remains in memory and the coach receives
-the save-failure message.
+`JsonAdaptedPerson` writes numeric ratings as strings and an unrated rating as JSON
+null. A missing or null **rating field** loads as `UNRATED`; this is distinct from
+an invalid top-level team document. The saved roster retains insertion order.
 
-The diagram summarizes parser internals and object creation. Its editable source is
-[RateSequenceDiagram.puml](diagrams/RateSequenceDiagram.puml). The
-[default-style HTML view](diagrams/RateSequenceDiagram.html) is generated from that
-source with `python3 docs/scripts/generate_rate_sequence.py`; use `--check` to verify
-that the HTML is up to date. Presentation settings are kept in the HTML template.
+The editable sequence source is [RateSequenceDiagram.puml](diagrams/RateSequenceDiagram.puml).
+Its [HTML view](diagrams/RateSequenceDiagram.html) is generated with
+`python3 docs/scripts/generate_rate_sequence.py`; use `--check` to detect drift.
 
-### Rating sort scopes
+<span id="rating-sort-scopes"></span>
 
-`SortCommandParser` accepts `sort rating [all|squad] [asc|desc]`, ignoring letter case
-for arguments, with scope and direction accepted in either order. A missing scope maps to `Scope.CURRENT`, preserving the current predicate.
-`Scope.ALL` selects all players; `Scope.SQUAD` installs the shared `HasSelectionStatusPredicate.IS_KEPT` predicate.
-Explicit scope selection replaces rather than intersects a previous name/tag/injury filter.
+### Rating sorting (US17) and list reset (US02)
 
-`Direction.ASCENDING` and `Direction.DESCENDING` express the requested order.
-`SortCommand` applies its comparator to the model's displayed list. Rated players are ordered
-numerically and unrated players stay last in either direction. `ModelManager` breaks ties by
-source insertion order. The roster and saved file are unchanged, and later view commands may
-replace the chosen scope while retaining the comparator. `list` clears both filter and comparator.
-The existing no-scope syntax remains compatible with workflows that sort a search result.
+`SortCommandParser` accepts `rating` with an optional `all`/`squad` scope and
+`asc`/`desc` direction, in either order and any letter case. No direction means
+`DESCENDING`; no scope means `CURRENT`. Duplicate, unknown and conflicting options
+are rejected before execution. `SortCommand` stores `Direction` and `Scope` enum
+values. Its `updateScope(model)` retains the predicate for `CURRENT`, replaces it
+with `PREDICATE_SHOW_ALL_PERSONS` for `ALL`, or uses the shared
+`HasSelectionStatusPredicate.IS_KEPT` for `SQUAD`, then applies its rating comparator.
+Explicit scopes replace rather than intersect the previous name/tag/injury filter.
+`Direction.ASCENDING` and `Direction.DESCENDING` determine the numeric ordering.
+
+A scope is a one-time view selection rather than a persistent restriction. `find`,
+`filter` and `squad` replace the predicate but retain the comparator. `add` restores
+the all-player predicate while retaining the comparator; `edit`, `tag` and `rate`
+retain both. Tag/name updates may remove a player from a filtered view; a rating
+update may move the player within the sorted view.
+
+**Comparator design.** Rated players precede unrated players in both directions.
+Only the comparison of numeric scores is reversed for descending order; reversing
+the whole comparator would incorrectly put unrated players first. `ModelManager`
+appends the player's index in `AddressBook#getPersonList()` as a tie breaker. Equal
+scores and multiple unrated players therefore keep source insertion order even
+after replacement events. Source-index lookup is linear per tie comparison, a
+simple tradeoff for team-sized rosters rather than maintaining another identity index.
+Relying on the previous visual order or sort stability alone would not express the
+required insertion-order tie rule after rating changes.
+
+**Displayed indices and storage.** Commands receive the unmodifiable sorted view;
+index 1 identifies its first player, not the first stored player. The comparator is
+applied by JavaFX `SortedList` rather than sorting `UniquePersonList` in place.
+`LogicManager` skips saving for `SortCommand` and `ListCommand`, and later mutations
+save `getAddressBook()` rather than the view. Sorting can therefore be changed without
+rewriting player data or losing insertion order. On restart `ModelManager` creates
+new unfiltered, unsorted views; scores persist, predicates/comparators do not.
+
+`ListCommand` calls `setPersonComparator(null)` and then
+`updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS)`. It succeeds on an empty roster,
+does not restore deletions, and reports `Listed all players`. `AddressBookParser`
+ignores its arguments, so `list all` remains equivalent to `list`.
 
 ### Selection status feature
 
@@ -508,7 +549,7 @@ The IDs and priorities below retain the [team notes](https://docs.google.com/doc
 | ID | Priority | As a … | I want to … | So that I can … | Release coverage |
 | --- | --- | --- | --- | --- | --- |
 | US01 | `* * *` | coach | record a player's name and contact number | keep a record of everyone in the team | `add` (F1) |
-| US02 | `* * *` | coach | list all players | see everyone in the team at a glance | `list` (F2) |
+| US02 | `* * *` | coach | list all players | see everyone in the team at a glance | `list` (F2); full roster in insertion order, clearing filters and sorting |
 | US03 | `* * *` | coach | delete a player | remove withdrawn or mistaken entries | `delete` (F4) |
 | US04 | `* * *` | coach | find players by name | retrieve details without scanning the entire roster | Whole-word and punctuation-part `find` (F3) |
 | US05 | `* * *` | coach | view command formats inside the app | recall syntax without leaving the app | `help` (F5) |
@@ -518,11 +559,11 @@ The IDs and priorities below retain the [team notes](https://docs.google.com/doc
 | US09 | `* * *` | coach | record a player's jersey number | identify them from trial notes and videos | Optional jersey number through `add` and `edit` |
 | US10 | `* * *` | coach | mark players as kept, cut or pending | track and revise selection decisions | `keep`, `cut`, `pending` |
 | US11 | `* *` | coach | be warned about duplicate names | avoid duplicate player records | Exact duplicate rejection and similar-name warnings |
-| US12 | `* *` | coach | give players numeric ratings | compare assessed players on a common scale | `rate`, including removal with `unrated` |
+| US12 | `* *` | coach | give players numeric ratings | compare assessed players on a common scale | `rate` from 0 to 10, including removal with `unrated`; Unrated is distinct from 0 |
 | US13 | `* *` | coach | mark a player as injured | distinguish injury from a selection decision | `injury` and injury filtering |
 | US14 | `* *` | coach | see which players remain unrated | notice players who still need evaluation | Unrated cards and placement after rated players when sorting; no dedicated unrated filter |
 | US16 | `* *` | coach | filter players by tag | focus on one group | `filter`, with OR across tags and optional injury condition |
-| US17 | `* *` | coach | sort players by an attribute | compare players in a useful order | Rating only; other attribute sorts are not implemented |
+| US17 | `* *` | coach | sort players by an attribute | compare players in a useful order | Rating only, on the current view, full roster or kept squad, in either direction; other attribute sorts are not implemented |
 | US18 | `* *` | coach | view the players I have kept | see the resulting squad | `squad` |
 | US21 | `*` | coach | add a free-text remark | retain qualitative observations alongside ratings | One replaceable remark per player |
 | US27 | `*` | coach | clear all player records | start a fresh roster | `clear` |
@@ -757,47 +798,46 @@ The following rules apply throughout:
 
 #### UC04: Rate a player
 
-**Related user story:** US12
+**Related user story:** US12; rating comparison uses US17 sorting.
+
+**Precondition:** CouchCoach has loaded the team.
 
 **MSS**
 
-1. Coach requests to find a player by name.
-2. CouchCoach displays the matching players.
-3. Coach identifies a player from the displayed list and provides a numeric
-   rating for that player.
-4. CouchCoach records the rating, saves the updated data, and displays the
-   player's recorded rating.
+1. Coach requests the roster or a subset of players.
+2. CouchCoach displays those players.
+3. Coach identifies a player by their displayed index and provides a whole-number rating from 0 to 10.
+4. CouchCoach records the rating, preserves the player's other details, saves the team and reports the recorded rating. Any active rating sort reflects the new score.
 
    Use case ends.
 
 **Extensions**
 
-* 1a. The search request has no keywords.
+* 2a. The view contains no players.
 
-    * 1a1. CouchCoach displays an error and leaves the displayed list unchanged.
+  Use case ends; Coach may request another view.
 
-      Use case resumes at step 1.
+* 3a. The request is malformed or does not identify a player in the displayed list.
 
-* 2a. No players match the search.
-
-  Use case ends.
-
-* 3a. The request does not identify a player in the displayed list.
-
-    * 3a1. CouchCoach displays an error and leaves the data unchanged.
+    * 3a1. CouchCoach displays the format or invalid-index error and leaves player data unchanged.
 
       Use case resumes at step 3.
 
-* 3b. The rating is missing, is not numeric, or violates the agreed rating rules.
+* 3b. The rating is missing, has extra arguments, or is not a supported score or removal keyword.
 
-    * 3b1. CouchCoach explains the rating requirements and leaves the data unchanged.
+    * 3b1. CouchCoach explains the syntax or rating requirements and leaves the team unchanged.
 
       Use case resumes at step 3.
 
-* 4a. CouchCoach cannot save the updated data.
+* 3c. Coach requests removal of the rating using `unrated` instead of a score.
 
-    * 4a1. CouchCoach informs the Coach that the rating was recorded in the
-      current session but could not be saved and may be lost after closing.
+    * 3c1. CouchCoach records Unrated and saves, or reports that the player is already unrated. A score of 0 is not used to represent Unrated.
+
+      Use case ends.
+
+* 4a. CouchCoach cannot save the updated team.
+
+    * 4a1. CouchCoach reports that the change was applied in the current session but could not be saved and may be lost after closing.
 
       Use case ends.
 
@@ -1105,14 +1145,18 @@ add n/Nur Aisyah p/93456789
 ```
 
 For every successful listing below, the status message is exactly `Listed all players`,
-including when the team is empty. Listing clears the search filter and displays all
-remaining players in insertion order, with indices starting from 1.
+including when the team is empty. Listing clears the current name/tag/injury/squad
+filter and rating comparator, displaying all remaining players in insertion order
+with indices starting from 1.
 
 | Test case | Expected result |
 | --- | --- |
 | `list` | Tan, Lim, and Nur displayed in that order, numbered 1, 2, and 3, with their recorded names and phone numbers. |
 | `find wei`, then `list` | The two search results are replaced by all three players in their original order. |
 | `find NobodyMatchesThisName`, then `list` | The empty search results are replaced by all three players. |
+| `rate 2 10`, `sort rating`, then `list` | Lim is first when sorted; list restores Tan, Lim, Nur. |
+| `keep 2`, `squad`, then `list` | Lim is the only squad entry; list restores all three in insertion order. |
+| `injury 2 i/injured`, `filter i/injured`, then `list` | The injury-filtered view is replaced by all three players. |
 | `list` twice | Both requests succeed; the order and indices stay the same, with no duplicate players. |
 | `list all` or `list n/Tan` | Trailing arguments are ignored; all three players are displayed. |
 | `list` with leading and trailing spaces | All three players are displayed, as with `list`. |
@@ -1133,23 +1177,96 @@ Expected: all three players appear in their original order, `Listed all players`
 is shown, and no save-failure message appears. Remove the temporary file and restore
 the directory before modifying players or closing the app.
 
-### Manual checks for sort scope and squad ordering
+### Ratings and sorting (US12 / US17): manual regression checks
 
-Use a disposable team: add Amy, Bob and Charlie in that order; rate Amy 0 and Bob 10;
-keep Amy and Charlie, leaving Bob pending and Charlie unrated.
+Use Java 25 and a candidate JAR built from the version under review. Put it in a
+**separate disposable working directory**, launch with `java -jar couchcoach.jar`,
+and record the commit/JAR identity. These instructions describe the merged command
+syntax `sort rating [all|squad] [asc|desc]`, including current-view and explicit scopes.
 
-| Action | Expected result |
+Prepare this fixture in insertion order. Re-run the complete setup before each
+independent table row; commands within a row are sequential. Setup changes player data.
+
+```text
+clear
+add n/Amy Zero p/123 j/7 t/Trial
+add n/Bob Ten p/456 t/Trial
+add n/Cy Tie p/789 t/Other
+add n/Dee Unrated p/234 t/Trial
+add n/Eli Unrated p/567 t/Other
+rate 1 0
+rate 2 10
+rate 3 10
+keep 1
+keep 2
+keep 3
+remark 1 r/Left foot
+injury 1 i/injured
+```
+
+#### Rating values, errors and preservation
+
+| Test case | Expected result |
 | --- | --- |
-| `squad`, then `sort rating all` | Bob, Amy, Charlie; hidden pending players return and unrated Charlie is last. |
-| `find Bob`, then `sort rating squad asc` | Amy, Charlie; the full kept squad replaces the search. |
-| `sort rating asc all` | Amy, Bob, Charlie; direction before scope is accepted. |
-| `sort rating`, then `squad` | Only kept players, retaining the active rating order. |
-| `sort rating squad up`, `sort rating all squad` or `sort rating asc desc` | Usage error; data, current view and sorting are unchanged. |
-| `list` | Amy, Bob, Charlie in insertion order. |
-| Mark both kept players pending, then `sort rating squad` | Empty view without an error. |
-| Clear the team, then `sort rating all asc` | Empty view without an error. |
+| `rate 1 0`, then `rate 1 10` | Amy is rated 0/10 and then 10/10; each success identifies Amy and the new score. |
+| `rate 1 unrated`, repeat it, then `rate 1 UNRATED` | First: `Removed the rating of player: Amy Zero; Rating: Unrated`. Repeats: `Amy Zero is already unrated.` |
+| `rate 1 0` versus Dee's unchanged rating | Amy displays 0/10; Dee displays Unrated. They are distinct states. |
+| `rate 1 -1`, `rate 1 11`, `rate 1 8.0`, `rate 1 +8`, `rate 1 08`, `rate 1 r/8`, `rate 1 unrate` | Rating-constraint feedback with the `rate INDEX unrated` removal hint; no player/view/file change. |
+| `rate`, `rate 1`, `rate 1 8 extra` | Format error with rate syntax; no change. |
+| `rate 0 8`, `rate -1 8`, `rate 2147483648 8`, `rate 6 8` | `The player index provided is invalid.`; no change. |
+| `rate 1 8`, then inspect Amy and restart | Name, phone 123, jersey 7, Trial tag, kept status, Left foot remark and injured status are preserved; rating 8 survives restart. |
+| `rate 1 unrated`, then restart | Amy remains Unrated; unrelated fields survive. |
 
-Check the team file before and after read-only sort/view commands: its contents must not change.
+Check successful numeric feedback exactly, e.g. `Rated player: Amy Zero; Rating: 0/10`.
+After each rejected request compare both the displayed names/indices and saved file
+bytes with the baseline taken **after setup**. A successful rate command may save
+even when it reports already-unrated; do not assert unchanged modification time for it.
+
+#### Order, active views and displayed indices
+
+Abbreviations below use the fixture players' first names.
+
+| Test case | Expected result |
+| --- | --- |
+| `sort rating`, then `sort rating desc` | Bob, Cy, Amy, Dee, Eli both times; descending feedback. |
+| `sort Rating ASC` | Amy, Bob, Cy, Dee, Eli; ascending feedback. Zero precedes both Unrated players; Bob stays before Cy. |
+| `sort rating desc`, `sort rating asc`, `sort rating desc` | Direction changes preserve insertion-order ties; the final order is Bob, Cy, Amy, Dee, Eli. |
+| `filter t/Trial`, `sort rating` | Bob, Amy, Dee only; Cy and Eli remain hidden. |
+| `filter i/injured`, `sort rating asc` | Amy only, still injured and kept. |
+| `find Dee`, `sort rating all` | The search is replaced by Bob, Cy, Amy, Dee, Eli. Feedback names all players and descending order. |
+| `filter t/Trial`, `sort rating ALL ASC` | Full roster, Amy, Bob, Cy, Dee, Eli; ascending feedback names all players. |
+| `list`, `pending 2`, `find Dee`, `sort rating squad` | Bob is pending and excluded. All kept players are restored: Cy, Amy; feedback names kept players and descending order. |
+| `find Dee`, `sort rating asc squad` | Scope/direction order is accepted. All kept players appear: Amy, Bob, Cy. |
+| `sort rating squad`, `find Unrated` | The name search replaces the squad filter; pending Dee and Eli appear in insertion order. The comparator remains active. |
+| `list`, `pending 1`, `pending 2`, `pending 3`, `sort rating squad` | Empty kept-player view; no error. |
+| `sort rating all squad`, `sort rating asc desc`, `sort rating all all`, `sort rating squad squad` | Format error before changing the predicate or comparator. Previous view/data unchanged. |
+| `find Ten`, `sort rating`, `find Unrated` | First Bob only; the later search replaces the old filter and shows Dee then Eli. |
+| `squad`, `sort rating` | Bob, Cy, Amy only. Sorting does not add pending players. |
+| `sort rating`, `find Unrated`, `squad` | Squad replaces the search and restores all kept players in active rating order: Bob, Cy, Amy. |
+| `sort rating`, `edit 1 p/999` | Bob's phone changes; order and scores stay Bob, Cy, Amy, Dee, Eli. |
+| `sort rating`, `rate 1 0` | Bob is the target. New order: Cy, Amy, Bob, Dee, Eli; Amy precedes Bob in the zero-score tie. |
+| `sort rating`, `rate 1 unrated` | Bob becomes Unrated. New order: Cy, Amy, Bob, Dee, Eli; Bob precedes the later-added Unrated players. |
+| `sort rating`, `delete 1`, `list` | Bob is deleted; list shows Amy, Cy, Dee, Eli in insertion order. |
+| `filter t/Trial`, `sort rating`, `add n/Fay New p/678` | Full roster returns, retaining the sort: Bob, Cy, Amy, Dee, Eli, Fay. Fay is Unrated. |
+| `filter t/Trial`, `sort rating`, `edit 1 n/Bob Changed` | Bob's details change, current tag filter and sort stay active: Bob, Amy, Dee. |
+| `filter t/Trial`, `sort rating`, `tag 1 t/Other` | Bob's tags change and he leaves the Trial view; Amy, Dee remain in active rating order. |
+| `sort rating`, then `list all` | Full insertion order Amy, Bob, Cy, Dee, Eli; `Listed all players`. Sorting is cleared. |
+| `sort`, `sort name`, `sort rating up`, `sort rating asc extra` | Format error with sort usage. Previous displayed view and order unchanged. |
+| `clear`, `sort rating`, `sort rating asc`, `sort rating all asc`, `sort rating squad`, `list` | Empty view; all sorts succeed and list reports `Listed all players`. |
+| `sort rating`, then restart from the same directory | Amy, Bob, Cy, Dee, Eli in insertion order; ratings 0, 10, 10, Unrated, Unrated persist. The previous filter/sort does not. |
+
+For a sort/list-only row, record the file's bytes and modification time after setup;
+neither should change. Repeat `filter t/Trial`, `sort rating`, `list` with storage
+blocked by renaming `data` and placing a regular file named `data` at that path.
+All three view commands should still succeed. Remove that blocker and restore the
+directory before a mutation or restart. To check rate's save failure, use the same
+blocker and run `rate 1 8`: Amy changes on screen, but the save-failure feedback
+appears. Restore storage and make a successful data-changing request before testing
+restart. Confirm both Amy's new rating and all preserved fields in the reloaded file.
+
+**Cleanup:** close the app, restore any renamed directory, and remove only the
+disposable test directory. Keep any recorded evidence outside the real team's data.
+Do not run `clear` against a coach's working roster.
 
 ### Finding players by name (F3 / US04)
 
