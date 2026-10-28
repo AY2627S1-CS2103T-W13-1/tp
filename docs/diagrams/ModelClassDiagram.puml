@@ -5,6 +5,7 @@
 ' View 1: contracts and model-owned data. Player internals are in the detail views.
 interface Model <<interface>> {
     + updateFilteredPersonList(predicate): void
+    + setPersonComparator(comparator): void
 }
 interface ReadOnlyAddressBook <<interface>>
 interface ReadOnlyUserPrefs <<interface>>

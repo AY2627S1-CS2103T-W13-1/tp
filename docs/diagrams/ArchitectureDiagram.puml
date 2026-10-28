@@ -1,4 +1,5 @@
 @startuml
+!pragma layout smetana
 !include <office/Concepts/globe_internet>
 !include <office/Concepts/documents>
 !include <office/Users/user>
@@ -18,7 +19,7 @@ Class "<$documents>" as File UI_COLOR_T1
 
 
 UI -[#green]> Logic
-UI -right[#green]-> Model
+UI .right[#green].> Model : displays model types
 Logic -[#blue]-> Storage
 Logic -down[#blue]-> Model
 Main -[#grey]-> UI

@@ -6,6 +6,7 @@ left to right direction
 ' View 2: collection wrappers are omitted; values can be shared across player versions.
 class ModelManager {
     + updateFilteredPersonList(...)
+    + setPersonComparator(...)
 }
 class AddressBook {
     + addPerson(person): void
@@ -18,5 +19,5 @@ class Person {
 }
 AddressBook "1" *--> "1" UniquePersonList : persons
 UniquePersonList "0..*" --> "0..*" Person : all players
-ModelManager "0..*" --> "0..*" Person : filtered players
+ModelManager "0..*" --> "0..*" Person : displayed players
 @enduml
