@@ -104,6 +104,7 @@ The command box is at the top of the window; the result box below it confirms a 
 ### Viewing help: `help`
 
 Shows a summary of every command, with examples, in place of the player list.
+Blank lines separate the command entries to make the summary easier to scan.
 
 Format: `help`
 

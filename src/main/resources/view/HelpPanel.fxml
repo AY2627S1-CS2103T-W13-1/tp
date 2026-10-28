@@ -23,7 +23,7 @@
         <Label fx:id="helpHint" text="Type 'list' to see your players again."
                wrapText="true" minWidth="0" />
       </VBox>
-      <GridPane fx:id="helpCommands" hgap="20" minWidth="0">
+      <GridPane fx:id="helpCommands" hgap="20" vgap="20" minWidth="0">
         <columnConstraints>
           <ColumnConstraints minWidth="180" prefWidth="180" maxWidth="180" />
           <ColumnConstraints hgrow="ALWAYS" minWidth="0" />
@@ -76,7 +76,7 @@
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="7" GridPane.valignment="TOP" />
         <!-- Selection -->
-        <Label fx:id="statusSyntax" text="keep INDEX&#10;cut INDEX&#10;pending INDEX"
+        <Label fx:id="statusSyntax" text="keep INDEX&#10;&#10;cut INDEX&#10;&#10;pending INDEX"
                GridPane.columnIndex="0" GridPane.rowIndex="8" GridPane.valignment="TOP" />
         <Label fx:id="statusDescription"
                text="Mark the player at that position as kept, cut,&#10;or not yet decided (pending)&#10;e.g. keep 3"
