@@ -31,7 +31,7 @@
             <Insets left="10" />
           </HBox.margin>
         </Label>
-        <Label fx:id="injuryStatus" styleClass="injury-badge" text="Injured">
+        <Label fx:id="injuryBadge" styleClass="injury-badge" text="Injured">
           <HBox.margin>
             <Insets left="6" />
           </HBox.margin>
