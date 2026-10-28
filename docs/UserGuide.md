@@ -15,23 +15,31 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
 
 ## Quick start
 
-1. Ensure that Java `25` or later is installed on your computer.<br>
-   **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
+1. Check that Java `25` is installed. Open a terminal and run `java -version`; the first line should mention version `25`.<br>
+   If it does not, install Java 25 by following [this guide](https://se-education.org/guides/tutorials/javaInstallation.html).<br>
+   **Mac users:** install the exact Azul JDK 25 build *with JavaFX* (JDK+FX) prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html). CouchCoach is tested with this build.
 
-1. Download the latest `couchcoach.jar` file from [here](https://github.com/AY2627S1-CS2103T-W13-1/tp/releases).
+1. Download `couchcoach.jar` from the **Assets** of the [latest release](https://github.com/AY2627S1-CS2103T-W13-1/tp/releases/latest).
 
-1. Copy the file to the folder you want to use as the _home folder_ for CouchCoach.
+1. Create a folder for CouchCoach that you can save files in, e.g. a `CouchCoach` folder in your home folder, and move `couchcoach.jar` into it.
 
-1. Open a terminal, `cd` to the folder containing the JAR file, and run `java -jar couchcoach.jar`.<br>
-   A window like the one below should appear in a few seconds. The first time you run it, CouchCoach contains some sample players.<br>
-   ![Ui](images/Ui.png)
+1. Open a terminal, `cd` into that folder, and run `java -jar couchcoach.jar`. For example, on macOS or Linux:
+
+   ```text
+   cd ~/CouchCoach
+   java -jar couchcoach.jar
+   ```
+
+   On Windows, use `cd %USERPROFILE%\CouchCoach` in Command Prompt instead of the first line.<br>
+   A window like the one below should appear in a few seconds. The first time you run it, CouchCoach contains some sample players for you to try commands on. Type `clear` to remove them when you are ready to enter your own team.<br>
+   <pic src="images/Ui.png" width="450" alt="CouchCoach window showing a team of players with their status, rating, jersey number, tags and remarks" />
 
 1. Type a command in the command box and press Enter to execute it. For example, type **`help`** and press Enter to see a summary of all commands.<br>
    Some example commands you can try:
 
    * `list` : Lists all players.
 
-   * `add n/Tan Wei Ming p/91234567` : Adds a player named `Tan Wei Ming` to the team.
+   * `add n/Tan Wei Ming p/91234567 j/10` : Adds a player named `Tan Wei Ming` with jersey number 10 to the team.
 
    * `delete 3` : Deletes the 3rd player shown in the current list.
 
@@ -40,6 +48,15 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
    * `exit` : Exits the app.
 
 1. Refer to the [Features](#features) section below for details of each command.
+
+<box type="warning" seamless>
+
+**Launching CouchCoach:**
+
+* CouchCoach keeps your team in a `data` folder inside the terminal's current folder (the _working directory_), not necessarily next to the JAR. Launch it from the same folder every time, or it will not find your team. See [Editing the data file](#editing-the-data-file) for details.
+* CouchCoach must be able to save files in the folder you launch it from. If you launch it from a folder you cannot write to, it closes straight away, prints an error in the terminal, and no window appears. Move the JAR to a folder you own, e.g. in your home folder, and launch it from there.
+* Double-clicking `couchcoach.jar` may also start CouchCoach on some computers, but it may then use a different Java version or a different working folder. Use the terminal command above so that the same team loads each time.
+</box>
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -53,7 +70,7 @@ CouchCoach is a **desktop app for coaches of any sports team to keep track of th
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
 * Items in square brackets are optional.<br>
-  For example, `edit INDEX [n/NAME] [p/PHONE] [t/TAG]...` can be used as `edit 1 n/Tan Wei Ming` or as `edit 1 p/91234567`.
+  For example, `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]` can be used as `edit 1 n/Tan Wei Ming` or as `edit 1 p/91234567`.
 
 * Items followed by `...` can appear zero or more times.<br>
   For example, `find KEYWORD [MORE_KEYWORDS]...` can be used as `find wei` or as `find wei ming`.
@@ -89,34 +106,59 @@ Format: `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...`
 * Both `NAME` and `PHONE` must be given, in any order. `JERSEY` and `TAG` are optional.
 * `NAME` can contain letters (including accented and non-English letters, e.g. `José García` or `张伟`), digits, spaces, and the characters `-` `'` `/` `.` `,` `(` `)`, and can be at most 100 characters long.
 * `NAME` is saved with the capitalisation you type. Extra spaces at the start and end are removed, and repeated spaces inside the name are reduced to one.
-* `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces, hyphens, dots and brackets are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567` and `(65) 9123-4567` as `6591234567`. To note what a number is for, e.g. `HP`, use [`remark`](#recording-a-player-observation-remark-us21).
-* `JERSEY` must be a whole number from 0 to 99. A leading zero is dropped, e.g. `j/07` is saved as `7`.
-* A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan wei ming` counts as the same player as `Tan Wei Ming`. Phone numbers are not compared, so two players may share a contact number.
+* `PHONE` must have 3 to 15 digits and may start with a single `+`. Spaces, hyphens, dots and brackets are allowed, and are removed before saving, e.g. `8123 4567` is saved as `81234567` and `(65) 9123-4567` as `6591234567`. Letters, such as `ext 2`, are not allowed. To note what a number is for, e.g. `HP`, use [`remark`](#recording-a-player-observation-remark-us21).
+* `JERSEY` must be a whole number from 0 to 99. Leading zeros are dropped, e.g. `j/07` is saved as `7`, `j/010` as `10`, and `j/099` as `99`.
+  Only digits are accepted; signs and decimal points are invalid. Zero padding does not change
+  the 0–99 range, so `j/0100` is rejected.
+* Tags follow the [tag rules](#tagging-a-player-tag-us08).
+* A player cannot be added if a player with the same name is already in the team. Names are compared ignoring capitalisation and repeated spaces, so `tan  WEI ming` counts as the same player as `Tan Wei Ming`, and the result box shows `This player already exists in the team.` Phone numbers are not compared, so two players may share a contact number, e.g. siblings who give a parent's number.
 * If the new name looks like an existing player's name once spaces and punctuation are ignored, e.g. `TanWei Ming` and `Tan Wei Ming`, the player is still added, but the result box warns you so you can check it is not the same player.
-* Players may share a jersey number, but the result box then warns you and names the other players with that number, e.g. `Warning: jersey number 7 is also used by Bernice Yu.` The player is still added.
+* Players may share a jersey number, e.g. when trialists wear training bibs. The player is still added, but the result box warns you and names every other player with that number, including players hidden by an earlier `find` or `filter`.
 * `n/`, `p/` and `j/` can each be given only once, e.g. `add n/Amy n/Bob p/91234567` is rejected, so that a typo does not save the wrong value.
-* `add` cannot set a remark or injury status. Add the player first, then use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-players-injury-status-injury-us13).
-* The new player appears at the bottom of the list, or at their sorted position if rating sorting is active. If the list was filtered by `find` or `filter`, the full list is shown again.
+* `add` cannot set a remark or injury status. Add the player first, then use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-player-s-injury-status-injury-us13).
+* CouchCoach has no email or address fields. Text such as `e/amy@x.com` is read as part of the value before it, so `add n/Amy p/91234567 e/amy@x.com` is rejected with the phone number rules.
+* A new player starts as **Pending**, **Unrated** and fit, with no remark.
+* After adding, CouchCoach shows the full team again, even if the list was filtered by `find`, `filter` or `squad`, so that you can see the new player. The new player appears at the bottom of the list. This is also true while the list is sorted by rating, as new players are unrated and unrated players are listed last.
 
 <box type="tip" seamless>
 
 **Tip:** To add two players with the same name, add something to tell them apart, e.g. `n/Tan Wei Ming 2` or `n/Tan Wei Ming Jr`.
 </box>
 
+Examples, starting from a team that already contains `Nur'ain Binte Hassan` with jersey number 7:
+
+| Command | Result box shows |
+| --- | --- |
+| `add n/Tan Wei Ming p/91234567` | `New player added: Tan Wei Ming; Phone: 91234567` |
+| `add n/José García p/8123 4567 j/10 t/Striker` | `New player added: José García; Phone: 81234567; Jersey: 10; Tags: Striker` |
+| `add p/(65) 9876-5432 n/Muthu s/o Ramasamy` | `New player added: Muthu s/o Ramasamy; Phone: 6598765432` |
+| `add n/Lim Wei Jie p/98765432 j/07` | `New player added: Lim Wei Jie; Phone: 98765432; Jersey: 7`<br>`Warning: jersey number 7 is also used by Nur'ain Binte Hassan.` |
+| `add n/TanWei Ming p/90000000` | `New player added: TanWei Ming; Phone: 90000000`<br>`Warning: this name looks like Tan Wei Ming. Check that this is not the same player.` |
+| `add n/tan wei ming p/81112222` | `This player already exists in the team.` |
+| `add n/Amy p/12` | The phone number rules; nothing is added. |
+| `add n/Amy p/91234567 j/100` | `Jersey numbers should be whole numbers from 0 to 99, e.g. 7 or 23.` |
+| `add n/Amy p/91234567 r/Strong left foot` | `add cannot set a remark or injury status. Use "remark INDEX r/REMARK" or "injury INDEX i/STATUS" instead.` |
+
+<a id="categorising-players-with-tags-us08"></a>
+
+### Tagging a player: `tag` (US08)
+
+Use custom labels to group players by position, role, season or trial group. Add labels with `add`, or replace an existing player's labels with `tag`.
+
+Format for replacing tags: `tag INDEX t/TAG [t/TAG]...`
+
+Format for clearing tags: `tag INDEX t/`
+
+`INDEX` is the positive whole number beside the player in the displayed list, including search results, tag/injury filters and the squad. Recheck the displayed numbers after changing a view or a player. Supplying tags replaces the entire old set; include every label you want to keep. Name, phone and jersey edits preserve the existing tags. A single empty `t/` clears all tags; mixing an empty label with other labels is invalid.
+
+Separate parameter prefixes with ordinary spaces. A tab immediately before `t/` is not recognised as a parameter separator in this version.
+
 Examples:
-* `add n/Tan Wei Ming p/91234567`
-* `add n/Lim Wei Jie p/98765432 j/10`
-* `add p/+6598765432 n/Nur'ain Binte Hassan`
-* `add n/Muthu s/o Ramasamy p/8123 4567`
-
-### Categorising players with tags (US08)
-
-Add your own labels for a position, role, season, or trial group with `t/TAG`:
 
 * `add n/Amy Tan p/91234567 t/Striker t/Trial Group 2` adds Amy with two tags.
-* `edit 1 t/Goalkeeper t/Captain` replaces the first displayed player's tags with these two labels.
+* `tag 1 t/Goalkeeper t/Captain` replaces the first displayed player's tags with these two labels.
 * `edit 1 p/98765432` changes the phone while keeping existing tags.
-* `edit 1 t/` removes all tags from the first displayed player.
+* `tag 1 t/` removes all tags from the first displayed player.
 
 Each tag must start with a letter or digit, and can contain letters (including accented and
 non-English letters), digits, spaces, and the symbols `-` `&` `/` `_` `+` `'` `.`, e.g. `U18 & Under`,
@@ -124,7 +166,7 @@ non-English letters), digits, spaces, and the symbols `-` `&` `/` `_` `+` `'` `.
 rejected, as it is usually a typo. A tag can contain up to 30 characters after surrounding spaces are
 trimmed and repeated internal whitespace is collapsed. For example, `t/ Trial   Group 2`
 is saved as `Trial Group 2`. Blank labels are invalid except for the single clearing
-`edit ... t/` form. An invalid tag rejects the whole command, and the error names the problem,
+`tag INDEX t/` form. An invalid tag rejects the whole command, and the error names the problem,
 e.g. the tag that is too long or the character that is not allowed.
 
 Repeat `t/` for multiple tags. Duplicate labels are combined ignoring capitalisation,
@@ -132,52 +174,66 @@ so `t/Striker t/striker` keeps the first spelling, `Striker`, once. Tags appear 
 alphabetical order on player cards and command feedback. They do not affect duplicate
 player detection: the same name is still rejected even if tags differ.
 
-Tags are saved automatically and restored when you restart. Older data files without
-a `tags` field load with no tags. Tag edits use the displayed list's index and keep the
-current search or filter, just like other edits.
+Tags are saved automatically and restored when you restart. Older data files without a `tags` field load with no tags. Changing tags keeps the current search, tag/injury filter, squad view and active rating sort. If the player no longer matches the tag filter, they disappear from that view and the remaining players are renumbered. Use `list` to see everyone in insertion order again.
 
-Changing tags, names, or phone numbers keeps the player's selection status and rating.
-The `keep`, `cut`, `pending`, and `rate` commands keep existing tags. `squad` displays
-kept players with their tags and ratings.
+Changing only tags preserves the player's name, phone, jersey number, rating, selection status, remark and injury status. Name, phone, jersey, rating, selection, remark and injury updates also preserve tags unless you explicitly replace or clear them with `tag`.
+
+For a player named Amy Tan with phone 91234567 and no jersey number:
+
+| Command | Result message |
+| --- | --- |
+| `tag 1 t/Captain t/Striker` | `Updated tags for Amy Tan: Captain, Striker` |
+| Repeat the same command | `No changes made: Amy Tan already has these details.` |
+| `tag 1 t/` | `Amy Tan: tags cleared.` |
+| Repeat `tag 1 t/` | `No changes made: Amy Tan already has these details.` |
+| `tag 1 t/Bad!` | `The tag "Bad!" contains "!", which is not allowed. Tags can contain letters, digits, spaces and the symbols - & / _ + ' .` |
+
+Changing only a tag's capitalisation, e.g. from `STRIKER` to `Striker`, updates its displayed and saved spelling. A malformed index, a missing index or an index outside the displayed list rejects the update. For an out-of-range index the result is `The player index provided is invalid.` Invalid tags reject the whole tag update. The old `edit INDEX t/...` syntax is rejected with guidance to use `tag`, including mixed name/phone/jersey-and-tag edits; no field changes. Use separate commands. After a rejected command, the data and view remain unchanged. If saving fails after a valid tag update, follow [Saving the data](#saving-the-data) before closing the app.
 
 ### Listing all players: `list`
 
-Shows every player and clears any filter from a previous `find` or `filter` command.
+Shows the whole team, including players hidden by a name search, tag/injury filter or squad view.
 
 Format: `list`
 
-This command also clears rating sorting. Players appear in the order they were added, numbered from 1. The result box shows
-`Listed all players`, even when the team is empty. This command does not change player data.
-Any text after `list` is ignored, so `list all` has the same effect as `list`.
+* Clears both the current filter and rating sorting. Remaining players appear in the order they were added, numbered from 1. Editing a player does not change their place in this order.
+* The result box shows `Listed all players`, including when the roster is empty. Listing does not restore deleted players or change any player details.
+* Extra arguments are ignored: `list all` and `list n/Tan` have the same effect as `list`. Use the lowercase command word; `List` is not recognised.
+* Listing does not save player data. It works even if the data file is currently unwritable.
 
-Indices refer to positions in the currently displayed list and can change after deletion.
-Run `list` again before using an index if you need to see the full team.
+After `sort rating`, run `list` to restore insertion order. Check the newly displayed numbers before using an index in another command.
 
 ### Sorting players by rating: `sort`
 
-Orders the displayed players by their performance rating.
+Orders the players currently displayed so you can compare their performance ratings.
 
-Format: `sort rating [asc|desc]`
+Format: `sort rating [all|squad] [asc|desc]`
 
-* `sort rating` and `sort rating desc` show the highest rating first.
-* `rating`, `asc` and `desc` can be typed in any letter case, e.g. `sort Rating ASC`.
-  The command word `sort` itself must be lower case.
-* `sort rating asc` shows the lowest rating first. **Unrated** players appear last
-  in both directions; a score of `0` still appears before unrated players.
-* Players with the same rating keep their original insertion order.
-* Sorting keeps the current `find` filter. Later searches use the active sort order too.
-* Indices are renumbered to match the sorted display. `rate`, `edit` and `delete` use
-  these displayed indices. Check the list again after a rating change, as the player may move.
-* The active sort remains when adding or editing players; new players appear at their
-  sorted position. `add` still clears the search filter as usual, while `edit` keeps it.
-* `list` clears the filter and sorting, restoring the full team in insertion order.
-* Sorting an empty team is allowed. Invalid fields, directions or extra arguments are
-  rejected without changing the current list.
-* Sorting changes no saved player data and does not save. After a restart the list
-  returns to insertion order.
+* `sort rating` and `sort rating desc` show the highest rating first; `sort rating asc` shows the lowest first.
+* **Unrated** players are last in both directions. A score of **0** is a real rating and appears before every unrated player.
+* Equal scores keep the order in which those players were added. Unrated players also keep insertion order, even when you switch directions or update a player.
+* `rating`, `all`, `squad`, `asc` and `desc` are case-insensitive, e.g. `sort Rating ALL ASC`. The command word `sort` must be lowercase. Scope and direction can appear in either order, so `sort rating asc squad` also works.
+* With no scope, sorting keeps the current view: after `find`, `filter` or `squad`, only the displayed players are sorted.
+* `sort rating all` replaces any name, tag, injury or squad filter with the full roster, then sorts it. `sort rating squad` replaces the filter with all kept players, including kept players hidden by the previous view.
+* The scope selects the view for this command; it does not restrict later searches. A subsequent `find`, `filter` or `squad` replaces that view while keeping the rating sort.
+* Displayed indices are renumbered. Commands such as `rate`, `edit`, `tag`, `delete`, `keep`, `cut`, `pending`, `remark` and `injury` act on these current positions. Recheck the list after a change removes or moves a player.
+* Sorting an empty view succeeds. Missing/unsupported fields, invalid or repeated options, conflicting scopes/directions and extra arguments show a format error and leave the previous view and order unchanged. For example, `sort name`, `sort rating up`, `sort rating all squad` and `sort rating asc desc` are invalid.
+* Sorting does not change or save player records or stored roster order. After restarting from the same working directory, the full team appears in insertion order; filters and sorting are not restored.
 
-Example: after `rate 1 3` and `rate 2 9`, `sort rating` shows the player rated 9 before
-those rated 3 or Unrated. `sort rating asc` puts the player rated 3 first.
+Without an explicit scope, the result box shows `Sorted players by rating (descending); unrated players last` or the corresponding `ascending` message. Scoped sorting names the chosen group: `Sorted all players by rating (descending); unrated players last` or `Sorted kept players by rating (ascending); unrated players last`.
+
+| Next command | Effect while a rating sort is active |
+| --- | --- |
+| `add` | Shows the full roster again, keeping the sort. New players start Unrated and appear after the rated players and earlier unrated players. |
+| `edit` | Keeps the sort and current filter. A renamed player may disappear if they no longer match a name search. |
+| `tag` | Keeps the sort and current filter. A player may disappear if their replacement tags no longer match a tag filter. |
+| `rate` | Keeps the filter and sort; the player moves to their new rated/unrated position. Other displayed indices can change. |
+| `find` | Searches the whole team, replacing the old filter; matches use the active sort. |
+| `filter` | Replaces the old filter with the requested tag/injury conditions; matches use the active sort. |
+| `squad` | Shows all kept players using the active sort, even if a previous search hid them. |
+| `list` | Shows the full roster and clears sorting, restoring insertion order. |
+
+For example, add Amy, Bob and Cy in that order, then give them ratings 0, 10 and 10. `sort rating` shows Bob, Cy, Amy; `sort rating asc` shows Amy, Bob, Cy. Any unrated players follow them in insertion order in both cases.
 
 ### Rating a player: `rate`
 
@@ -185,25 +241,25 @@ Sets or removes a player's performance rating and saves it automatically.
 
 Format: `rate INDEX RATING`
 
-* `INDEX` is the positive whole number shown beside the player in the current list,
-  including a list filtered by `find`.
-* `RATING` must be a whole number from **0 to 10**, inclusive. Decimal values, signs,
-  leading zeros such as `08`, extra arguments and values outside this range are rejected.
-* To remove a rating, type `unrated` as `RATING`, in any letter case. The player becomes
-  **Unrated** again and appears with the unrated players when sorting. If the player is
-  already unrated, the result box says so and nothing changes.
-* New players and players saved before ratings were introduced start as **Unrated**.
-  A rating of `0` is a real rating and is different from Unrated.
-* The rating appears on the player card and is retained when their name or phone is edited.
-* Rating a player keeps the current search filter. An invalid command changes nothing.
-* Ratings are saved with the rest of your team and restored when you reopen CouchCoach.
+* `INDEX` is the positive whole number beside the player in the **current displayed list**, including a sorted list, name search, tag/injury filter or squad view. It must identify a player in that view.
+* `RATING` is a whole number from **0 to 10**, inclusive. Signs (`+8`, `-1`), decimals (`8.0`), leading zeros (`08`), values above 10, missing arguments and extra arguments are rejected.
+* Use `unrated` in any letter case to remove the rating, e.g. `rate 1 UNRATED`. **Unrated** means not assessed; **0** means assessed with a score of zero. New players and players loaded from files without a rating start Unrated.
+* Rating changes preserve the player's name, phone, selection status, tags, remark, injury status and jersey number.
+* The current filter and sort stay active. A rating change can move the player in a sorted list, so check the displayed numbers before rating another player. Removing a rating moves the player among the unrated players in insertion order.
+* Invalid input leaves both player data and the current view unchanged. An index outside the displayed list shows `The player index provided is invalid.`
+* Successfully saved ratings and removals survive a restart. If saving fails, the change remains visible in this session and the result box warns that it could not be saved; follow [Saving the data](#saving-the-data) before closing the app.
 
-Examples:
+Examples below assume the first displayed player is Amy:
 
-* `rate 1 8` gives the first displayed player a rating of 8/10.
-* `find Tan` followed by `rate 1 10` gives the first search result a rating of 10/10.
-* `rate 1 unrated` removes the first displayed player's rating.
-* `rate 1 11` shows `Rating must be a whole number from 0 to 10. To remove a rating, use: rate INDEX unrated`
+| Command | Feedback / result |
+| --- | --- |
+| `rate 1 0` | `Rated player: Amy; Rating: 0/10` |
+| `rate 1 10` | `Rated player: Amy; Rating: 10/10` |
+| `rate 1 unrated` | `Removed the rating of player: Amy; Rating: Unrated` |
+| `rate 1 unrated` again | `Amy is already unrated.`; player details stay unchanged. |
+| `rate 1 11` | `Rating must be a whole number from 0 to 10. To remove a rating, use: rate INDEX unrated` |
+
+After `find Tan`, `rate 1 8` rates the first displayed match rather than the first player in the full roster. The same displayed-index rule applies after filtering or sorting.
 
 ### Marking a player's injury status: `injury` (US13)
 
@@ -256,27 +312,34 @@ Examples:
 
 ### Editing a player: `edit`
 
-Edits an existing player in the team.
+Changes the name, phone number or jersey number of a player in the displayed list.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`
+Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`
 
-* Edits the player at the specified `INDEX`. The index refers to the index number shown in the displayed player list. The index **must be a positive whole number** 1, 2, 3, ...
-* At least one of the optional fields must be provided.
-* Existing values will be updated to the input values. Names, phone numbers and jersey numbers follow the same rules as in `add`.
-* `n/`, `p/` and `j/` can each be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
-* If you rename a player to a name that looks like another player's, e.g. `TanWei Ming` when `Tan Wei Ming` exists, the change is made, but the result box warns you, as with `add`.
-* `edit` cannot change a remark or injury status. Use `remark` or `injury` instead.
+* Edits the player at the specified `INDEX`, the number shown beside the player in the displayed list. `INDEX` must be a positive whole number such as 1, 2 or 3. An index that is `0` or larger than the list shows `The player index provided is invalid.`
+* At least one of the optional fields must be provided; `edit 1` on its own shows `At least one field to edit must be provided.`
+* Each value you give replaces the current one. Names, phone numbers and jersey numbers follow the same rules as in [`add`](#adding-a-player-add), and `n/`, `p/` and `j/` can each be given only once, e.g. `edit 1 n/Amy n/Bob` is rejected.
+* A player cannot be renamed to another player's name: names are compared as in `add`, and the result box shows `This player already exists in the team.` Changing only the capitalisation or spacing of a player's own name, e.g. `Tan Wei Ming` to `TAN WEI MING`, is allowed.
+* If the new name looks like another player's, e.g. `TanWei Ming` when `Tan Wei Ming` exists, the change is made, but the result box warns you, as with `add`. Editing other details does not repeat this warning.
 * Omit `j/` to keep the player's current jersey number. Type `j/` with nothing after it to remove the jersey number. An empty `j/` works only with `edit`; `add` rejects it.
-* If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
-* Repeat `t/TAG` to replace all of the player's tags. Omit `t/` to keep them. Use a single empty `t/` to clear them; combining empty and non-empty tags is rejected.
-* The displayed list stays as it is, so you can keep editing the results of a `find` or `filter` with their numbers unchanged. If the edited player no longer matches the search, e.g. after a name change, they drop out of the displayed list; use `list` to see everyone.
-* The result box shows the player's new details, and notes any jersey number or tags you removed. If the values you typed are the same as the current ones, it says no changes were made.
+* If the edit includes `j/` and the new jersey number is already used by another player, the change is still made and the result box shows the same warning as in `add`, naming players hidden by an earlier `find` or `filter` too. An edit without `j/`, e.g. one that only changes the phone number, does not repeat the warning.
+* Tags are retained. Use `tag INDEX t/TAG...` to replace them, or `tag INDEX t/` to clear them.
+  Supplying `t/` to `edit` rejects the whole command and shows the new syntax.
+* `edit` cannot change a remark or injury status. Use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-player-s-injury-status-injury-us13) instead.
+* Details you do not edit stay as they are. In particular, editing never changes a player's selection status, rating, remark or injury status.
+* The displayed list stays as it is, so you can keep editing the results of a `find` or `filter` with their numbers unchanged. An active rating sort also stays. If the edited player no longer matches the search, e.g. after a name change, they drop out of the displayed list; use `list` to see everyone.
+* The result box shows the player's new details, and notes any jersey number you removed. If the values you typed are the same as the current ones, including a phone number typed with different spacing, it says `No changes made: NAME already has these details.`
 
-Examples:
-*  `edit 1 p/91234567` Edits the phone number of the 1st player to be `91234567`.
-*  `edit 2 n/Lim Wei Jie` Edits the name of the 2nd player to be `Lim Wei Jie`.
-*  `edit 3 j/23` Sets the jersey number of the 3rd player to be `23`.
-*  `edit 3 j/` Removes the jersey number of the 3rd player.
+Examples, for a team where the 1st player is `Tan Wei Ming`, with jersey number 10, and `Nur'ain Binte Hassan` wears 7:
+
+| Command | Result box shows |
+| --- | --- |
+| `edit 1 p/9123 4567` | `Edited player: Tan Wei Ming; Phone: 91234567; Jersey: 10` |
+| `edit 1 n/Tan Wei Ming Jr` | `Edited player: Tan Wei Ming Jr; Phone: 91234567; Jersey: 10` |
+| `edit 1 j/7` | `Edited player: Tan Wei Ming Jr; Phone: 91234567; Jersey: 7`<br>`Warning: jersey number 7 is also used by Nur'ain Binte Hassan.` |
+| `edit 1 j/` | `Edited player: Tan Wei Ming Jr; Phone: 91234567 (jersey number removed)` |
+| `edit 1 j/` again | `No changes made: Tan Wei Ming Jr already has these details.` |
+| `edit 0 n/Amy` | `The player index provided is invalid.` |
 
 ### Finding players by name: `find`
 
@@ -295,10 +358,11 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
   `Shaun O'Neil`, `find Jr` matches `Lim Jr.`, and `find s/o` matches `Muthu s/o Ramasamy`. Each part
   must still match in full, so `find Min` does not match `Tan Wei-Ming`.
 * No tagged parameters are used; `find n/Wei` searches for the literal word `n/Wei`.
-* Each search searches the whole team, including players hidden by an earlier search.
-* Results follow the active rating sort, or insertion order when no sort is active and are numbered from 1. After `find`, `delete 1`
+* Each search searches the whole team, including players hidden by an earlier `find`, `filter` or `squad`. It replaces that view rather than adding another condition.
+* Results follow the active rating sort, or insertion order when no sort is active, and are numbered from 1. After `find`, `delete 1`
   deletes the first displayed match. The search filter remains active after deletion.
-* Use `list` to restore the full team list.
+* A later `filter` replaces the name search; `squad` replaces it with all kept players. Both retain active sorting. Use `list` to restore the full team list and clear sorting.
+* A valid keyword with no matches, including a search on an empty team, shows an empty list and `0 players listed!`.
 * Searching changes neither player records nor the saved data file.
 
 For a team containing `Tan Wei Ming`, `Lim Wei Jie`, `Nur Aisyah`, and `Muthu s/o Ramasamy`:
@@ -326,27 +390,31 @@ case-sensitive: use `find`, as `Find` is unrecognized.
 
 ### Filtering players by tag: `filter` (US16)
 
-Show a group of players by the custom tags assigned using `add` or `edit`, by injury status, or both.
+Show a group of players by the custom tags assigned using `add` or `tag`, by injury status, or both.
 
 Format: `filter [t/TAG]... [i/STATUS]`
 
 * Supply at least one `t/TAG` or an `i/STATUS`. `STATUS` is `injured` or `fit`, ignoring case, e.g. `filter i/injured` shows only injured players.
 * With both, a player must match both, e.g. `filter t/Striker i/fit` shows fit strikers.
-* Tags must be non-empty. Labels follow the [tag rules](#categorising-players-with-tags-us08).
+* Tags must be non-empty. Labels follow the [tag rules](#tagging-a-player-tag-us08).
 * Match complete labels, ignoring capitalisation: `filter t/striker` matches `Striker`,
   while `filter t/strik` does not. `filter t/Trial Group 2` treats the whole label as one tag.
 * Repeat `t/` to match **any** requested tag (OR). A player matching multiple tags is listed once.
+* Separate parameter prefixes with ordinary spaces; tabs immediately before a prefix are not recognised as separators in this version.
 * Filter the whole team, including players hidden by a previous `find`, `filter`, or `squad`.
-  Results keep roster order and are numbered from 1.
+  Results follow the active rating sort, or insertion order when no sort is active,
+  and are numbered from 1. Check these displayed indices before editing or deleting.
+  Each new filter replaces the previous view rather than adding conditions to it.
 * `delete` and `edit` use the displayed indices and keep the filter; a successful `add`
   restores the full list. `find` replaces the tag filter with its name search.
 * `keep`, `cut`, `pending`, and `rate` also use displayed indices and preserve tags.
   `squad` replaces the tag filter with the kept-player view.
-* `list` restores the full roster. Filtering changes no player data and does not save.
-* Missing tags, invalid labels, or text before the first `t/` show an error and leave the
-  current list unchanged. A tag with no matches is valid and displays `0 players listed!`.
+* `list` restores the full roster and clears sorting, returning players to insertion order.
+  Filtering changes no player data and does not save. Filters and sorting are not restored after restarting; your saved players and their tags are restored.
+* Missing conditions, invalid labels/statuses, duplicate `i/` arguments, or text before the first recognised parameter show an error and leave the current list and data unchanged. An injury-only filter is valid. A tag with no matches is valid and displays `0 players listed!`, including on an empty team.
 
-For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tagged `Captain`:
+For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tagged `Captain`,
+added in that order with no active sort:
 
 | Command | Displayed players | Result message |
 | --- | --- | --- |
@@ -355,43 +423,86 @@ For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tag
 | `filter t/Goalkeeper` | Bob | `1 player listed!` |
 | `filter t/strik` | Empty list | `0 players listed!` |
 
+For example, if Amy and Bob both have the `Striker` tag and ratings of 2 and 9 respectively,
+`sort rating` followed by `filter t/Striker` shows Bob first and Amy second. `list` clears
+that sort and restores the full team in insertion order.
+
+Before running `list` in that example, `tag 1 t/Goalkeeper` updates Bob and removes him from the Striker results, because the filter remains active. Amy becomes the first displayed match. Recheck indices after an update.
+
 Use the lowercase command word `filter`; `Filter` is unrecognized. `filter` without
 parameters displays the format error and syntax example. `filter t/` is rejected
 because a tag cannot be empty; it does not clear anything.
 
+With no conditions, the result box shows:
+
+```text
+Invalid command format!
+filter: Lists players with any of the given tags (exact labels, ignoring case), the given injury status, or both.
+Parameters: [t/TAG]... [i/STATUS] (at least one; STATUS is injured or fit)
+Examples: filter t/Striker t/Trial Group 2, filter i/injured, filter t/Striker i/fit
+```
+
+`filter t/Bad!` shows the same specific tag error as the tag-update example above. `filter t/` instead explains that a tag cannot be empty and gives `tag INDEX t/` as the clearing syntax. To remove the view filter while keeping player tags, use `list`.
+
 ### Deleting a player: `delete`
 
-Deletes the specified player from the team.
+Removes a player from the team permanently.
 
 Format: `delete INDEX`
 
-* Deletes the player at the specified `INDEX`.
-* The index refers to the index number shown in the displayed player list, which may be filtered by `find` or `filter`.
-* The index **must be a positive whole number** 1, 2, 3, ...
-* The remaining players are renumbered after a deletion, so check the list again before deleting another player.
+* `INDEX` is the number shown beside the player in the list on screen right now. That list may be
+  narrowed by [`find`](#finding-players-by-name-find), [`filter`](#filtering-players-by-tag-filter-us16)
+  or [`squad`](#viewing-your-squad-squad), or reordered by [`sort rating`](#sorting-players-by-rating-sort);
+  `delete` always uses the number you can see.
+* The result box confirms who was removed, e.g. `Deleted player: Amy Tan; Phone: 91234567; Tags: Striker`.
+* The list on screen stays as it is: a search, tag filter, squad view or rating sort remains active.
+  The players below the deleted one move up, so **their numbers change**. Check the list again before
+  deleting another player.
+* The deletion is saved straight away (see [Saving the data](#saving-the-data)).
+* If `INDEX` is missing or is not a whole number, e.g. `delete`, `delete x` or `delete 1 2`, the result box
+  shows the correct format. If it is `0`, negative or larger than the list on screen, it shows
+  `The player index provided is invalid.` Nothing is deleted in either case.
+
+<box type="warning" seamless>
+
+**Caution:** `delete` cannot be undone and does not ask for confirmation. To remove every player at once,
+use [`clear`](#clearing-all-players-clear).
+</box>
 
 Examples:
 * `list` followed by `delete 2` deletes the 2nd player in the team.
-* `find Tan` followed by `delete 1` deletes the 1st player in the results of the `find` command.
+* `find Tan` followed by `delete 1` deletes the 1st player in the search results. The search stays on screen,
+  so the next `Tan` player is now number 1.
+* `sort rating` followed by `delete 1` deletes the highest-rated player.
 
 ### Marking a player as kept, cut or pending: `keep`, `cut`, `pending`
 
-Records your selection decision for a player. The decision is shown as a badge next to the player's name: **Pending**, **Kept** or **Cut**.
+Records your selection decision for a player. The decision appears as a badge next to the player's name:
+**Pending**, **Kept** or **Cut**.
 
 Format: `keep INDEX`, `cut INDEX` or `pending INDEX`
 
-* `keep` marks the player at the specified `INDEX` as kept, and `cut` marks them as cut.
-* `pending` marks the player as not yet decided, e.g. to undo a `keep` or `cut` you made by mistake.
-* Every player you add starts as pending. Editing a player with `edit` does not change their status.
-* The index refers to the index number shown in the displayed player list, which may be filtered by `find`.
-* The index **must be a positive whole number** 1, 2, 3, ...
-* The displayed list stays as it is, so you can keep working through the results of a `find`.
-* If the player already has that status, CouchCoach tells you so and nothing changes.
+* `keep` marks the player as kept, and `cut` marks them as cut. `pending` marks them as not yet decided,
+  e.g. to undo a `keep` or `cut` made by mistake.
+* Every new player starts as pending. Players from data files saved before v1.4, which have no decision
+  recorded, also load as pending.
+* `INDEX` is the number shown beside the player in the list on screen right now, including a list narrowed by
+  `find`, `filter` or `squad`, or reordered by `sort rating`.
+* The result box confirms the change, e.g. `Marked Amy Tan as kept.` If the player already has that decision,
+  it says so instead, e.g. `Amy Tan is already marked as kept.`, and nothing changes.
+* The list on screen stays as it is, so you can work through the results of a `find` or `filter`.
+  While viewing your squad, though, a player you `cut` or mark `pending` leaves the squad, so they disappear
+  from the list and the players below them move up one number.
+* A decision does not change a player's rating, tags or position in a rating sort. Editing a player with `edit`
+  does not change their decision.
+* The decision is saved straight away and restored when you reopen CouchCoach.
+* If `INDEX` is missing or is not a whole number, e.g. `keep` or `keep a`, the result box shows the correct format.
+  If it is `0`, negative or larger than the list on screen, it shows `The player index provided is invalid.`
 
 Examples:
 * `list` followed by `keep 2` marks the 2nd player in the team as kept.
-* `find Tan` followed by `cut 1` marks the 1st player in the results of the `find` command as cut.
-* `pending 1` changes the 1st player in the displayed list back to pending.
+* `find Tan` followed by `cut 1` marks the 1st player in the search results as cut.
+* `pending 1` changes the 1st player in the list on screen back to pending.
 
 ### Viewing your squad: `squad`
 
@@ -399,15 +510,20 @@ Shows only the players you have marked as kept, so you can see your squad at a g
 
 Format: `squad`
 
-* The players are shown in the same order as in `list`.
+* Players keep the active rating sort, or insertion order if no sort is active.
+  Use `sort rating squad` to sort the whole kept squad directly (see [`sort`](#sorting-players-by-rating-sort)); `list` clears sorting.
 * The result box shows how many players are in your squad, e.g. `3 players in your squad.`
-* If you have not kept anyone yet, the list is empty and the result box tells you how to keep a player.
-* `squad` shows your whole squad, even if you ran `find` before it.
-* While you are viewing your squad, a player you `cut` or mark as `pending` disappears from the list, as they are no longer in your squad.
-* Use `list` to see all players again.
+  If you have not kept anyone yet, the list is empty and the result box says
+  `No players in your squad yet. Use 'keep INDEX' to keep a player, or 'list' to see all players.`
+* `squad` shows your whole squad, even if a `find` or `filter` was active before it.
+* While viewing your squad, a player you `cut` or mark `pending` disappears from the list. A player you
+  `delete` is removed from the team.
+* Use `list` to see all players again. `squad` changes no data and does not save.
+* Any text after `squad` is ignored, so `squad all` is the same as `squad`.
 
 Examples:
 * `keep 1` followed by `keep 3` and then `squad` shows the two players you kept.
+* `sort rating` followed by `squad` shows your kept players, highest rating first.
 
 ### Clearing all players: `clear`
 
@@ -431,12 +547,21 @@ Format: `exit`
 
 ### Saving the data
 
-CouchCoach saves your data automatically after every change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`). You do not need to save manually. `list`, `find`, `filter`, `sort`, `squad`, `help` and `exit` do not change your data, so they do not save.
+CouchCoach saves your team automatically after every successful change. You do not need to save manually.
+
+* These commands save: `add`, `edit`, `tag`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` and `clear`.
+  Each save writes your whole team to the data file. You can also use `save` without changing players.
+* These commands never save, as they do not change your data: `list`, `find`, `filter`, `sort`, `squad`,
+  `help` and `exit`.
+* A command that is rejected, e.g. because of a wrong format or an invalid index, changes nothing and does not save.
 
 If a change cannot be saved (e.g. the data file or its folder is read-only, the disk is full,
 or a directory occupies the data file path),
 the result box shows the applied command's feedback followed by a warning that the change
 could not be saved. The change is still shown in CouchCoach, but it is not on disk yet.
+The data file may be unchanged, empty or partially written; a failed save does not guarantee that the
+previous file remains intact. If the `data` folder is deleted while CouchCoach is open, it is recreated
+at the next save.
 The command box clears because the operation has already happened. **Do not repeat the
 original command**: for example, repeating `delete 1` would delete the next player.
 
@@ -460,26 +585,72 @@ file with the team shown in CouchCoach, so back up any external file edits first
 
 ### Editing the data file
 
-CouchCoach data is saved automatically as a JSON file `[working directory]/data/addressbook.json`.
-The working directory is the terminal's current folder when you launch the app; it can differ from the folder containing the JAR.
-For example, if your terminal is in `/teams/trials` and you run `java -jar /apps/couchcoach.jar`, the team file is `/teams/trials/data/addressbook.json`.
-Launch from the same working directory each time to load the same team. The status bar shows the data file path.
-Advanced users are welcome to update data directly by editing that data file.
+CouchCoach keeps your team in a JSON file, `data/addressbook.json`, inside the **working directory**: the folder
+your terminal is in when you launch the app. This can differ from the folder containing the JAR. For example,
+if your terminal is in `/teams/trials` and you run `java -jar /apps/couchcoach.jar`, the team file is
+`/teams/trials/data/addressbook.json`. Launch from the same folder each time to load the same team.
+The status bar at the bottom of the window shows the data file path.
+
+What CouchCoach does with the file when it starts:
+
+* **No data file:** it starts with a sample team, so you can try the commands. The file is created at your
+  first change. To start empty instead, use `clear`.
+* **A valid data file:** it loads your team. Data files from older versions still load: a player without a
+  saved decision is pending, without a rating is unrated, without an injury status is fit, and without
+  tags, a remark or a jersey number has none.
+* **An invalid data file:** it starts with an empty team and the result box shows
+  `The data file is not in a readable format. CouchCoach has started with an empty team. Your next change or 'save' will replace the file with the current team. Back up the file before continuing.`
+  The invalid file is left untouched while you only use commands that do not save (see [Saving the data](#saving-the-data)),
+  so you can close CouchCoach, fix or restore the file, and reopen it. Your next change or explicit `save`
+  replaces the file with the current team.
+
+Advanced users can edit the file directly while CouchCoach is closed. Each player is stored with these fields:
+
+Field | Allowed values | If missing
+------|----------------|-----------
+`name` | Same rules as `n/NAME` in [`add`](#adding-a-player-add) | Required
+`phone` | Digits only, optionally starting with `+`, 3 to 15 digits (no spaces) | Required
+`selectionStatus` | `PENDING`, `KEPT` or `CUT`, in any letter case | Pending
+`rating` | A whole number from `0` to `10`, or `null` | Unrated
+`tags` | A list of labels following the [tag rules](#tagging-a-player-tag-us08) | No tags
+`remark` | Any text | No remark
+`injuryStatus` | `fit` or `injured`, in any letter case | Fit
+`jerseyNumber` | A whole number from `0` to `99` | No jersey number
 
 <box type="warning" seamless>
 
 **Caution:**
-If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` or `clear`) or an explicit `save` replaces it, so back up the file before editing it.<br>
-A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
-Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your edits make the file invalid, CouchCoach starts with an empty team (see above), and your next change or explicit `save`
+replaces the invalid file, so **back up the file before editing it**.<br>
+These all make the file invalid: a value outside the allowed values above, a missing `name` or `phone`,
+a malformed JSON file, an empty file, a file without a `persons` list, a `null` entry in the `persons` list,
+or two players with the same name, ignoring capitalisation and repeated spaces.<br>
+A file containing only `null` also counts as invalid and uses the same empty-team recovery.
 </box>
+
+### Application preferences
+
+Window settings are saved in `[working directory]/preferences.json`.
+Invalid preferences, including a file containing only `null` or `null` window settings,
+are replaced with defaults at startup. Your team data remains unchanged.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous CouchCoach home folder.
+**A**: Close CouchCoach on both computers. Copy `data/addressbook.json` from the folder you launch CouchCoach from
+on the old computer (see [Editing the data file](#editing-the-data-file)) into a `data` folder inside the folder
+you will launch it from on the new computer, replacing any file there. Then launch CouchCoach from that folder.
+
+**Q**: CouchCoach says my data file is not in a readable format. How do I get my team back?<br>
+**A**: Do not make any change or use `save` yet: either replaces the unreadable file with the current team.
+Close CouchCoach, then either restore your backup of `data/addressbook.json`, or fix the file using the rules in
+[Editing the data file](#editing-the-data-file). Reopen CouchCoach and check that your team is back.
+
+**Q**: The result box says my change could not be saved. Is it lost?<br>
+**A**: Not while CouchCoach is still open. Follow the steps in [Saving the data](#saving-the-data) to save it
+before you exit.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -493,21 +664,22 @@ Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.
 
 Action     | Format, Examples
 -----------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------
-**Add**    | `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...` <br> e.g., `add n/Tan Wei Ming p/91234567 j/10`
+**Add**    | `add n/NAME p/PHONE [j/JERSEY] [t/TAG]...` <br> e.g., `add n/Tan Wei Ming p/91234567 j/10 t/Striker`
 **Clear**  | `clear`
 **Cut**    | `cut INDEX`<br> e.g., `cut 3`
-**Delete** | `delete INDEX`<br> e.g., `delete 3`
-**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY] [t/TAG]...`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`
+**Delete** | `delete INDEX`<br> e.g., `delete 3` (cannot be undone)
+**Edit**   | `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`<br> e.g., `edit 2 n/Lim Wei Jie`, `edit 3 j/23`; remove a jersey number with `edit 3 j/`
 **Exit**   | `exit`
-**Filter** | `filter [t/TAG]... [i/STATUS]`<br> e.g., `filter t/Striker t/Captain`, `filter i/injured`
+**Filter** | `filter [t/TAG]... [i/STATUS]`<br> e.g., `filter t/Striker t/Captain`, `filter i/injured`, `filter t/Striker i/fit`
 **Find**   | `find KEYWORD [MORE_KEYWORDS]...`<br> e.g., `find wei ming`
 **Injury** | `injury INDEX i/STATUS`<br> e.g., `injury 1 i/injured`; mark fit again with `injury 1 i/fit`
-**Sort**   | `sort rating [asc|desc]`<br> e.g., `sort rating desc`
-**Rate**   | `rate INDEX RATING`<br> e.g., `rate 1 8`; remove with `rate 1 unrated`
+**Tag**    | `tag INDEX t/TAG [t/TAG]...`<br> e.g., `tag 1 t/Striker`, `tag 1 t/`
+**Sort**   | `sort rating [all\|squad] [asc\|desc]`<br> e.g., `sort rating` (current view), `sort rating squad asc`
+**Rate**   | `rate INDEX RATING` (0–10 or `unrated`)<br> e.g., `rate 1 8`; remove with `rate 1 unrated`
 **Remark** | `remark INDEX r/REMARK`<br> e.g., `remark 1 r/Strong left foot`; clear with `remark 1 r/`
 **Keep**   | `keep INDEX`<br> e.g., `keep 3`
-**List**   | `list`
-**Pending** | `pending INDEX`<br> e.g., `pending 3`
+**List**   | `list` — show all players in insertion order; clear filters and sorting
+**Pending** | `pending INDEX`<br> e.g., `pending 3` (undoes a keep or cut)
 **Save**   | `save`
-**Squad**  | `squad`
+**Squad**  | `squad`<br> shows only kept players
 **Help**   | `help`

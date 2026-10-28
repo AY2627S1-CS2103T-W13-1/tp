@@ -1,0 +1,22 @@
+@startuml
+skin rose
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
+start
+:MainApp reads data/addressbook.json
+through Storage;
+if () then ([file is missing])
+  :Use the sample team;
+  note right: The file is created\nat the first change
+elseif () then ([file cannot be read as a valid team])
+  :Use an empty team;
+  :Show the unreadable-data
+  warning in the result box;
+  note right: The invalid file is kept\nuntil the next change
+else ([file is valid])
+  :Use the saved team;
+endif
+:Create ModelManager
+with the chosen team;
+stop
+@enduml

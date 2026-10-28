@@ -9,16 +9,21 @@ package Storage as StoragePackage {
 Class "<<interface>>\nStorage" as Storage
 Class StorageManager
 
-package "UserPrefs Storage" #F4F6F6{
+package "UserPrefs Storage" #F4F6F6 {
 Class JsonUserPrefsStorage
 }
 
-package "AddressBook Storage" #F4F6F6{
+package "AddressBook Storage" #F4F6F6 {
 Class JsonAddressBookStorage
 Class JsonSerializableAddressBook
 Class JsonAdaptedPerson {
   name : String
   phone : String
+  selectionStatus : String [0..1]
+  rating : String [0..1]
+  tags : String [*]
+  remark : String [0..1]
+  injuryStatus : String [0..1]
   jerseyNumber : String [0..1]
 }
 }
@@ -36,10 +41,12 @@ JsonAddressBookStorage ..> JsonSerializableAddressBook
 JsonSerializableAddressBook --> "*" JsonAdaptedPerson
 
 show JsonAdaptedPerson fields
+hide HiddenOutside
 
 note right of JsonAdaptedPerson
-  jerseyNumber is left out of the
-  file when the player has none
+  A field that is missing from the file
+  takes its default (e.g. PENDING, unrated,
+  fit), so older data files still load.
 end note
 
 @enduml

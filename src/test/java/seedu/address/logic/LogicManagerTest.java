@@ -86,7 +86,7 @@ public class LogicManagerTest {
         assertEquals(List.of("Bob"), model.getFilteredPersonList().stream().map(p -> p.getName().fullName).toList());
 
         // Bob no longer has the filtered tag, so he drops out of the filtered list
-        logic.execute("edit 1 t/Captain");
+        logic.execute("tag 1 t/Captain");
         assertEquals(0, model.getFilteredPersonList().size());
         assertEquals(Set.of(new Tag("Captain")), model.getAddressBook().getPersonList().getLast().getTags());
         logic.execute("filter t/Striker");
@@ -97,7 +97,7 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_addAndEditTags_saveReplacePreserveAndClear() throws Exception {
+    public void execute_addAndTag_saveReplacePreserveAndClear() throws Exception {
         logic.execute("add n/Tagged Player p/123 t/Striker t/Trial Group 2 t/striker");
         Person expected = new PersonBuilder().withName("Tagged Player").withPhone("123")
                 .withTags("Striker", "Trial Group 2").build();
@@ -107,9 +107,9 @@ public class LogicManagerTest {
 
         logic.execute("edit 1 p/456");
         assertEquals(expected.getTags(), model.getFilteredPersonList().getFirst().getTags());
-        logic.execute("edit 1 t/Goalkeeper");
+        logic.execute("tag 1 t/Goalkeeper");
         assertEquals(Set.of(new Tag("Goalkeeper")), model.getFilteredPersonList().getFirst().getTags());
-        logic.execute("edit 1 t/");
+        logic.execute("tag 1 t/");
         assertTrue(model.getFilteredPersonList().getFirst().getTags().isEmpty());
         assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
     }
@@ -119,18 +119,18 @@ public class LogicManagerTest {
         logic.execute("add n/Tagged Player p/123 t/Striker");
         AddressBook original = new AddressBook(model.getAddressBook());
         logic = createLogicWithFailingSave();
-        for (String command : List.of("add n/Other p/456 t/", "edit 1 t/ t/Striker", "edit 1 t/Striker t/",
-                "edit 1 t/ t/")) {
+        for (String command : List.of("add n/Other p/456 t/", "tag 1 t/ t/Striker", "tag 1 t/Striker t/",
+                "tag 1 t/ t/")) {
             assertThrows(ParseException.class, Tag.MESSAGE_EMPTY, () -> logic.execute(command));
             assertEquals(original, model.getAddressBook());
         }
         assertThrows(ParseException.class, String.format(Tag.MESSAGE_BAD_CHARACTER, "Bad!", "!"), () ->
-                logic.execute("edit 1 t/Bad!"));
+                logic.execute("tag 1 t/Bad!"));
         assertEquals(original, model.getAddressBook());
         assertThrows(CommandException.class,
                 AddCommand.MESSAGE_DUPLICATE_PERSON, () -> logic.execute("add n/Tagged Player p/999 t/Goalkeeper"));
         assertThrows(CommandException.class,
-                MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () -> logic.execute("edit 2 t/Striker"));
+                MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () -> logic.execute("tag 2 t/Striker"));
     }
 
     @BeforeEach
@@ -210,10 +210,10 @@ public class LogicManagerTest {
         logic.execute("edit 1 n/Tag Captain p/456");
         assertEquals(expected.withName("Tag Captain").withPhone("456").build(),
                 saved.readAddressBook().orElseThrow().getPersonList().getFirst());
-        logic.execute("edit 1 t/Captain");
+        logic.execute("tag 1 t/Captain");
         assertEquals(expected.withTags("Captain").build(),
                 saved.readAddressBook().orElseThrow().getPersonList().getFirst());
-        logic.execute("edit 1 t/");
+        logic.execute("tag 1 t/");
         assertEquals(expected.withTags().build(),
                 saved.readAddressBook().orElseThrow().getPersonList().getFirst());
         assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());

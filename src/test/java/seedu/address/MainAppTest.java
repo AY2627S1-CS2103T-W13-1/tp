@@ -17,7 +17,10 @@ import javafx.scene.control.TextArea;
 import javafx.stage.Stage;
 import seedu.address.logic.Messages;
 import seedu.address.model.AddressBook;
+import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
+import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonUserPrefsStorage;
 
 public class MainAppTest {
     @TempDir
@@ -77,6 +80,44 @@ public class MainAppTest {
         assertEquals(new AddressBook(), app.model.getAddressBook());
         assertEquals(Messages.MESSAGE_DATA_FILE_UNREADABLE, startAndGetResultDisplayText());
         assertArrayEquals(invalidData, Files.readAllBytes(dataFile));
+    }
+
+    @Test
+    public void initAndStart_nullDataDocument_showsWarningAndKeepsFile() throws Exception {
+        Files.createDirectories(dataFile.getParent());
+        byte[] invalidData = "null".getBytes();
+        Files.write(dataFile, invalidData);
+
+        app.init();
+
+        assertEquals(new AddressBook(), app.model.getAddressBook());
+        assertEquals(Messages.MESSAGE_DATA_FILE_UNREADABLE, startAndGetResultDisplayText());
+        assertArrayEquals(invalidData, Files.readAllBytes(dataFile));
+    }
+
+    @Test
+    public void initAndStart_nullPreferencesDocument_usesDefaultsAndKeepsTeam() throws Exception {
+        assertRecoversInvalidPreferences("null");
+    }
+
+    @Test
+    public void initAndStart_nullGuiSettings_usesDefaultsAndKeepsTeam() throws Exception {
+        assertRecoversInvalidPreferences("{\"guiSettings\":null}");
+    }
+
+    /** Verifies invalid preferences are replaced without losing valid player data. */
+    private void assertRecoversInvalidPreferences(String invalidPreferences) throws Exception {
+        new JsonAddressBookStorage(dataFile).saveAddressBook(SampleDataUtil.getSampleAddressBook());
+        byte[] savedTeam = Files.readAllBytes(dataFile);
+        Files.writeString(prefsFile, invalidPreferences);
+
+        app.init();
+
+        assertEquals(new UserPrefs(), app.model.getUserPrefs());
+        assertEquals(SampleDataUtil.getSampleAddressBook(), app.model.getAddressBook());
+        assertEquals("", startAndGetResultDisplayText());
+        assertArrayEquals(savedTeam, Files.readAllBytes(dataFile));
+        assertEquals(new UserPrefs(), new JsonUserPrefsStorage(prefsFile).readUserPrefs().orElseThrow());
     }
 
     @Test
