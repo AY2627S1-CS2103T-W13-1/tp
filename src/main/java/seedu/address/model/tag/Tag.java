@@ -3,7 +3,6 @@ package seedu.address.model.tag;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
-import java.util.Locale;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -47,6 +46,9 @@ public class Tag {
 
     private final String name;
 
+    /** The label with capitalisation removed, used so that equality and hashing always agree. */
+    private final String caseFoldedName;
+
     /**
      * Creates a validated tag, trimming and collapsing whitespace while preserving capitalization.
      *
@@ -58,6 +60,7 @@ public class Tag {
         String normalizedName = normalize(name);
         checkArgument(isValidTagName(normalizedName), MESSAGE_CONSTRAINTS);
         this.name = normalizedName;
+        this.caseFoldedName = caseFold(normalizedName);
     }
 
     /**
@@ -84,10 +87,12 @@ public class Tag {
         if (normalizedName.isEmpty()) {
             return Optional.of(MESSAGE_EMPTY);
         }
-        if (normalizedName.length() > MAX_LENGTH) {
-            return Optional.of(String.format(MESSAGE_TOO_LONG, normalizedName, normalizedName.length()));
+        // Count characters as the coach sees them, so a letter outside the Basic Multilingual Plane counts once
+        int length = normalizedName.codePointCount(0, normalizedName.length());
+        if (length > MAX_LENGTH) {
+            return Optional.of(String.format(MESSAGE_TOO_LONG, normalizedName, length));
         }
-        if (!normalizedName.substring(0, 1).matches(FIRST_CHARACTER_REGEX)) {
+        if (!Character.toString(normalizedName.codePointAt(0)).matches(FIRST_CHARACTER_REGEX)) {
             return Optional.of(String.format(MESSAGE_BAD_START, normalizedName));
         }
         Matcher prefixLikeText = PREFIX_LIKE_PATTERN.matcher(normalizedName);
@@ -105,6 +110,19 @@ public class Tag {
     }
 
     /**
+     * Returns {@code name} with each character mapped to its upper case and then its lower case, as
+     * {@link String#equalsIgnoreCase} compares characters. Mapping each character on its own, instead of
+     * lower-casing the whole string, keeps e.g. {@code İleri} and {@code ileri} the same, so equal tags
+     * always have equal hash codes.
+     */
+    private static String caseFold(String name) {
+        return name.codePoints()
+                .map(codePoint -> Character.toLowerCase(Character.toUpperCase(codePoint)))
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+    }
+
+    /**
      * Returns a label with surrounding whitespace removed and internal whitespace collapsed.
      */
     private static String normalize(String name) {
@@ -119,12 +137,12 @@ public class Tag {
         if (!(other instanceof Tag otherTag)) {
             return false;
         }
-        return name.equalsIgnoreCase(otherTag.name);
+        return caseFoldedName.equals(otherTag.caseFoldedName);
     }
 
     @Override
     public int hashCode() {
-        return name.toLowerCase(Locale.ROOT).hashCode();
+        return caseFoldedName.hashCode();
     }
 
     @Override

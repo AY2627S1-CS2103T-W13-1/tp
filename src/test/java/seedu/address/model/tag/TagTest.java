@@ -7,6 +7,7 @@ import static seedu.address.testutil.Assert.assertThrows;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
@@ -33,6 +34,26 @@ public class TagTest {
             assertFalse(Tag.isValidTagName(label));
             assertThrows(IllegalArgumentException.class, Tag.MESSAGE_CONSTRAINTS, () -> new Tag(label));
         }
+    }
+
+    @Test
+    public void equals_unicodeCaseVariants_equalWithEqualHashCodes() {
+        // String#toLowerCase would turn İ into "i" plus a combining dot, which made these hash differently
+        Tag dotted = new Tag("İleri");
+        Tag plain = new Tag("ileri");
+        assertEquals(dotted, plain);
+        assertEquals(dotted.hashCode(), plain.hashCode());
+        assertEquals(1, Set.of(dotted).stream().filter(Set.of(plain)::contains).count());
+        assertEquals("İleri", dotted.toString());
+    }
+
+    @Test
+    public void isValidTagName_supplementaryLetters_countedAsOneCharacter() {
+        // 𠀀 is a letter outside the Basic Multilingual Plane, stored as two UTF-16 units
+        assertTrue(Tag.isValidTagName("𠀀 Team"));
+        assertTrue(Tag.isValidTagName("A𠀀 Team"));
+        assertTrue(Tag.isValidTagName("𠀀".repeat(Tag.MAX_LENGTH)));
+        assertFalse(Tag.isValidTagName("𠀀".repeat(Tag.MAX_LENGTH + 1)));
     }
 
     @Test

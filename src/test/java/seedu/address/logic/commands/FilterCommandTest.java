@@ -74,6 +74,14 @@ public class FilterCommandTest {
     }
 
     @Test
+    public void execute_unicodeCaseVariant_matchesTag() {
+        Person forward = new PersonBuilder().withName("Dee").withTags("İleri").build();
+        model.addPerson(forward);
+        commandFor("ileri").execute(model);
+        assertEquals(List.of(forward), model.getFilteredPersonList());
+    }
+
+    @Test
     public void constructorAndExecute_nullsRejected() {
         assertThrows(NullPointerException.class, () -> new FilterCommand(null));
         assertThrows(NullPointerException.class, () -> commandFor("Striker").execute(null));
