@@ -1,0 +1,24 @@
+@startuml
+skin rose
+skinparam ActivityFontSize 15
+skinparam ArrowFontSize 12
+start
+:LogicManager parses and
+executes the command;
+note right: A rejected command throws an\nexception here, so nothing is saved
+if () then ([read-only command type])
+  :Return the result;
+  note right: list, find, filter, sort,\nsquad, help, exit
+else ([any other command type])
+  :Save the whole team
+  through Storage;
+  if () then ([save succeeds])
+    :Return the result;
+  else ([IOException])
+    :Throw a CommandException with
+    the save-failure message;
+    note right: The change stays in the Model,\nbut the file may be unchanged,\nempty or partially written
+  endif
+endif
+stop
+@enduml
