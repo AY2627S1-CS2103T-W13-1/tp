@@ -6,10 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.model.ModelManager;
 import seedu.address.model.person.InjuryStatus;
@@ -31,14 +33,42 @@ public class TagCommandTest {
         TagCommand command = new TagCommand(Index.fromOneBased(1), requested);
         requested.clear();
 
-        command.execute(model);
+        CommandResult result = command.execute(model);
+        assertEquals(String.format(TagCommand.MESSAGE_SUCCESS, original.getName(), "Captain"),
+                result.getFeedbackToUser());
 
         assertEquals(new PersonBuilder(original).withTags("Captain").build(),
                 model.getFilteredPersonList().getFirst());
         model.updateFilteredPersonList(new TagsContainAnyPredicate(Set.of(new Tag("Captain"))));
-        new TagCommand(Index.fromOneBased(1), Set.of()).execute(model);
+        CommandResult cleared = new TagCommand(Index.fromOneBased(1), Set.of()).execute(model);
+        assertEquals(String.format(TagCommand.MESSAGE_CLEARED, original.getName()), cleared.getFeedbackToUser());
         assertEquals(0, model.getFilteredPersonList().size());
         assertEquals(new PersonBuilder(original).withTags().build(), model.getAddressBook().getPersonList().getFirst());
+    }
+
+    @Test
+    public void execute_sameTagsThenCaseChange_reportsNoChangeThenUpdatedSpelling() throws Exception {
+        ModelManager model = new ModelManager();
+        Person original = new PersonBuilder().withTags("Captain", "Striker").build();
+        model.addPerson(original);
+        CommandResult unchanged = new TagCommand(Index.fromOneBased(1), original.getTags()).execute(model);
+        assertEquals(String.format(EditCommand.MESSAGE_NO_CHANGE, original.getName()), unchanged.getFeedbackToUser());
+
+        CommandResult changed = new TagCommand(Index.fromOneBased(1),
+                Set.of(new Tag("striker"), new Tag("captain"))).execute(model);
+        assertEquals(String.format(TagCommand.MESSAGE_SUCCESS, original.getName(), "captain, striker"),
+                changed.getFeedbackToUser());
+        assertEquals(Set.of("captain", "striker"), model.getFilteredPersonList().getFirst().getTags().stream()
+                .map(Tag::toString).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void toString_showsDelegatedIndexAndTags() {
+        EditPersonDescriptor descriptor = new EditPersonDescriptor();
+        descriptor.setTags(Set.of(new Tag("Captain")));
+        TagCommand command = new TagCommand(Index.fromOneBased(1), descriptor.getTags().orElseThrow());
+        assertEquals(TagCommand.class.getCanonicalName() + "{editCommand="
+                + new EditCommand(Index.fromOneBased(1), descriptor) + "}", command.toString());
     }
 
     @Test

@@ -1013,8 +1013,8 @@ Use a disposable data folder. Start with `add n/Tag Tester p/123 t/Striker t/Tri
 | --- | --- |
 | Inspect the new card and result box. | Both tags appear, alphabetically, without hiding name or phone. |
 | `edit 1 p/456` | Tags remain. |
-| `tag 1 t/Captain t/captain` | Previous tags are replaced by one Captain tag. |
-| `tag 1 t/` | Tags are cleared; name and phone remain. |
+| `tag 1 t/Captain t/captain` | Previous tags are replaced by one Captain tag; feedback says `Updated tags for Tag Tester: Captain`. |
+| `tag 1 t/` | Tags are cleared; name and phone remain. Feedback names the player and says `tags cleared`. |
 | `tag 1 t/` again | Successful idempotent clearing. |
 | `edit 1 p/789 t/Captain` | Guidance to use `tag`; neither the phone nor tags change, and the file remains unchanged. |
 | `tag 1 t/` followed by `tag 1 t/Trial   Group 2` | One tag, Trial Group 2, with collapsed whitespace. |

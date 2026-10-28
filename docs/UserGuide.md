@@ -109,7 +109,9 @@ Examples:
 * `add p/+6598765432 n/Nur'ain Binte Hassan`
 * `add n/Muthu s/o Ramasamy p/8123 4567`
 
-### Categorising players with tags (US08)
+<a id="categorising-players-with-tags-us08"></a>
+
+### Tagging a player: `tag` (US08)
 
 Use `tag` to replace or clear an existing player's tags.
 
@@ -145,7 +147,8 @@ longer match the current tag filter, the player disappears from that view. Use `
 
 Existing `edit INDEX t/...` commands are rejected with guidance to use `tag`; even a mixed
 name/phone/jersey-and-tag edit changes nothing. Use separate `edit` and `tag` commands.
-Successful updates report the edited player's details, or say no changes were made.
+Successful updates name the player and their new tags, e.g. `Updated tags for Amy Tan: Captain, Goalkeeper`.
+Clearing reports `Amy Tan: tags cleared.` Repeating the same tags reports that no changes were made.
 
 Changing tags, names, or phone numbers keeps the player's selection status and rating.
 The `keep`, `cut`, `pending`, and `rate` commands keep existing tags. `squad` displays

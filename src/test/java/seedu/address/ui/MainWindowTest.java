@@ -130,7 +130,7 @@ public class MainWindowTest {
             assertHelpSummaryShown();
             enterCommand("tag 1 t/" + "A".repeat(Tag.MAX_LENGTH));
             assertPlayerPanelShown();
-            assertTrue(resultDisplay.getText().contains("Tags: " + "A".repeat(Tag.MAX_LENGTH)));
+            assertEquals("Updated tags for Tag Trialist: " + "A".repeat(Tag.MAX_LENGTH), resultDisplay.getText());
             AddressBook originalData = new AddressBook(model.getAddressBook());
             String tooLong = "A".repeat(Tag.MAX_LENGTH + 1);
             Map<String, String> expectedErrors = Map.of(
@@ -146,6 +146,7 @@ public class MainWindowTest {
             }
             enterCommand("find Trialist");
             enterCommand("tag 1 t/");
+            assertEquals("Tag Trialist: tags cleared.", resultDisplay.getText());
             assertPlayerPanelShown();
             // Tag updates keep the search, so only the updated player is still shown
             assertEquals(1, model.getFilteredPersonList().size());
