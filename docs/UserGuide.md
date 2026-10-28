@@ -443,10 +443,6 @@ Fixing the problem does not save the change by itself, and `exit` does not save 
 
 ### Editing the data file
 
-A file containing only `null` is invalid team data and follows the recovery below.
-Invalid application preferences, including `null` window settings in `preferences.json`,
-are replaced with defaults at startup. This resets window preferences without changing your team.
-
 CouchCoach data is saved automatically as a JSON file `[working directory]/data/addressbook.json`.
 The working directory is the terminal's current folder when you launch the app; it can differ from the folder containing the JAR.
 For example, if your terminal is in `/teams/trials` and you run `java -jar /apps/couchcoach.jar`, the team file is `/teams/trials/data/addressbook.json`.
@@ -457,9 +453,16 @@ Advanced users are welcome to update data directly by editing that data file.
 
 **Caution:**
 If your changes make the data file invalid, CouchCoach starts with an empty team at the next run and shows a warning in the result box. The invalid file stays on disk until your next change (`add`, `edit`, `rate`, `remark`, `injury`, `delete`, `keep`, `cut`, `pending` or `clear`), which replaces it, so back up the file before editing it.<br>
+A file containing only `null` also counts as invalid.<br>
 A file containing two players with the same name, ignoring capitalisation and repeated spaces, also counts as invalid.<br>
 Furthermore, certain edits can cause CouchCoach to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </box>
+
+### Application preferences
+
+Window settings are saved in `[working directory]/preferences.json`.
+Invalid preferences, including a file containing only `null` or `null` window settings,
+are replaced with defaults at startup. Your team data remains unchanged.
 
 --------------------------------------------------------------------------------------------------------------------
 
