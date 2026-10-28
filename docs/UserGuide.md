@@ -417,7 +417,11 @@ Fixing the problem does not save the change by itself, and `exit` does not save 
 
 ### Editing the data file
 
-CouchCoach data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+CouchCoach data is saved automatically as a JSON file `[working directory]/data/addressbook.json`.
+The working directory is the terminal's current folder when you launch the app; it can differ from the folder containing the JAR.
+For example, if your terminal is in `/teams/trials` and you run `java -jar /apps/couchcoach.jar`, the team file is `/teams/trials/data/addressbook.json`.
+Launch from the same working directory each time to load the same team. The status bar shows the data file path.
+Advanced users are welcome to update data directly by editing that data file.
 
 <box type="warning" seamless>
 
