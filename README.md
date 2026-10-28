@@ -12,7 +12,7 @@ for fast keyboard use with a graphical list of player records.
 The current version lets you:
 
 - Add players with a name, phone number, optional jersey number, and tags.
-- Replace or clear custom tags, such as positions or trial groups.
+- Add or clear custom tags, such as positions or trial groups.
 - List players, find them by name, or filter by tags and injury status.
 - Edit or delete a player using their number in the displayed list.
 - Rate players, sort ratings across the current view, full team or kept squad,

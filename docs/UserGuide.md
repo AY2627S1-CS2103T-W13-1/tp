@@ -449,7 +449,7 @@ For example, if Amy and Bob both have the `Striker` tag and ratings of 2 and 9 r
 `sort rating` followed by `filter t/Striker` shows Bob first and Amy second. `list` clears
 that sort and restores the full team in insertion order.
 
-Before running `list` in that example, `tag 1 t/Goalkeeper` updates Bob and removes him from the Striker results, because the filter remains active. Amy becomes the first displayed match. Recheck indices after an update.
+Before running `list` in that example, `tag 1 t/Goalkeeper` adds Goalkeeper to Bob. He keeps Striker, so he stays first in the Striker results. `tag 1 t/` instead clears his tags and removes him from the results, because the filter remains active, and Amy becomes the first displayed match. Recheck indices after an update.
 
 Use the lowercase command word `filter`; `Filter` is unrecognized. `filter` without
 parameters displays the format error and syntax example. `filter t/` is rejected
