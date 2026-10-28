@@ -86,6 +86,28 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_keywordMatchesPartOfPunctuatedWord_returnsTrue() {
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Ming"))
+                .test(new PersonBuilder().withName("Tan Wei-Ming").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("wei-ming"))
+                .test(new PersonBuilder().withName("Tan Wei-Ming").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("neil"))
+                .test(new PersonBuilder().withName("Shaun O'Neil").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Jr"))
+                .test(new PersonBuilder().withName("Lim Jr.").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Captain"))
+                .test(new PersonBuilder().withName("Ali (Captain)").build()));
+    }
+
+    @Test
+    public void test_partialPartOfPunctuatedWord_returnsFalse() {
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Min"))
+                .test(new PersonBuilder().withName("Tan Wei-Ming").build()));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Wei-Min"))
+                .test(new PersonBuilder().withName("Tan Wei-Ming").build()));
+    }
+
+    @Test
     public void test_keywordOrder_doesNotAffectMatching() {
         Person player = new PersonBuilder().withName("Tan Wei Ming").build();
         assertTrue(new NameContainsKeywordsPredicate(List.of("ming", "tan")).test(player));

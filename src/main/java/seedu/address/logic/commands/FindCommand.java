@@ -7,7 +7,8 @@ import seedu.address.model.Model;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 
 /**
- * Finds and lists players whose names match any keyword as a whole word, ignoring case.
+ * Finds and lists players whose names match any keyword as a whole word, or as a part of a word between
+ * punctuation, ignoring case.
  */
 public class FindCommand extends Command {
 
