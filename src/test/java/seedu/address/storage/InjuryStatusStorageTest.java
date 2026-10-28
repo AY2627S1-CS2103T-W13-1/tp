@@ -62,9 +62,8 @@ public class InjuryStatusStorageTest {
         Person remarked = new PersonBuilder(original).withRemark("Strong left foot").build();
         Person injured = new PersonBuilder(remarked).withInjuryStatus(InjuryStatus.INJURED).build();
         Person replaced = new PersonBuilder(injured).withRemark("Improved passing").build();
-        Person tagged = new PersonBuilder(replaced).withTags("Goalkeeper").build();
-        Person edited = new PersonBuilder(tagged).withName("Updated Player").withPhone("98765432")
-                .withTags("Goalkeeper").build();
+        Person tagged = new PersonBuilder(replaced).withTags("Captain", "Goalkeeper", "Striker").build();
+        Person edited = new PersonBuilder(tagged).withName("Updated Player").withPhone("98765432").build();
         Person fit = new PersonBuilder(edited).withInjuryStatus(InjuryStatus.FIT).build();
         Person injuredAgain = new PersonBuilder(fit).withInjuryStatus(InjuryStatus.INJURED).build();
         Person cleared = new PersonBuilder(injuredAgain).withRemark("").build();

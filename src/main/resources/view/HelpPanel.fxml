@@ -43,7 +43,7 @@
         <Label fx:id="tagSyntax" text="tag INDEX t/TAG&#10;[t/TAG]..."
                GridPane.columnIndex="0" GridPane.rowIndex="2" GridPane.valignment="TOP" />
         <Label fx:id="tagDescription"
-               text="Replace tags; a single empty t/ clears them&#10;e.g. tag 1 t/Striker t/Captain"
+               text="Add tags; a single empty t/ clears all tags&#10;e.g. tag 1 t/Striker t/Captain"
                wrapText="true" minWidth="0"
                GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.valignment="TOP" />
         <Label fx:id="deleteSyntax" text="delete INDEX"

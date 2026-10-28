@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,10 +86,10 @@ public class LogicManagerTest {
         logic.execute("edit 1 p/4567");
         assertEquals(List.of("Bob"), model.getFilteredPersonList().stream().map(p -> p.getName().fullName).toList());
 
-        // Bob no longer has the filtered tag, so he drops out of the filtered list
         logic.execute("tag 1 t/Captain");
-        assertEquals(0, model.getFilteredPersonList().size());
-        assertEquals(Set.of(new Tag("Captain")), model.getAddressBook().getPersonList().getLast().getTags());
+        assertEquals(List.of("Bob"), model.getFilteredPersonList().stream().map(p -> p.getName().fullName).toList());
+        assertEquals(Set.of(new Tag("Captain"), new Tag("Goalkeeper")),
+                model.getAddressBook().getPersonList().getLast().getTags());
         logic.execute("filter t/Striker");
         logic.execute("add n/Charlie p/789 t/Captain");
         assertEquals(3, model.getFilteredPersonList().size());
@@ -97,7 +98,7 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_addAndTag_saveReplacePreserveAndClear() throws Exception {
+    public void execute_addAndTag_saveAppendPreserveAndClear() throws Exception {
         logic.execute("add n/Tagged Player p/123 t/Striker t/Trial Group 2 t/striker");
         Person expected = new PersonBuilder().withName("Tagged Player").withPhone("123")
                 .withTags("Striker", "Trial Group 2").build();
@@ -108,9 +109,36 @@ public class LogicManagerTest {
         logic.execute("edit 1 p/456");
         assertEquals(expected.getTags(), model.getFilteredPersonList().getFirst().getTags());
         logic.execute("tag 1 t/Goalkeeper");
-        assertEquals(Set.of(new Tag("Goalkeeper")), model.getFilteredPersonList().getFirst().getTags());
+        assertEquals(Set.of(new Tag("Goalkeeper"), new Tag("Striker"), new Tag("Trial Group 2")),
+                model.getFilteredPersonList().getFirst().getTags());
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
         logic.execute("tag 1 t/");
         assertTrue(model.getFilteredPersonList().getFirst().getTags().isEmpty());
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_tagSortedFilteredPlayer_appendsToDisplayedTargetAndRetainsView() throws Exception {
+        logic.execute("add n/Amy p/111 t/Captain");
+        logic.execute("add n/Bob p/222 t/Goalkeeper");
+        logic.execute("add n/Charlie p/333 t/Captain");
+        logic.execute("rate 1 2");
+        logic.execute("rate 3 9");
+        logic.execute("sort rating");
+        logic.execute("filter t/Captain");
+
+        logic.execute("tag 1 t/Goalkeeper t/captain");
+
+        assertEquals(List.of("Charlie", "Amy"),
+                model.getFilteredPersonList().stream().map(p -> p.getName().fullName).toList());
+        assertEquals(Set.of("Captain", "Goalkeeper"), model.getFilteredPersonList().getFirst().getTags().stream()
+                .map(Tag::toString).collect(Collectors.toSet()));
+        assertEquals(Set.of(new Tag("Captain")), model.getAddressBook().getPersonList().getFirst().getTags());
+        JsonAddressBookStorage saved = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
+
+        logic.execute("tag 1 t/");
+        assertEquals(List.of("Amy"), model.getFilteredPersonList().stream().map(p -> p.getName().fullName).toList());
         assertEquals(model.getAddressBook(), saved.readAddressBook().orElseThrow());
     }
 
@@ -211,7 +239,7 @@ public class LogicManagerTest {
         assertEquals(expected.withName("Tag Captain").withPhone("456").build(),
                 saved.readAddressBook().orElseThrow().getPersonList().getFirst());
         logic.execute("tag 1 t/Captain");
-        assertEquals(expected.withTags("Captain").build(),
+        assertEquals(expected.withTags("Captain", "Striker").build(),
                 saved.readAddressBook().orElseThrow().getPersonList().getFirst());
         logic.execute("tag 1 t/");
         assertEquals(expected.withTags().build(),

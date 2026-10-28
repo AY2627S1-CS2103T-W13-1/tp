@@ -15,6 +15,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -76,7 +77,7 @@ public class MainWindowTest {
             Person player = model.getFilteredPersonList().getFirst();
             assertEquals("456", player.getPhone().value);
             assertEquals("Trial note", player.getRemark().value);
-            assertEquals(List.of(new Tag("Captain")), List.copyOf(player.getTags()));
+            assertEquals(Set.of(new Tag("Captain"), new Tag("Trial")), player.getTags());
             assertEquals(new JerseyNumber("7"), player.getJerseyNumber().orElseThrow());
             assertEquals("injured", player.getInjuryStatus().toString());
             assertEquals("", commandField.getText());
@@ -217,7 +218,15 @@ public class MainWindowTest {
             assertHelpSummaryShown();
             enterCommand("tag 1 t/" + "A".repeat(Tag.MAX_LENGTH));
             assertPlayerPanelShown();
-            assertEquals("Updated tags for Tag Trialist: " + "A".repeat(Tag.MAX_LENGTH), resultDisplay.getText());
+            assertEquals("Updated tags for Tag Trialist: " + "A".repeat(Tag.MAX_LENGTH) + ", Striker, Trial Group 2",
+                    resultDisplay.getText());
+            enterCommand("filter t/Striker");
+            enterCommand("tag 1 t/Captain t/striker");
+            assertEquals("Updated tags for Tag Trialist: " + "A".repeat(Tag.MAX_LENGTH)
+                    + ", Captain, Striker, Trial Group 2", resultDisplay.getText());
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand("tag 1 t/captain");
+            assertEquals("No changes made: Tag Trialist already has these details.", resultDisplay.getText());
             AddressBook originalData = new AddressBook(model.getAddressBook());
             String tooLong = "A".repeat(Tag.MAX_LENGTH + 1);
             Map<String, String> expectedErrors = Map.of(
