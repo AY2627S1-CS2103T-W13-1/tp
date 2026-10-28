@@ -1,7 +1,6 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.SetStatusCommand;
@@ -30,12 +29,7 @@ public class SetStatusCommandParser implements Parser<SetStatusCommand> {
      * @throws ParseException if the user input is not a single valid index.
      */
     public SetStatusCommand parse(String args) throws ParseException {
-        try {
-            Index index = ParserUtil.parseIndex(args);
-            return new SetStatusCommand(index, newStatus);
-        } catch (ParseException pe) {
-            throw new ParseException(
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, SetStatusCommand.getUsage(newStatus)), pe);
-        }
+        Index index = ParserUtil.parseIndex(args, SetStatusCommand.getUsage(newStatus));
+        return new SetStatusCommand(index, newStatus);
     }
 }

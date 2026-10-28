@@ -16,12 +16,7 @@ public class InjuryCommandParser implements Parser<InjuryCommand> {
     public InjuryCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(args, PREFIX_INJURY);
-        Index index;
-        try {
-            index = ParserUtil.parseIndex(argMultimap.getPreamble());
-        } catch (ParseException e) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, InjuryCommand.MESSAGE_USAGE), e);
-        }
+        Index index = ParserUtil.parseIndex(argMultimap.getPreamble(), InjuryCommand.MESSAGE_USAGE);
         if (argMultimap.getValue(PREFIX_INJURY).isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, InjuryCommand.MESSAGE_USAGE));
         }
