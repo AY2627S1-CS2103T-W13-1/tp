@@ -134,9 +134,10 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
-    public void test_punctuationOnlyKeyword_returnsFalse() {
-        assertFalse(new NameContainsKeywordsPredicate(List.of("()"))
-                .test(new PersonBuilder().withName("Shaun (O'Neil)").build()));
+    public void test_punctuationOnlyKeyword_matchesOnlyExactWord() {
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("()"));
+        assertFalse(predicate.test(new PersonBuilder().withName("Shaun (O'Neil)").build()));
+        assertTrue(predicate.test(new PersonBuilder().withName("Ali () Tan").build()));
     }
 
     @Test
