@@ -193,6 +193,8 @@ player detection: the same name is still rejected even if tags differ.
 
 Tags are saved automatically and restored when you restart. Older data files without a `tags` field load with no tags. Changing tags keeps the current search, tag/injury filter, squad view and active rating sort. Adding labels keeps a player in their current tag filter. Clearing tags removes them from a tag-filtered view and renumbers the remaining players. Use `list` to see everyone in insertion order again.
 
+After a successful tag change in a `find`, `filter` or squad view, a new line shows the updated matching or squad count. For example, clearing the last matching player's tags shows `NAME: tags cleared.` followed by `0 players match the current command: filter t/Striker`. The player remains in the team but leaves the tag-filtered view. Adding tags also shows the current count; no-change feedback stays unchanged.
+
 Changing only tags preserves the player's name, phone, jersey number, rating, selection status, remark and injury status. Name, phone, jersey, rating, selection, remark and injury updates also preserve tags unless you explicitly add to or clear them with `tag`.
 
 For a player named Amy Tan with phone 91234567, no jersey number and no tags:
@@ -519,6 +521,7 @@ Format: `keep INDEX`, `cut INDEX` or `pending INDEX`
 * The list on screen stays as it is, so you can work through the results of a `find` or `filter`.
   While viewing your squad, though, a player you `cut` or mark `pending` leaves the squad, so they disappear
   from the list and the players below them move up one number.
+* After a successful decision change in a `find`, `filter` or squad view, a new line shows the updated matching or squad count. For example, `pending 1` in a squad of two ends with `1 player in your squad`; cutting the last kept player ends with `0 players in your squad`.
 * A decision does not change a player's rating, tags or position in a rating sort. Editing a player with `edit`
   does not change their decision.
 * The decision is saved straight away and restored when you reopen CouchCoach.

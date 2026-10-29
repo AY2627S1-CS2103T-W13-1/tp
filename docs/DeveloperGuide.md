@@ -1377,9 +1377,30 @@ the save warning follows the updated view summary, and `save` can retry storage.
 The model stores the selecting command alongside its filter. Find and filter
 parsers supply the command text; squad and explicitly squad-scoped sorting use
 `squad`. Updating a filter without a description clears it, as required by
-`list`, adding a player and all-scoped sorting. Edit and delete format feedback
+`list`, adding a player and all-scoped sorting. Edit, delete, tag and status commands format feedback
 after the observable list has refreshed, so a player leaving the view is not
 counted. The description is session state and is not written to the data file.
+
+For tag clearing and squad status changes, reset the disposable fixture with
+`clear`, `add n/Amy p/111 t/Trial`, `add n/Bob p/222 t/Trial`, `keep 1`, and `keep 2`.
+Run these rows in order:
+
+| Commands | Expected result |
+| --- | --- |
+| `filter t/Trial i/fit`, then `tag 1 t/` | `Amy: tags cleared.`, followed by `1 player matches the current command: filter t/Trial i/fit`. Only Bob remains visible. |
+| `tag 1 t/` | `Bob: tags cleared.`, followed by `0 players match the current command: filter t/Trial i/fit`. The panel is empty; both players remain in the team. |
+| `tag 1 t/` again | Invalid-index error; no player changes. |
+| `squad`, `sort rating`, then `pending 1` | `Marked Amy as pending.`, followed by `1 player in your squad`. Bob becomes the first displayed player. |
+| `cut 1` | `Marked Bob as cut.`, followed by `0 players in your squad`. Both records remain in the team. |
+| `pending 1` or `cut 1` again | Invalid-index error; no player changes. |
+
+Also check a squad with at least three kept players to verify plural counts.
+Repeat the tag clear and status change with blocked storage: each refreshed count
+must appear before the save warning. Restore storage, run `save`, and restart to
+verify that tags and decisions persist. Invalid syntax, invalid indices and
+already-set/no-change results keep their existing feedback. Successful tag
+additions and status changes in name or injury filters also append the current
+view summary, even when the number of displayed players is unchanged.
 
 ### Deleting a player
 
@@ -1586,7 +1607,7 @@ The displayed list must contain only Tag Tester as 1; Other Player remains in th
 | Inspect the card and feedback, then `edit 1 p/456`. | Both tags appear alphabetically without hiding name/phone; the phone changes and the tags remain. Other Player is unchanged. |
 | `tag 1 t/Captain t/captain` | Captain is added once, retaining the first spelling. Striker and Trial Group 2 remain; feedback lists Captain, Striker, Trial Group 2. The name search remains active. |
 | `tag 1 t/CAPTAIN` | No changes are made; Captain keeps its saved spelling, and Striker and Trial Group 2 remain. |
-| `tag 1 t/` | Tags disappear; feedback says `Tag Tester: tags cleared.` Other player fields remain. |
+| `tag 1 t/` | Tags disappear; feedback says `Tag Tester: tags cleared.`, then `1 player matches the current command: find Tag`. Other player fields remain. |
 | Repeat `tag 1 t/`. | `No changes made: Tag Tester already has these details.` The view and fields remain unchanged. A successful edit result still attempts a save. |
 | `tag 1 t/ Trial   Group 2` | One label, `Trial Group 2`, with collapsed whitespace and preserved capitalisation. |
 | `tag 1 t/Bad!` | Specific error naming `!`; tags and the previous view stay unchanged, and the file is not written. |

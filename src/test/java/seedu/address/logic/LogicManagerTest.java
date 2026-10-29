@@ -56,6 +56,70 @@ public class LogicManagerTest {
     private Logic logic;
 
     @Test
+    public void execute_clearTagsAfterFilter_reportsRemainingMatchesAndSavesChanges() throws Exception {
+        logic.execute("add n/Amy p/111 t/Trial");
+        logic.execute("add n/Bob p/222 t/Trial");
+        logic.execute("add n/Charlie p/333 t/Trial");
+        logic.execute("add n/Dana p/444");
+        logic.execute("filter t/Trial i/fit");
+        logic.execute("sort rating");
+        assertThrows(ParseException.class, () -> logic.execute("tag 1 t/ t/Trial"));
+        List<String> names = List.of("Amy", "Bob", "Charlie");
+        List<String> summaries = List.of("2 players match", "1 player matches", "0 players match");
+        for (int i = 0; i < names.size(); i++) {
+            assertEquals(names.get(i) + ": tags cleared.\n" + summaries.get(i)
+                    + " the current command: filter t/Trial i/fit",
+                    logic.execute("tag 1 t/").getFeedbackToUser());
+            assertEquals(2 - i, model.getFilteredPersonList().size());
+        }
+        assertThrows(CommandException.class, () -> logic.execute("tag 1 t/"));
+        assertEquals(4, model.getAddressBook().getPersonList().size());
+        assertTrue(model.getAddressBook().getPersonList().stream().allMatch(player -> player.getTags().isEmpty()));
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_pendingAndCutAfterSquad_reportsRemainingKeptPlayersAndSavesChanges() throws Exception {
+        logic.execute("add n/Amy p/111");
+        logic.execute("add n/Bob p/222");
+        logic.execute("add n/Charlie p/333");
+        logic.execute("add n/Dana p/444");
+        for (int i = 1; i <= 3; i++) {
+            logic.execute("keep " + i);
+        }
+        logic.execute("squad");
+        assertEquals("Amy is already marked as kept.", logic.execute("keep 1").getFeedbackToUser());
+        assertThrows(CommandException.class, () -> logic.execute("cut 4"));
+        assertEquals("Marked Amy as pending.\n2 players in your squad",
+                logic.execute("pending 1").getFeedbackToUser());
+        assertEquals("Marked Bob as cut.\n1 player in your squad", logic.execute("cut 1").getFeedbackToUser());
+        assertEquals("Marked Charlie as pending.\n0 players in your squad",
+                logic.execute("pending 1").getFeedbackToUser());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertThrows(CommandException.class, () -> logic.execute("pending 1"));
+        assertEquals(List.of(SelectionStatus.PENDING, SelectionStatus.CUT, SelectionStatus.PENDING,
+                SelectionStatus.PENDING), model.getAddressBook().getPersonList().stream()
+                .map(Person::getSelectionStatus).toList());
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_tagAndStatusWithFailedSave_reportsUpdatedCountsBeforeSaveWarning() throws Exception {
+        logic.execute("add n/Amy p/111 t/Trial");
+        logic.execute("keep 1");
+        logic.execute("filter t/Trial");
+        logic = createLogicWithFailingSave();
+        assertEquals("Amy: tags cleared.\n0 players match the current command: filter t/Trial\n"
+                + LogicManager.MESSAGE_SAVE_FAILURE, logic.execute("tag 1 t/").getFeedbackToUser());
+        logic.execute("squad");
+        assertEquals("Marked Amy as cut.\n0 players in your squad\n" + LogicManager.MESSAGE_SAVE_FAILURE,
+                logic.execute("cut 1").getFeedbackToUser());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+    }
+
+    @Test
     public void execute_editAndDeleteAfterFind_reportsUpdatedCountsAndRetainsCommand() throws Exception {
         logic.execute("add n/Amy One p/111");
         logic.execute("add n/Amy Two p/222");

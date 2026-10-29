@@ -60,7 +60,7 @@ public class TagCommand extends Command {
         String feedback = tagNames.isEmpty()
                 ? String.format(MESSAGE_CLEARED, player.getName())
                 : String.format(MESSAGE_SUCCESS, player.getName(), String.join(", ", tagNames));
-        return new CommandResult(feedback);
+        return new CommandResult(Messages.appendCurrentListSummary(feedback, model));
     }
 
     private Set<Tag> getUpdatedTags(Person player) {

@@ -84,7 +84,8 @@ public class SetStatusCommand extends Command {
         model.setPerson(playerToMark, markedPlayer);
         logger.info("Marked " + markedPlayer.getName() + " as " + describe(newStatus));
 
-        return new CommandResult(String.format(MESSAGE_SUCCESS, markedPlayer.getName(), describe(newStatus)));
+        String feedback = String.format(MESSAGE_SUCCESS, markedPlayer.getName(), describe(newStatus));
+        return new CommandResult(Messages.appendCurrentListSummary(feedback, model));
     }
 
     /**
