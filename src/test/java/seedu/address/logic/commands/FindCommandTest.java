@@ -30,7 +30,8 @@ public class FindCommandTest {
 
     @Test
     public void constructor_nullPredicate_throwsNullPointerException() {
-        assertThrows(NullPointerException.class, () -> new FindCommand(null));
+        assertThrows(NullPointerException.class, () -> new FindCommand(null, "find test"));
+        assertThrows(NullPointerException.class, () -> new FindCommand(preparePredicate("Alice"), null));
     }
 
     @Test
@@ -40,14 +41,14 @@ public class FindCommandTest {
         NameContainsKeywordsPredicate secondPredicate =
                 new NameContainsKeywordsPredicate(List.of("second"));
 
-        FindCommand findFirstCommand = new FindCommand(firstPredicate);
-        FindCommand findSecondCommand = new FindCommand(secondPredicate);
+        FindCommand findFirstCommand = new FindCommand(firstPredicate, "find first");
+        FindCommand findSecondCommand = new FindCommand(secondPredicate, "find second");
 
         // same object -> returns true
         assertTrue(findFirstCommand.equals(findFirstCommand));
 
         // same values -> returns true
-        FindCommand findFirstCommandCopy = new FindCommand(firstPredicate);
+        FindCommand findFirstCommandCopy = new FindCommand(firstPredicate, "find first");
         assertTrue(findFirstCommand.equals(findFirstCommandCopy));
 
         // different types -> returns false
@@ -62,9 +63,9 @@ public class FindCommandTest {
 
     @Test
     public void execute_nonMatchingKeyword_noPlayerFound() {
-        String expectedMessage = "0 players listed!";
+        String expectedMessage = "0 players match the current command: find Nobody";
         NameContainsKeywordsPredicate predicate = preparePredicate("Nobody");
-        FindCommand command = new FindCommand(predicate);
+        FindCommand command = new FindCommand(predicate, "find Nobody");
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
         assertEquals(List.of(), model.getFilteredPersonList());
@@ -72,9 +73,9 @@ public class FindCommandTest {
 
     @Test
     public void execute_multipleKeywords_multiplePersonsFound() {
-        String expectedMessage = "3 players listed!";
+        String expectedMessage = "3 players match the current command: find Kurz Elle Kunz";
         NameContainsKeywordsPredicate predicate = preparePredicate("Kurz Elle Kunz");
-        FindCommand command = new FindCommand(predicate);
+        FindCommand command = new FindCommand(predicate, "find Kurz Elle Kunz");
         expectedModel.updateFilteredPersonList(predicate);
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
         assertEquals(List.of(CARL, ELLE, FIONA), model.getFilteredPersonList());
@@ -84,7 +85,8 @@ public class FindCommandTest {
     public void execute_singleKeyword_onePlayerFound() {
         NameContainsKeywordsPredicate predicate = preparePredicate("alice");
         expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(new FindCommand(predicate), model, "1 player listed!", expectedModel);
+        assertCommandSuccess(new FindCommand(predicate, "find alice"), model,
+                "1 player matches the current command: find alice", expectedModel);
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
     }
 
@@ -92,16 +94,18 @@ public class FindCommandTest {
     public void execute_repeatedAndOverlappingKeywords_eachPlayerListedOnce() {
         NameContainsKeywordsPredicate predicate = preparePredicate("Alice Pauline Alice");
         expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(new FindCommand(predicate), model, "1 player listed!", expectedModel);
+        assertCommandSuccess(new FindCommand(predicate, "find Alice Pauline Alice"), model,
+                "1 player matches the current command: find Alice Pauline Alice", expectedModel);
         assertEquals(List.of(ALICE), model.getFilteredPersonList());
     }
 
     @Test
     public void execute_afterPreviousFind_searchesWholeTeam() {
-        new FindCommand(preparePredicate("alice")).execute(model);
+        new FindCommand(preparePredicate("alice"), "find alice").execute(model);
         NameContainsKeywordsPredicate predicate = preparePredicate("Kunz Kurz Elle");
         expectedModel.updateFilteredPersonList(predicate);
-        assertCommandSuccess(new FindCommand(predicate), model, "3 players listed!", expectedModel);
+        assertCommandSuccess(new FindCommand(predicate, "find Kunz Kurz Elle"), model,
+                "3 players match the current command: find Kunz Kurz Elle", expectedModel);
         assertEquals(List.of(CARL, ELLE, FIONA), model.getFilteredPersonList());
     }
 
@@ -109,20 +113,21 @@ public class FindCommandTest {
     public void execute_emptyTeam_noPlayerFound() {
         Model emptyModel = new ModelManager();
         NameContainsKeywordsPredicate predicate = preparePredicate("wei");
-        assertCommandSuccess(new FindCommand(predicate), emptyModel, "0 players listed!", new ModelManager());
+        assertCommandSuccess(new FindCommand(predicate, "find wei"), emptyModel,
+                "0 players match the current command: find wei", new ModelManager());
         assertEquals(List.of(), emptyModel.getFilteredPersonList());
     }
 
     @Test
     public void execute_listAfterFind_restoresWholeTeam() {
-        new FindCommand(preparePredicate("alice")).execute(model);
+        new FindCommand(preparePredicate("alice"), "find alice").execute(model);
         new ListCommand().execute(model);
         assertEquals(getTypicalAddressBook().getPersonList(), model.getFilteredPersonList());
     }
 
     @Test
     public void execute_deleteAfterFind_usesFilteredIndexAndRetainsFilter() throws Exception {
-        new FindCommand(preparePredicate("Kurz Elle Kunz")).execute(model);
+        new FindCommand(preparePredicate("Kurz Elle Kunz"), "find Kurz Elle Kunz").execute(model);
         new DeleteCommand(Index.fromOneBased(1)).execute(model);
         assertEquals(List.of(ELLE, FIONA), model.getFilteredPersonList());
         assertFalse(model.hasPerson(CARL));
@@ -135,7 +140,7 @@ public class FindCommandTest {
     @Test
     public void toStringMethod() {
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("keyword"));
-        FindCommand findCommand = new FindCommand(predicate);
+        FindCommand findCommand = new FindCommand(predicate, "find keyword");
         String expected = FindCommand.class.getCanonicalName() + "{predicate=" + predicate + "}";
         assertEquals(expected, findCommand.toString());
     }

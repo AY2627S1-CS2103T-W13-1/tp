@@ -1,6 +1,7 @@
 package seedu.address.model;
 
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import javafx.collections.ObservableList;
@@ -66,9 +67,27 @@ public interface Model {
 
     /**
      * Updates the filter of the filtered person list to filter by the given {@code predicate}.
+     * Clears the command description associated with the previous filter.
+     *
+     * @param predicate The filter to apply without a command description.
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Updates the filter and remembers the command describing the displayed players.
+     *
+     * @param predicate The filter to apply.
+     * @param commandText The find, filter or squad command selecting this view.
+     */
+    void updateFilteredPersonList(Predicate<Person> predicate, String commandText);
+
+    /**
+     * Returns the command selecting the current view, or empty for an undescribed view.
+     *
+     * @return The selecting command, if the current filter has a description.
+     */
+    Optional<String> getCurrentListCommand();
 
     /** Sets the displayed ordering; null restores insertion order without changing saved data. */
     void setPersonComparator(Comparator<Person> comparator);

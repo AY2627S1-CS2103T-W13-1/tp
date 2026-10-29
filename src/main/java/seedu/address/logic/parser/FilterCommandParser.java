@@ -47,6 +47,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
         if (hasInjuryStatus) {
             injuryStatus = Optional.of(ParserUtil.parseInjuryStatus(arguments.getValue(PREFIX_INJURY).get()));
         }
-        return new FilterCommand(tagPredicate, injuryStatus);
+        String commandText = FilterCommand.COMMAND_WORD + " " + args.replaceAll("[\\s\\p{Zs}]+", " ").trim();
+        return new FilterCommand(tagPredicate, injuryStatus, commandText);
     }
 }

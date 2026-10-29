@@ -98,8 +98,9 @@ public class EditCommand extends Command {
         if (!editedPerson.getName().equals(personToEdit.getName())) {
             warning += SimilarNameChecker.getWarning(model, editedPerson);
         }
-        return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
-                + describeRemovals(personToEdit, editedPerson) + warning);
+        String feedback = String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson))
+                + describeRemovals(personToEdit, editedPerson) + warning;
+        return new CommandResult(Messages.appendCurrentListSummary(feedback, model));
     }
 
     /**

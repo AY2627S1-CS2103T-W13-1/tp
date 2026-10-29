@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -26,6 +27,7 @@ public class ModelManager implements Model {
     private final FilteredList<Person> filteredPersons;
     private final SortedList<Person> sortedPersons;
     private final ObservableList<Person> displayedPersons;
+    private Optional<String> currentListCommand = Optional.empty();
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -115,6 +117,19 @@ public class ModelManager implements Model {
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
+        currentListCommand = Optional.empty();
+    }
+
+    @Override
+    public void updateFilteredPersonList(Predicate<Person> predicate, String commandText) {
+        requireAllNonNull(predicate, commandText);
+        updateFilteredPersonList(predicate);
+        currentListCommand = Optional.of(commandText);
+    }
+
+    @Override
+    public Optional<String> getCurrentListCommand() {
+        return currentListCommand;
     }
 
     @Override

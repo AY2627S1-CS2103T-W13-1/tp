@@ -25,7 +25,7 @@ public class SquadCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(IS_KEPT);
+        model.updateFilteredPersonList(IS_KEPT, COMMAND_WORD);
         int squadSize = model.getFilteredPersonList().size();
 
         if (squadSize == 0) {
