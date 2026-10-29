@@ -6,7 +6,6 @@ import static seedu.address.model.person.HasSelectionStatusPredicate.IS_KEPT;
 
 import java.util.Comparator;
 import java.util.Locale;
-import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
@@ -79,8 +78,11 @@ public class SortCommand extends Command {
         if (scope == Scope.CURRENT) {
             return;
         }
-        Predicate<Person> predicate = scope == Scope.ALL ? PREDICATE_SHOW_ALL_PERSONS : IS_KEPT;
-        model.updateFilteredPersonList(predicate);
+        if (scope == Scope.SQUAD) {
+            model.updateFilteredPersonList(IS_KEPT, SquadCommand.COMMAND_WORD);
+        } else {
+            model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        }
     }
 
     /** Returns an ordering with unrated players last in either direction. */

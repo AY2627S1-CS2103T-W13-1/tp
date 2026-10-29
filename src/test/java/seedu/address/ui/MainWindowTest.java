@@ -62,6 +62,85 @@ public class MainWindowTest {
     private StackPane playerArea;
 
     @Test
+    public void execute_clearTagsAfterFilter_displaysRemainingCountIncludingZero() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("clear");
+            enterCommand("add n/Amy p/111 t/Trial");
+            enterCommand("add n/Bob p/222 t/Trial");
+            enterCommand("filter t/Trial");
+            enterCommand("tag 1 t/");
+            assertEquals("Amy: tags cleared.\n1 player matches the current command: filter t/Trial",
+                    resultDisplay.getText());
+            assertEquals("Bob", model.getFilteredPersonList().getFirst().getName().fullName);
+            enterCommand("tag 1 t/");
+            assertEquals("Bob: tags cleared.\n0 players match the current command: filter t/Trial",
+                    resultDisplay.getText());
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            enterCommand("tag 1 t/");
+            assertEquals(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, resultDisplay.getText());
+            assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+    }
+
+    @Test
+    public void execute_pendingAndCutAfterSquad_displaysRemainingCountIncludingZero() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("clear");
+            enterCommand("add n/Amy p/111");
+            enterCommand("add n/Bob p/222");
+            enterCommand("keep 1");
+            enterCommand("keep 2");
+            enterCommand("squad");
+            enterCommand("pending 1");
+            assertEquals("Marked Amy as pending.\n1 player in your squad", resultDisplay.getText());
+            assertEquals("Bob", model.getFilteredPersonList().getFirst().getName().fullName);
+            enterCommand("cut 1");
+            assertEquals("Marked Bob as cut.\n0 players in your squad", resultDisplay.getText());
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertEquals(2, model.getAddressBook().getPersonList().size());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            enterCommand("cut 1");
+            assertEquals(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, resultDisplay.getText());
+        });
+    }
+
+    @Test
+    public void execute_editAndDeleteInSelectedViews_displaysRefreshedSummary() throws Exception {
+        runOnFxThread(() -> {
+            enterCommand("clear");
+            enterCommand("add n/Amy One p/111 t/Trial");
+            enterCommand("add n/Amy Two p/222 t/Trial");
+            enterCommand("find Amy");
+            assertEquals("2 players match the current command: find Amy", resultDisplay.getText());
+            enterCommand("edit 1 n/Bob");
+            assertEquals("Edited player: Bob; Phone: 111; Tags: Trial\n"
+                    + "1 player matches the current command: find Amy", resultDisplay.getText());
+            assertEquals(1, model.getFilteredPersonList().size());
+            enterCommand("delete 1");
+            assertEquals("Deleted player: Amy Two; Phone: 222; Tags: Trial\n"
+                    + "0 players match the current command: find Amy", resultDisplay.getText());
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            enterCommand("delete 1");
+            assertEquals(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, resultDisplay.getText());
+            assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+            enterCommand("filter t/Trial i/fit");
+            enterCommand("edit 1 p/333");
+            assertEquals("Edited player: Bob; Phone: 333; Tags: Trial\n"
+                    + "1 player matches the current command: filter t/Trial i/fit", resultDisplay.getText());
+            enterCommand("keep 1");
+            enterCommand("squad");
+            enterCommand("edit 1 p/444");
+            assertEquals("Edited player: Bob; Phone: 444; Tags: Trial\n1 player in your squad",
+                    resultDisplay.getText());
+            enterCommand("delete 1");
+            assertEquals("Deleted player: Bob; Phone: 444; Tags: Trial\n0 players in your squad",
+                    resultDisplay.getText());
+            assertTrue(model.getFilteredPersonList().isEmpty());
+            assertFalse(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
+        });
+    }
+
+    @Test
     public void execute_tabSeparatedCommandsThroughCommandBox_preservesPlayerDetails() throws Exception {
         runOnFxThread(() -> {
             enterCommand("clear");
@@ -158,14 +237,14 @@ public class MainWindowTest {
             assertEquals("10", model.getFilteredPersonList().getFirst().getRating().toString());
             enterCommand("squad");
             enterCommand("filter t/STRIKER");
-            assertEquals("1 player listed!", resultDisplay.getText());
+            assertEquals("1 player matches the current command: filter t/STRIKER", resultDisplay.getText());
             assertEquals("Tag Trialist", model.getFilteredPersonList().getFirst().getName().fullName);
             enterCommand("filter t/");
             assertEquals(Tag.MESSAGE_EMPTY, resultDisplay.getText());
             assertTrue(commandField.getStyleClass().contains(CommandBox.ERROR_STYLE_CLASS));
             assertEquals(1, model.getFilteredPersonList().size());
             enterCommand("filter t/NoSuchTag");
-            assertEquals("0 players listed!", resultDisplay.getText());
+            assertEquals("0 players match the current command: filter t/NoSuchTag", resultDisplay.getText());
             assertTrue(model.getFilteredPersonList().isEmpty());
             enterCommand("filter t/Striker");
             enterCommand("delete 1");
@@ -218,12 +297,14 @@ public class MainWindowTest {
             assertHelpSummaryShown();
             enterCommand("tag 1 t/" + "A".repeat(Tag.MAX_LENGTH));
             assertPlayerPanelShown();
-            assertEquals("Updated tags for Tag Trialist: " + "A".repeat(Tag.MAX_LENGTH) + ", Striker, Trial Group 2",
+            assertEquals("Updated tags for Tag Trialist: " + "A".repeat(Tag.MAX_LENGTH) + ", Striker, Trial Group 2\n"
+                    + "1 player matches the current command: find Trialist",
                     resultDisplay.getText());
             enterCommand("filter t/Striker");
             enterCommand("tag 1 t/Captain t/striker");
             assertEquals("Updated tags for Tag Trialist: " + "A".repeat(Tag.MAX_LENGTH)
-                    + ", Captain, Striker, Trial Group 2", resultDisplay.getText());
+                    + ", Captain, Striker, Trial Group 2\n1 player matches the current command: filter t/Striker",
+                    resultDisplay.getText());
             assertEquals(1, model.getFilteredPersonList().size());
             enterCommand("tag 1 t/captain");
             assertEquals("No changes made: Tag Trialist already has these details.", resultDisplay.getText());
@@ -242,7 +323,8 @@ public class MainWindowTest {
             }
             enterCommand("find Trialist");
             enterCommand("tag 1 t/");
-            assertEquals("Tag Trialist: tags cleared.", resultDisplay.getText());
+            assertEquals("Tag Trialist: tags cleared.\n1 player matches the current command: find Trialist",
+                    resultDisplay.getText());
             assertPlayerPanelShown();
             // Tag updates keep the search, so only the updated player is still shown
             assertEquals(1, model.getFilteredPersonList().size());

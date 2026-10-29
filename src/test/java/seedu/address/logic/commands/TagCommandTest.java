@@ -39,9 +39,10 @@ public class TagCommandTest {
 
         assertEquals(new PersonBuilder(original).withTags("Captain", "Striker").build(),
                 model.getFilteredPersonList().getFirst());
-        model.updateFilteredPersonList(new TagsContainAnyPredicate(Set.of(new Tag("Captain"))));
+        model.updateFilteredPersonList(new TagsContainAnyPredicate(Set.of(new Tag("Captain"))), "filter t/Captain");
         CommandResult cleared = new TagCommand(Index.fromOneBased(1), Set.of()).execute(model);
-        assertEquals(String.format(TagCommand.MESSAGE_CLEARED, original.getName()), cleared.getFeedbackToUser());
+        assertEquals(String.format(TagCommand.MESSAGE_CLEARED, original.getName())
+                + "\n0 players match the current command: filter t/Captain", cleared.getFeedbackToUser());
         assertEquals(0, model.getFilteredPersonList().size());
         assertEquals(new PersonBuilder(original).withTags().build(), model.getAddressBook().getPersonList().getFirst());
     }

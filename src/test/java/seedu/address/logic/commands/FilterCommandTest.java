@@ -37,28 +37,32 @@ public class FilterCommandTest {
     public void execute_orMatching_preservesOrderAndReturnsEachPlayerOnce() {
         AddressBook original = new AddressBook(model.getAddressBook());
         FilterCommand command = commandFor("striker", "captain");
-        assertEquals("2 players listed!", command.execute(model).getFeedbackToUser());
+        assertEquals("2 players match the current command: filter t/striker t/captain",
+                command.execute(model).getFeedbackToUser());
         assertEquals(List.of(STRIKER, CAPTAIN), model.getFilteredPersonList());
         assertEquals(original, model.getAddressBook());
     }
 
     @Test
     public void execute_oneZeroAndEmptyTeam_returnsCorrectFeedback() {
-        assertEquals("1 player listed!", commandFor("striker").execute(model).getFeedbackToUser());
+        assertEquals("1 player matches the current command: filter t/striker",
+                commandFor("striker").execute(model).getFeedbackToUser());
         assertEquals(List.of(STRIKER), model.getFilteredPersonList());
-        assertEquals("0 players listed!", commandFor("strik").execute(model).getFeedbackToUser());
+        assertEquals("0 players match the current command: filter t/strik",
+                commandFor("strik").execute(model).getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredPersonList());
-        assertEquals("0 players listed!", commandFor("Striker").execute(new ModelManager()).getFeedbackToUser());
+        assertEquals("0 players match the current command: filter t/Striker",
+                commandFor("Striker").execute(new ModelManager()).getFeedbackToUser());
     }
 
     @Test
     public void execute_filtersWholeTeamAndInteroperatesWithFindAndList() {
-        new FindCommand(new NameContainsKeywordsPredicate(List.of("Amy"))).execute(model);
+        new FindCommand(new NameContainsKeywordsPredicate(List.of("Amy")), "find Amy").execute(model);
         commandFor("Goalkeeper").execute(model);
         assertEquals(List.of(GOALKEEPER), model.getFilteredPersonList());
         commandFor("Captain").execute(model);
         assertEquals(List.of(STRIKER, CAPTAIN), model.getFilteredPersonList());
-        new FindCommand(new NameContainsKeywordsPredicate(List.of("Bob"))).execute(model);
+        new FindCommand(new NameContainsKeywordsPredicate(List.of("Bob")), "find Bob").execute(model);
         assertEquals(List.of(GOALKEEPER), model.getFilteredPersonList());
         commandFor("Captain").execute(model);
         new ListCommand().execute(model);
@@ -86,33 +90,40 @@ public class FilterCommandTest {
 
     @Test
     public void execute_injuryStatusAlone_listsPlayersWithThatStatus() {
-        FilterCommand injured = new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.INJURED));
-        assertEquals("1 player listed!", injured.execute(model).getFeedbackToUser());
+        FilterCommand injured =
+                new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.INJURED), "filter i/injured");
+        assertEquals("1 player matches the current command: filter i/injured",
+                injured.execute(model).getFeedbackToUser());
         assertEquals(List.of(CAPTAIN), model.getFilteredPersonList());
 
-        FilterCommand fit = new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.FIT));
-        assertEquals("2 players listed!", fit.execute(model).getFeedbackToUser());
+        FilterCommand fit = new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.FIT), "filter i/fit");
+        assertEquals("2 players match the current command: filter i/fit", fit.execute(model).getFeedbackToUser());
         assertEquals(List.of(STRIKER, GOALKEEPER), model.getFilteredPersonList());
     }
 
     @Test
     public void execute_tagsAndInjuryStatus_playersMustMatchBoth() {
         TagsContainAnyPredicate captains = new TagsContainAnyPredicate(Set.of(new Tag("Captain")));
-        new FilterCommand(Optional.of(captains), Optional.of(InjuryStatus.FIT)).execute(model);
+        new FilterCommand(Optional.of(captains), Optional.of(InjuryStatus.FIT),
+                "filter t/Captain i/fit").execute(model);
         assertEquals(List.of(STRIKER), model.getFilteredPersonList());
-        new FilterCommand(Optional.of(captains), Optional.of(InjuryStatus.INJURED)).execute(model);
+        new FilterCommand(Optional.of(captains), Optional.of(InjuryStatus.INJURED),
+                "filter t/Captain i/injured").execute(model);
         assertEquals(List.of(CAPTAIN), model.getFilteredPersonList());
     }
 
     @Test
     public void constructor_noCondition_throwsIllegalArgumentException() {
-        assertThrows(IllegalArgumentException.class, () -> new FilterCommand(Optional.empty(), Optional.empty()));
+        assertThrows(IllegalArgumentException.class, () -> new FilterCommand(Optional.empty(), Optional.empty(),
+                "filter test"));
     }
 
     @Test
     public void constructorAndExecute_nullsRejected() {
-        assertThrows(NullPointerException.class, () -> new FilterCommand(null));
-        assertThrows(NullPointerException.class, () -> new FilterCommand(null, Optional.empty()));
+        assertThrows(NullPointerException.class, () -> new FilterCommand(null, "filter test"));
+        assertThrows(NullPointerException.class, () -> new FilterCommand(null, Optional.empty(), "filter test"));
+        assertThrows(NullPointerException.class, () ->
+                new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.FIT), null));
         assertThrows(NullPointerException.class, () -> commandFor("Striker").execute(null));
     }
 
@@ -139,7 +150,7 @@ public class FilterCommandTest {
         assertFalse(command.equals(null));
         assertFalse(command.equals("filter"));
         assertFalse(command.equals(new FilterCommand(Optional.of(new TagsContainAnyPredicate(
-                Set.of(new Tag("Striker")))), Optional.of(InjuryStatus.FIT))));
+                Set.of(new Tag("Striker")))), Optional.of(InjuryStatus.FIT), "filter i/fit")));
         assertTrue(command.toString().contains("predicate="));
         assertTrue(command.toString().contains("injuryStatus="));
     }
@@ -152,6 +163,6 @@ public class FilterCommandTest {
 
     private static FilterCommand commandFor(String... labels) {
         Set<Tag> tags = Arrays.stream(labels).map(Tag::new).collect(Collectors.toSet());
-        return new FilterCommand(new TagsContainAnyPredicate(tags));
+        return new FilterCommand(new TagsContainAnyPredicate(tags), "filter t/" + String.join(" t/", labels));
     }
 }

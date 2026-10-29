@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static java.util.Objects.requireNonNull;
 
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 
@@ -21,30 +22,25 @@ public class FindCommand extends Command {
             + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
             + "Example: " + COMMAND_WORD + " wei ming";
 
-    /** Feedback format for zero or multiple matches. */
-    public static final String MESSAGE_PLAYERS_LISTED_OVERVIEW = "%1$d players listed!";
-    /** Feedback for exactly one match. */
-    public static final String MESSAGE_ONE_PLAYER_LISTED = "1 player listed!";
-
     private final NameContainsKeywordsPredicate predicate;
+    private final String commandText;
 
     /**
      * Creates a command that lists players matching {@code predicate}.
      *
      * @param predicate The name-matching predicate.
+     * @param commandText The search command to identify in feedback.
      */
-    public FindCommand(NameContainsKeywordsPredicate predicate) {
+    public FindCommand(NameContainsKeywordsPredicate predicate, String commandText) {
         this.predicate = requireNonNull(predicate);
+        this.commandText = requireNonNull(commandText);
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(predicate);
-        int playerCount = model.getFilteredPersonList().size();
-        String feedback = playerCount == 1 ? MESSAGE_ONE_PLAYER_LISTED
-                : String.format(MESSAGE_PLAYERS_LISTED_OVERVIEW, playerCount);
-        return new CommandResult(feedback);
+        model.updateFilteredPersonList(predicate, commandText);
+        return new CommandResult(Messages.formatCurrentListSummary(model));
     }
 
     @Override

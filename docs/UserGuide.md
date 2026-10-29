@@ -193,6 +193,8 @@ player detection: the same name is still rejected even if tags differ.
 
 Tags are saved automatically and restored when you restart. Older data files without a `tags` field load with no tags. Changing tags keeps the current search, tag/injury filter, squad view and active rating sort. Adding labels keeps a player in their current tag filter. Clearing tags removes them from a tag-filtered view and renumbers the remaining players. Use `list` to see everyone in insertion order again.
 
+After a successful tag change in a `find`, `filter` or squad view, a new line shows the updated matching or squad count. For example, clearing the last matching player's tags shows `NAME: tags cleared.` followed by `0 players match the current command: filter t/Striker`. The player remains in the team but leaves the tag-filtered view. Adding tags also shows the current count; no-change feedback stays unchanged.
+
 Changing only tags preserves the player's name, phone, jersey number, rating, selection status, remark and injury status. Name, phone, jersey, rating, selection, remark and injury updates also preserve tags unless you explicitly add to or clear them with `tag`.
 
 For a player named Amy Tan with phone 91234567, no jersey number and no tags:
@@ -348,6 +350,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [j/JERSEY]`
 * `edit` cannot change a remark or injury status. Use [`remark`](#recording-a-player-observation-remark-us21) or [`injury`](#marking-a-player-s-injury-status-injury-us13) instead.
 * Details you do not edit stay as they are. In particular, editing never changes a player's selection status, rating, remark or injury status.
 * The current filter and rating sort remain active. If the edited player no longer matches a name search, they disappear and the remaining players are renumbered. Recheck the displayed indices before another edit; use `list` to see everyone.
+* After a successful edit in a `find` or `filter` view, a new line shows the updated count and the command selecting that view, e.g. `1 player matches the current command: find Tan`. In a squad view, it shows `1 player in your squad` or `N players in your squad`. A renamed player who leaves the search is excluded from the count. Existing warnings remain above this line.
 * The result box shows the player's new details, and notes any jersey number you removed. If the values you typed are the same as the current ones, including a phone number typed with different spacing, it says `No changes made: NAME already has these details.`
 
 Examples, for a team where the 1st player is `Tan Wei Ming`, with jersey number 10, and `Nur'ain Binte Hassan` wears 7:
@@ -382,19 +385,20 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
 * Results follow the active rating sort, or insertion order when no sort is active, and are numbered from 1. After `find`, `delete 1`
   deletes the first displayed match. The search filter remains active after deletion.
 * A later `filter` replaces the name search; `squad` replaces it with all kept players. Both retain active sorting. Use `list` to restore the full team list and clear sorting.
-* A valid keyword with no matches, including a search on an empty team, shows an empty list and `0 players listed!`.
+* A valid keyword with no matches, including a search on an empty team, shows an empty list and `0 players match the current command: <command>`, where `<command>` is your search.
+* The result box identifies the search command and matching count. Extra spacing is collapsed in the echoed command; capitalisation and keyword order are preserved.
 * Searching changes neither player records nor the saved data file.
 
 For a team containing `Tan Wei Ming`, `Lim Wei Jie`, `Nur Aisyah`, and `Muthu s/o Ramasamy`:
 
 | Command | Displayed players | Result message |
 | --- | --- | --- |
-| `find wei` | Tan Wei Ming, Lim Wei Jie | `2 players listed!` |
-| `find TAN` | Tan Wei Ming | `1 player listed!` |
-| `find wei nur` | Tan Wei Ming, Lim Wei Jie, Nur Aisyah | `3 players listed!` |
-| `find ming tan ming` | Tan Wei Ming, once | `1 player listed!` |
-| `find We` | Empty list | `0 players listed!` |
-| `find s/o` | Muthu s/o Ramasamy | `1 player listed!` |
+| `find wei` | Tan Wei Ming, Lim Wei Jie | `2 players match the current command: find wei` |
+| `find TAN` | Tan Wei Ming | `1 player matches the current command: find TAN` |
+| `find wei nur` | Tan Wei Ming, Lim Wei Jie, Nur Aisyah | `3 players match the current command: find wei nur` |
+| `find ming tan ming` | Tan Wei Ming, once | `1 player matches the current command: find ming tan ming` |
+| `find We` | Empty list | `0 players match the current command: find We` |
+| `find s/o` | Muthu s/o Ramasamy | `1 player matches the current command: find s/o` |
 
 Entering `find` without keywords, including `find` followed only by spaces, shows:
 
@@ -427,23 +431,24 @@ Format: `filter [t/TAG]... [i/STATUS]`
   Results follow the active rating sort, or insertion order when no sort is active,
   and are numbered from 1. Check these displayed indices before editing or deleting.
   Each new filter replaces the previous view rather than adding conditions to it.
+* The result box identifies the filter command and matching count, preserving the conditions and their order. Extra spacing is collapsed in the echoed command.
 * `delete` and `edit` use the displayed indices and keep the filter; a successful `add`
   restores the full list. `find` replaces the tag filter with its name search.
 * `keep`, `cut`, `pending`, and `rate` also use displayed indices and preserve tags.
   `squad` replaces the tag filter with the kept-player view.
 * `list` restores the full roster and clears sorting, returning players to insertion order.
   Filtering changes no player data and does not save. Filters and sorting are not restored after restarting; your saved players and their tags are restored.
-* Missing conditions, invalid labels/statuses, duplicate `i/` arguments, or text before the first recognised parameter show an error and leave the current list and data unchanged. An injury-only filter is valid. A tag with no matches is valid and displays `0 players listed!`, including on an empty team.
+* Missing conditions, invalid labels/statuses, duplicate `i/` arguments, or text before the first recognised parameter show an error and leave the current list and data unchanged. An injury-only filter is valid. A tag with no matches is valid and displays `0 players match the current command: <command>`, including on an empty team; `<command>` is your filter.
 
 For Amy tagged `Striker` and `Captain`, Bob tagged `Goalkeeper`, and Charlie tagged `Captain`,
 added in that order with no active sort:
 
 | Command | Displayed players | Result message |
 | --- | --- | --- |
-| `filter t/STRIKER` | Amy | `1 player listed!` |
-| `filter t/Striker t/Captain` | Amy, Charlie | `2 players listed!` |
-| `filter t/Goalkeeper` | Bob | `1 player listed!` |
-| `filter t/strik` | Empty list | `0 players listed!` |
+| `filter t/STRIKER` | Amy | `1 player matches the current command: filter t/STRIKER` |
+| `filter t/Striker t/Captain` | Amy, Charlie | `2 players match the current command: filter t/Striker t/Captain` |
+| `filter t/Goalkeeper` | Bob | `1 player matches the current command: filter t/Goalkeeper` |
+| `filter t/strik` | Empty list | `0 players match the current command: filter t/strik` |
 
 For example, if Amy and Bob both have the `Striker` tag and ratings of 2 and 9 respectively,
 `sort rating` followed by `filter t/Striker` shows Bob first and Amy second. `list` clears
@@ -480,6 +485,7 @@ Format: `delete INDEX`
 * The list on screen stays as it is: a search, tag filter, squad view or rating sort remains active.
   The players below the deleted one move up, so **their numbers change**. Check the list again before
   deleting another player.
+* After deletion in a `find` or `filter` view, a new line gives the remaining count and selecting command, e.g. `0 players match the current command: filter t/Striker`. In a squad view, it gives the remaining squad count, e.g. `0 players in your squad`. `list`, adding a player, and `sort rating all` restore the full roster and remove this extra line from subsequent edit/delete feedback; sorting the current view keeps it.
 * The deletion is saved straight away (see [Saving the data](#saving-the-data)).
 * If `INDEX` is missing or is not a whole number, e.g. `delete`, `delete x` or `delete 1 2`, the result box
   shows the correct format. If it is `0`, negative or larger than the list on screen, it shows
@@ -515,6 +521,7 @@ Format: `keep INDEX`, `cut INDEX` or `pending INDEX`
 * The list on screen stays as it is, so you can work through the results of a `find` or `filter`.
   While viewing your squad, though, a player you `cut` or mark `pending` leaves the squad, so they disappear
   from the list and the players below them move up one number.
+* After a successful decision change in a `find`, `filter` or squad view, a new line shows the updated matching or squad count. For example, `pending 1` in a squad of two ends with `1 player in your squad`; cutting the last kept player ends with `0 players in your squad`.
 * A decision does not change a player's rating, tags or position in a rating sort. Editing a player with `edit`
   does not change their decision.
 * The decision is saved straight away and restored when you reopen CouchCoach.

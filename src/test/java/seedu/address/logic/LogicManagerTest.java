@@ -25,7 +25,6 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
-import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.SaveCommand;
@@ -57,6 +56,165 @@ public class LogicManagerTest {
     private Logic logic;
 
     @Test
+    public void execute_clearTagsAfterFilter_reportsRemainingMatchesAndSavesChanges() throws Exception {
+        logic.execute("add n/Amy p/111 t/Trial");
+        logic.execute("add n/Bob p/222 t/Trial");
+        logic.execute("add n/Charlie p/333 t/Trial");
+        logic.execute("add n/Dana p/444");
+        logic.execute("filter t/Trial i/fit");
+        logic.execute("sort rating");
+        assertThrows(ParseException.class, () -> logic.execute("tag 1 t/ t/Trial"));
+        List<String> names = List.of("Amy", "Bob", "Charlie");
+        List<String> summaries = List.of("2 players match", "1 player matches", "0 players match");
+        for (int i = 0; i < names.size(); i++) {
+            assertEquals(names.get(i) + ": tags cleared.\n" + summaries.get(i)
+                    + " the current command: filter t/Trial i/fit",
+                    logic.execute("tag 1 t/").getFeedbackToUser());
+            assertEquals(2 - i, model.getFilteredPersonList().size());
+        }
+        assertThrows(CommandException.class, () -> logic.execute("tag 1 t/"));
+        assertEquals(4, model.getAddressBook().getPersonList().size());
+        assertTrue(model.getAddressBook().getPersonList().stream().allMatch(player -> player.getTags().isEmpty()));
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_pendingAndCutAfterSquad_reportsRemainingKeptPlayersAndSavesChanges() throws Exception {
+        logic.execute("add n/Amy p/111");
+        logic.execute("add n/Bob p/222");
+        logic.execute("add n/Charlie p/333");
+        logic.execute("add n/Dana p/444");
+        for (int i = 1; i <= 3; i++) {
+            logic.execute("keep " + i);
+        }
+        logic.execute("squad");
+        assertEquals("Amy is already marked as kept.", logic.execute("keep 1").getFeedbackToUser());
+        assertThrows(CommandException.class, () -> logic.execute("cut 4"));
+        assertEquals("Marked Amy as pending.\n2 players in your squad",
+                logic.execute("pending 1").getFeedbackToUser());
+        assertEquals("Marked Bob as cut.\n1 player in your squad", logic.execute("cut 1").getFeedbackToUser());
+        assertEquals("Marked Charlie as pending.\n0 players in your squad",
+                logic.execute("pending 1").getFeedbackToUser());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertThrows(CommandException.class, () -> logic.execute("pending 1"));
+        assertEquals(List.of(SelectionStatus.PENDING, SelectionStatus.CUT, SelectionStatus.PENDING,
+                SelectionStatus.PENDING), model.getAddressBook().getPersonList().stream()
+                .map(Person::getSelectionStatus).toList());
+        assertEquals(model.getAddressBook(), new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_tagAndStatusWithFailedSave_reportsUpdatedCountsBeforeSaveWarning() throws Exception {
+        logic.execute("add n/Amy p/111 t/Trial");
+        logic.execute("keep 1");
+        logic.execute("filter t/Trial");
+        logic = createLogicWithFailingSave();
+        assertEquals("Amy: tags cleared.\n0 players match the current command: filter t/Trial\n"
+                + LogicManager.MESSAGE_SAVE_FAILURE, logic.execute("tag 1 t/").getFeedbackToUser());
+        logic.execute("squad");
+        assertEquals("Marked Amy as cut.\n0 players in your squad\n" + LogicManager.MESSAGE_SAVE_FAILURE,
+                logic.execute("cut 1").getFeedbackToUser());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+    }
+
+    @Test
+    public void execute_editAndDeleteAfterFind_reportsUpdatedCountsAndRetainsCommand() throws Exception {
+        logic.execute("add n/Amy One p/111");
+        logic.execute("add n/Amy Two p/222");
+        assertEquals("2 players match the current command: find Amy",
+                logic.execute("find Amy").getFeedbackToUser());
+        assertEquals("Edited player: Bob; Phone: 111\n1 player matches the current command: find Amy",
+                logic.execute("edit 1 n/Bob").getFeedbackToUser());
+        assertEquals("Deleted player: Amy Two; Phone: 222\n0 players match the current command: find Amy",
+                logic.execute("delete 1").getFeedbackToUser());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_editAndDeleteAfterFilter_preservesConditionsAndUsesUpdatedCount() throws Exception {
+        logic.execute("add n/Amy p/111 t/Trial Group 2");
+        logic.execute("add n/Bob p/222 t/Trial Group 2");
+        logic.execute("add n/Charlie p/333");
+        String command = "filter i/FIT t/Trial Group 2";
+        String summary = "2 players match the current command: " + command;
+        assertEquals(summary, logic.execute("  filter  i/FIT\tt/Trial   Group 2 \u00a0").getFeedbackToUser());
+        assertEquals("Edited player: Amy; Phone: 444; Tags: Trial Group 2\n" + summary,
+                logic.execute("edit 1 p/444").getFeedbackToUser());
+        assertEquals("Deleted player: Bob; Phone: 222; Tags: Trial Group 2\n"
+                + "1 player matches the current command: " + command,
+                logic.execute("delete 2").getFeedbackToUser());
+        assertEquals("Deleted player: Amy; Phone: 444; Tags: Trial Group 2\n"
+                + "0 players match the current command: " + command,
+                logic.execute("delete 1").getFeedbackToUser());
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_editAndDeleteAfterSquad_reportsSquadCountIncludingZero() throws Exception {
+        logic.execute("add n/Amy p/111");
+        logic.execute("add n/Bob p/222");
+        logic.execute("keep 1");
+        logic.execute("keep 2");
+        logic.execute("squad");
+        assertEquals("Edited player: Amy; Phone: 333\n2 players in your squad",
+                logic.execute("edit 1 p/333").getFeedbackToUser());
+        assertEquals("Deleted player: Amy; Phone: 333\n1 player in your squad",
+                logic.execute("delete 1").getFeedbackToUser());
+        assertEquals("Deleted player: Bob; Phone: 222\n0 players in your squad",
+                logic.execute("delete 1").getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_viewChangesAndErrors_keepSummaryConsistentWithDisplayedView() throws Exception {
+        logic.execute("add n/Amy p/111 t/Trial");
+        logic.execute("add n/Bob p/222 t/Trial");
+        logic.execute("filter t/Trial");
+        logic.execute("find Amy");
+        logic.execute("sort rating");
+        logic.execute("help");
+        assertThrows(ParseException.class, () -> logic.execute("filter t/"));
+        assertThrows(CommandException.class, () -> logic.execute("delete 2"));
+        assertThrows(CommandException.class, () -> logic.execute("edit 1 n/Bob"));
+        assertEquals("No changes made: Amy already has these details.",
+                logic.execute("edit 1 p/111").getFeedbackToUser());
+        assertEquals("Edited player: Amy; Phone: 999; Tags: Trial\n"
+                + "1 player matches the current command: find Amy",
+                logic.execute("edit 1 p/999").getFeedbackToUser());
+        logic.execute("list");
+        assertEquals("Edited player: Amy; Phone: 333; Tags: Trial",
+                logic.execute("edit 1 p/333").getFeedbackToUser());
+        logic.execute("find Amy");
+        logic.execute("add n/Charlie p/444");
+        assertEquals("Deleted player: Charlie; Phone: 444", logic.execute("delete 3").getFeedbackToUser());
+        logic.execute("find Amy");
+        logic.execute("sort rating all");
+        assertEquals("Edited player: Bob; Phone: 555; Tags: Trial",
+                logic.execute("edit 2 p/555").getFeedbackToUser());
+        logic.execute("keep 1");
+        logic.execute("sort rating squad");
+        assertEquals("Edited player: Amy; Phone: 666; Tags: Trial\n1 player in your squad",
+                logic.execute("edit 1 p/666").getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_editWithWarningsAndSaveFailure_retainsFeedbackAndRefreshedSummary() throws Exception {
+        logic.execute("add n/Amy p/111 j/7");
+        logic.execute("add n/Bob p/222 j/8");
+        logic.execute("find Amy");
+        logic = createLogicWithFailingSave();
+        assertEquals("Edited player: Amy; Phone: 111; Jersey: 8\n"
+                + "Warning: jersey number 8 is also used by Bob.\n"
+                + "1 player matches the current command: find Amy\n" + LogicManager.MESSAGE_SAVE_FAILURE,
+                logic.execute("edit 1 j/8").getFeedbackToUser());
+        assertEquals("Deleted player: Amy; Phone: 111; Jersey: 8\n"
+                + "0 players match the current command: find Amy\n" + LogicManager.MESSAGE_SAVE_FAILURE,
+                logic.execute("delete 1").getFeedbackToUser());
+    }
+
+    @Test
     public void execute_filter_doesNotSaveAndPreservesPreviousViewOnErrors() throws Exception {
         Person striker = new PersonBuilder().withName("Amy").withTags("Striker", "Trial Group 2").build();
         Person captain = new PersonBuilder().withName("Bob").withTags("Captain").build();
@@ -65,16 +223,18 @@ public class LogicManagerTest {
         logic = createLogicWithFailingSave();
         AddressBook original = new AddressBook(model.getAddressBook());
         logic.execute("find Bob");
-        assertEquals("1 player listed!", logic.execute("filter t/striker").getFeedbackToUser());
+        assertEquals("1 player matches the current command: filter t/striker",
+                logic.execute("filter t/striker").getFeedbackToUser());
         assertEquals(List.of(striker), model.getFilteredPersonList());
         for (String input : List.of("filter", "filter Striker", "filter t/", "filter t/Bad!", "Filter t/Striker")) {
             assertThrows(ParseException.class, () -> logic.execute(input));
             assertEquals(List.of(striker), model.getFilteredPersonList());
         }
-        assertEquals("2 players listed!", logic.execute("filter t/Captain t/Trial Group 2").getFeedbackToUser());
+        assertEquals("2 players match the current command: filter t/Captain t/Trial Group 2",
+                logic.execute("filter t/Captain t/Trial Group 2").getFeedbackToUser());
         assertEquals(List.of(striker, captain), model.getFilteredPersonList());
         assertEquals(original, model.getAddressBook());
-        assertEquals(FilterCommand.MESSAGE_ONE_PLAYER_LISTED,
+        assertEquals("1 player matches the current command: filter t/Trial Group 2 t/trial group 2",
                 logic.execute("filter t/Trial Group 2 t/trial group 2").getFeedbackToUser());
     }
 
@@ -451,14 +611,18 @@ public class LogicManagerTest {
         model.addPerson(muthu);
         logic = createLogicWithFailingSave();
 
-        assertFindSuccess("find wei", "2 players listed!", List.of(tan, lim));
-        assertFindSuccess("find TAN", "1 player listed!", List.of(tan));
-        assertFindSuccess("find wei nur'ain", "3 players listed!", List.of(tan, lim, nur));
-        assertFindSuccess("find ming tan ming", "1 player listed!", List.of(tan));
-        assertFindSuccess("find We", "0 players listed!", List.of());
-        assertFindSuccess("find " + tan.getPhone(), "0 players listed!", List.of());
-        assertFindSuccess("find S/O", "1 player listed!", List.of(muthu));
-        assertFindSuccess("  find  wei \t ming  ", "2 players listed!", List.of(tan, lim));
+        assertFindSuccess("find wei", "2 players match the current command: find wei", List.of(tan, lim));
+        assertFindSuccess("find TAN", "1 player matches the current command: find TAN", List.of(tan));
+        assertFindSuccess("find wei nur'ain", "3 players match the current command: find wei nur'ain",
+                List.of(tan, lim, nur));
+        assertFindSuccess("find ming tan ming", "1 player matches the current command: find ming tan ming",
+                List.of(tan));
+        assertFindSuccess("find We", "0 players match the current command: find We", List.of());
+        assertFindSuccess("find " + tan.getPhone(),
+                "0 players match the current command: find " + tan.getPhone(), List.of());
+        assertFindSuccess("find S/O", "1 player matches the current command: find S/O", List.of(muthu));
+        assertFindSuccess("  find  wei \t ming  ", "2 players match the current command: find wei ming",
+                List.of(tan, lim));
     }
 
     @Test

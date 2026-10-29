@@ -4,7 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import seedu.address.logic.commands.SquadCommand;
 import seedu.address.logic.parser.Prefix;
+import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
@@ -20,6 +22,10 @@ public class Messages {
             "\nWarning: this name looks like %1$s. Check that this is not the same player.";
     public static final String MESSAGE_INVALID_COMMAND_FORMAT = "Invalid command format!\n%1$s";
     public static final String MESSAGE_INVALID_PERSON_DISPLAYED_INDEX = "The player index provided is invalid.";
+    /** Feedback identifying the command selecting the displayed players. */
+    public static final String MESSAGE_PLAYERS_MATCHING = "%1$d players match the current command: %2$s";
+    /** Feedback for exactly one matching player. */
+    public static final String MESSAGE_ONE_PLAYER_MATCHING = "1 player matches the current command: %1$s";
     /** Shown when {@code add} or {@code edit} is given a detail that only its own command can set. */
     public static final String MESSAGE_DETAIL_NEEDS_OWN_COMMAND = "%1$s cannot set a remark or injury status. "
             + "Use \"remark INDEX r/REMARK\" or \"injury INDEX i/STATUS\" instead.";
@@ -38,6 +44,36 @@ public class Messages {
                 Stream.of(duplicatePrefixes).map(Prefix::toString).distinct().sorted().toList();
 
         return String.format(MESSAGE_DUPLICATE_FIELDS, String.join(" ", duplicateFields), duplicateFields.get(0));
+    }
+
+    /**
+     * Returns feedback for the current view using its refreshed displayed count.
+     * Returns an empty string when no command describes the view.
+     *
+     * @param model The model containing the displayed list and its selecting command.
+     * @return The current count and view description, or an empty string.
+     */
+    public static String formatCurrentListSummary(Model model) {
+        int count = model.getFilteredPersonList().size();
+        return model.getCurrentListCommand().map(commandText -> {
+            if (commandText.equals(SquadCommand.COMMAND_WORD)) {
+                return count == 1 ? "1 player in your squad" : count + " players in your squad";
+            }
+            return count == 1 ? String.format(MESSAGE_ONE_PLAYER_MATCHING, commandText)
+                    : String.format(MESSAGE_PLAYERS_MATCHING, count, commandText);
+        }).orElse("");
+    }
+
+    /**
+     * Appends the current view's count on a new line, if the view has a command description.
+     *
+     * @param feedback The existing command feedback, including any warnings.
+     * @param model The model containing the refreshed displayed list.
+     * @return The feedback with a view summary when one is available.
+     */
+    public static String appendCurrentListSummary(String feedback, Model model) {
+        String summary = formatCurrentListSummary(model);
+        return summary.isEmpty() ? feedback : feedback + "\n" + summary;
     }
 
     /**

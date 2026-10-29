@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.util.ToStringBuilder;
+import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.person.InjuryStatus;
 import seedu.address.model.person.Person;
@@ -29,20 +30,20 @@ public class FilterCommand extends Command {
             + "Examples: " + COMMAND_WORD + " t/Striker t/Trial Group 2, " + COMMAND_WORD + " i/injured, "
             + COMMAND_WORD + " t/Striker i/fit";
 
-    public static final String MESSAGE_PLAYERS_LISTED = "%1$d players listed!";
-
-    public static final String MESSAGE_ONE_PLAYER_LISTED = "1 player listed!";
-
     private static final Logger logger = LogsCenter.getLogger(FilterCommand.class);
 
     private final Optional<TagsContainAnyPredicate> tagPredicate;
     private final Optional<InjuryStatus> injuryStatus;
+    private final String commandText;
 
     /**
      * Creates a command that lists players with any tag accepted by {@code tagPredicate}.
+     *
+     * @param tagPredicate The tags to match.
+     * @param commandText The filter command to identify in feedback.
      */
-    public FilterCommand(TagsContainAnyPredicate tagPredicate) {
-        this(Optional.of(requireNonNull(tagPredicate)), Optional.empty());
+    public FilterCommand(TagsContainAnyPredicate tagPredicate, String commandText) {
+        this(Optional.of(requireNonNull(tagPredicate)), Optional.empty(), commandText);
     }
 
     /**
@@ -50,25 +51,26 @@ public class FilterCommand extends Command {
      *
      * @param tagPredicate The tags to match, if any.
      * @param injuryStatus The injury status to match, if any.
+     * @param commandText The filter command to identify in feedback.
      * @throws IllegalArgumentException if neither condition is given.
      */
-    public FilterCommand(Optional<TagsContainAnyPredicate> tagPredicate, Optional<InjuryStatus> injuryStatus) {
-        requireAllNonNull(tagPredicate, injuryStatus);
+    public FilterCommand(Optional<TagsContainAnyPredicate> tagPredicate, Optional<InjuryStatus> injuryStatus,
+            String commandText) {
+        requireAllNonNull(tagPredicate, injuryStatus, commandText);
         checkArgument(tagPredicate.isPresent() || injuryStatus.isPresent(), "A filter needs at least one condition.");
         this.tagPredicate = tagPredicate;
         this.injuryStatus = injuryStatus;
+        this.commandText = commandText;
     }
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(this::matches);
+        model.updateFilteredPersonList(this::matches, commandText);
         int playerCount = model.getFilteredPersonList().size();
         assert playerCount <= model.getAddressBook().getPersonList().size() : "A filter cannot add players";
         logger.fine("Filter matched " + playerCount + " players.");
-        String feedback = playerCount == 1 ? MESSAGE_ONE_PLAYER_LISTED
-                : String.format(MESSAGE_PLAYERS_LISTED, playerCount);
-        return new CommandResult(feedback);
+        return new CommandResult(Messages.formatCurrentListSummary(model));
     }
 
     /**

@@ -24,16 +24,16 @@ public class FilterCommandParserTest {
     @Test
     public void parse_validTags_normalizesAndCombinesLabels() {
         FilterCommand expected = new FilterCommand(new TagsContainAnyPredicate(
-                Set.of(new Tag("Striker"), new Tag("Trial Group 2"))));
+                Set.of(new Tag("Striker"), new Tag("Trial Group 2"))), "filter t/ Striker t/ Trial Group 2 t/striker");
         assertParseSuccess(parser, "  t/ Striker t/ Trial   Group 2  t/striker  ", expected);
     }
 
     @Test
     public void parse_injuryStatus_aloneOrWithTags() {
         assertParseSuccess(parser, " i/INJURED",
-                new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.INJURED)));
+                new FilterCommand(Optional.empty(), Optional.of(InjuryStatus.INJURED), "filter i/INJURED"));
         assertParseSuccess(parser, " t/Striker i/fit", new FilterCommand(Optional.of(new TagsContainAnyPredicate(
-                Set.of(new Tag("Striker")))), Optional.of(InjuryStatus.FIT)));
+                Set.of(new Tag("Striker")))), Optional.of(InjuryStatus.FIT), "filter t/Striker i/fit"));
     }
 
     @Test
@@ -61,7 +61,8 @@ public class FilterCommandParserTest {
         String tooLong = "a".repeat(Tag.MAX_LENGTH + 1);
         assertParseFailure(parser, " t/" + tooLong, String.format(Tag.MESSAGE_TOO_LONG, tooLong, Tag.MAX_LENGTH + 1));
         assertParseSuccess(parser, " t/" + "a".repeat(Tag.MAX_LENGTH),
-                new FilterCommand(new TagsContainAnyPredicate(Set.of(new Tag("a".repeat(Tag.MAX_LENGTH))))));
+                new FilterCommand(new TagsContainAnyPredicate(Set.of(new Tag("a".repeat(Tag.MAX_LENGTH)))),
+                        "filter t/" + "a".repeat(Tag.MAX_LENGTH)));
     }
 
     @Test

@@ -1313,14 +1313,14 @@ as well as apostrophes, hyphens, and periods.
 
 | Test case | Expected result |
 | --- | --- |
-| `find wei` | Tan and Lim displayed in that order, numbered 1 and 2; `2 players listed!`. |
-| `find TAN` | Tan only, numbered 1; `1 player listed!`. |
-| `find wei nur` | Tan, Lim, and Nur once each; `3 players listed!`. |
-| `find ming tan ming` | Tan once; `1 player listed!`. |
-| `find We` | Empty panel; `0 players listed!` (no partial matching). |
+| `find wei` | Tan and Lim displayed in that order, numbered 1 and 2; `2 players match the current command: find wei`. |
+| `find TAN` | Tan only, numbered 1; `1 player matches the current command: find TAN`. |
+| `find wei nur` | Tan, Lim, and Nur once each; `3 players match the current command: find wei nur`. |
+| `find ming tan ming` | Tan once; `1 player matches the current command: find ming tan ming`. |
+| `find We` | Empty panel; `0 players match the current command: find We` (no partial matching). |
 | `find 91234567` | Empty panel; phone numbers are not searched. |
-| `find S/O` | Muthu only; `1 player listed!`. |
-| `find s` | Muthu only; `1 player listed!` (a part of `s/o` between punctuation matches). |
+| `find S/O` | Muthu only; `1 player matches the current command: find S/O`. |
+| `find s` | Muthu only; `1 player matches the current command: find s` (a part of `s/o` between punctuation matches). |
 | `find n/Wei` | Empty panel; the slash keyword is literal, not a name prefix. |
 | `find` or `find` followed only by spaces | Exact four-line format error documented in the UG; previous displayed list unchanged. |
 | `Find wei` | Unknown-command error; previous displayed list unchanged. |
@@ -1333,7 +1333,7 @@ as well as apostrophes, hyphens, and periods.
 | `list` after a search | All four players displayed in original order. |
 | `find wei`, then `delete 1` | Tan removed; Lim remains numbered 1; Nur and Muthu stay hidden. |
 | `delete 1` again | Lim removed; filtered panel empty even though Nur and Muthu remain in the team. |
-| `list`, `clear`, then `find wei` | Empty panel; `0 players listed!`; no failure on an empty team. |
+| `list`, `clear`, then `find wei` | Empty panel; `0 players match the current command: find wei`; no failure on an empty team. |
 
 Recreate the four-player fixture above before the storage checks. Before running successful and invalid searches, record the data file's contents and
 modification time. Both must remain unchanged after every search. To check searches
@@ -1346,6 +1346,61 @@ and confirm that `find s/o` still finds it, checking that the slash survives sto
 After the table and storage checks, add disposable records `Tan Wei-Ming`, `Shaun O'Neil` and `Lim Jr.`. Verify `find Ming`, `find Neil` and `find Jr` find the appropriate records, while `find Min` does not. After all checks, close the app and remove the disposable folder.
 
 See [Name search implementation](#name-search-implementation-f3-us04) for the parsing and predicate design.
+
+### Checking find/filter/squad feedback after edits and deletions
+
+Use a disposable data directory and Java 25. Start with `clear`, then add
+`add n/Amy One p/111 t/Trial` and `add n/Amy Two p/222 t/Trial`.
+
+| Commands | Expected result |
+| --- | --- |
+| `find Amy` | Both players appear; `2 players match the current command: find Amy`. |
+| `edit 1 n/Bob` | `Edited player: Bob; Phone: 111; Tags: Trial`, followed on a new line by `1 player matches the current command: find Amy`. Bob leaves the view. |
+| `delete 1` | Amy Two's deleted details, followed by `0 players match the current command: find Amy`. The panel is empty. |
+| `delete 1`, then `filter t/` | The invalid-index and empty-tag errors respectively; no player changes. |
+| `filter t/Trial i/fit`, then `edit 1 p/333` | Bob's edited details, followed by `1 player matches the current command: filter t/Trial i/fit`. |
+| `sort rating`, `help`, then `edit 1 p/444` | The player panel returns. Bob's edited details still end with the same filter summary and count. |
+| `keep 1`, `squad`, then `edit 1 p/555` | Bob's edited details, followed by `1 player in your squad`. |
+| `delete 1` | Bob's deleted details, followed by `0 players in your squad`. |
+| `list`, `add n/Charlie p/666`, `find Charlie`, then `add n/Dana p/777` | The add restores both players. A subsequent `edit 1 p/888` has ordinary edit feedback without a view summary. |
+| `find Charlie`, `sort rating all`, then `delete 2` | Dana is deleted; ordinary deletion feedback has no stale find summary. |
+| `keep 1`, `sort rating squad`, then `edit 1 p/999` | Charlie's edited details, followed by `1 player in your squad`. |
+
+Also try a find or filter with repeated spaces and pasted tabs. Feedback echoes
+the command with single spaces while preserving case and condition order. Check
+zero, one and multiple matches. A failed command must not replace the previous
+view description. An unchanged edit retains its existing no-change feedback.
+When an edit produces a duplicate-jersey or similar-name warning, that warning
+remains above the new summary. Repeat an edit and deletion with blocked storage:
+the save warning follows the updated view summary, and `save` can retry storage.
+
+The model stores the selecting command alongside its filter. Find and filter
+parsers supply the command text; squad and explicitly squad-scoped sorting use
+`squad`. Updating a filter without a description clears it, as required by
+`list`, adding a player and all-scoped sorting. Edit, delete, tag and status commands format feedback
+after the observable list has refreshed, so a player leaving the view is not
+counted. The description is session state and is not written to the data file.
+
+For tag clearing and squad status changes, reset the disposable fixture with
+`clear`, `add n/Amy p/111 t/Trial`, `add n/Bob p/222 t/Trial`, `keep 1`, and `keep 2`.
+Run these rows in order:
+
+| Commands | Expected result |
+| --- | --- |
+| `filter t/Trial i/fit`, then `tag 1 t/` | `Amy: tags cleared.`, followed by `1 player matches the current command: filter t/Trial i/fit`. Only Bob remains visible. |
+| `tag 1 t/` | `Bob: tags cleared.`, followed by `0 players match the current command: filter t/Trial i/fit`. The panel is empty; both players remain in the team. |
+| `tag 1 t/` again | Invalid-index error; no player changes. |
+| `squad`, `sort rating`, then `pending 1` | `Marked Amy as pending.`, followed by `1 player in your squad`. Bob becomes the first displayed player. |
+| `cut 1` | `Marked Bob as cut.`, followed by `0 players in your squad`. Both records remain in the team. |
+| `pending 1` or `cut 1` again | Invalid-index error; no player changes. |
+
+Also check a squad with at least three kept players to verify plural counts.
+Repeat the tag clear and status change with blocked storage: each refreshed count
+must appear before the save warning. Restore storage, run `save`, and restart to
+verify that tags and decisions persist. Invalid syntax, invalid indices and
+already-set/no-change results keep their existing feedback. Successful tag
+additions and status changes in name or injury filters also append the current
+view summary, even when the number of displayed players is unchanged.
 
 ### Deleting a player
 
@@ -1552,7 +1607,7 @@ The displayed list must contain only Tag Tester as 1; Other Player remains in th
 | Inspect the card and feedback, then `edit 1 p/456`. | Both tags appear alphabetically without hiding name/phone; the phone changes and the tags remain. Other Player is unchanged. |
 | `tag 1 t/Captain t/captain` | Captain is added once, retaining the first spelling. Striker and Trial Group 2 remain; feedback lists Captain, Striker, Trial Group 2. The name search remains active. |
 | `tag 1 t/CAPTAIN` | No changes are made; Captain keeps its saved spelling, and Striker and Trial Group 2 remain. |
-| `tag 1 t/` | Tags disappear; feedback says `Tag Tester: tags cleared.` Other player fields remain. |
+| `tag 1 t/` | Tags disappear; feedback says `Tag Tester: tags cleared.`, then `1 player matches the current command: find Tag`. Other player fields remain. |
 | Repeat `tag 1 t/`. | `No changes made: Tag Tester already has these details.` The view and fields remain unchanged. A successful edit result still attempts a save. |
 | `tag 1 t/ Trial   Group 2` | One label, `Trial Group 2`, with collapsed whitespace and preserved capitalisation. |
 | `tag 1 t/Bad!` | Specific error naming `!`; tags and the previous view stay unchanged, and the file is not written. |
@@ -1592,9 +1647,9 @@ Before the sorting rows, all views use insertion order. Execute rows in order; `
 
 | Action | Expected result |
 | --- | --- |
-| `filter t/STRIKER` | Amy only as 1; `1 player listed!`. |
-| `filter t/Striker t/Captain t/striker` | Amy and Charlie once each, numbered 1 and 2; `2 players listed!`. |
-| `filter t/strik`, then `filter t/NoSuchTag`. | Each is a successful empty list with `0 players listed!`. |
+| `filter t/STRIKER` | Amy only as 1; `1 player matches the current command: filter t/STRIKER`. |
+| `filter t/Striker t/Captain t/striker` | Amy and Charlie once each, numbered 1 and 2; `2 players match the current command: filter t/Striker t/Captain t/striker`. |
+| `filter t/strik`, then `filter t/NoSuchTag`. | Each is a successful empty list with `0 players match the current command: <command>`, echoing the respective filter. |
 | `find Amy`, then `filter t/Goalkeeper`. | Bob appears despite being hidden by the name search. |
 | `filter t/Captain`, then `find Bob`. | Bob appears; the tag predicate is replaced. |
 | `squad`, then `filter t/Striker`. | Amy appears although not kept; the squad predicate is replaced. |
@@ -1613,6 +1668,6 @@ Before the sorting rows, all views use insertion order. Execute rows in order; `
 | `sort rating squad`, then `filter t/Captain`, then `list` | First Charlie only (the kept squad); next Charlie, Amy and Dana (the tag filter replaces squad scope while retaining the active rating sort); finally all three in insertion order with sorting cleared. |
 | `help`, then `filter t/Goalkeeper`. | Player panel returns showing Charlie; help includes current filter syntax. |
 | Exit and relaunch from the same folder, then `filter t/Goalkeeper`. | Full insertion-order roster appears on launch; the subsequent filter finds Charlie with persisted Goalkeeper and rating 9. |
-| `clear`, then `filter t/Striker`, then `find Amy`. | Both searches give `0 players listed!` without exceptions on an empty roster. |
+| `clear`, then `filter t/Striker`, then `find Amy`. | Both searches give `0 players match the current command: <command>`, echoing the respective command, without exceptions on an empty roster. |
 
 Compare the JSON contents and modification time before and after valid, empty-result and invalid filters: neither changes. Block the save path using the procedure under [Finding players by name](#finding-players-by-name-f3-us04); filtering must still show ordinary results without a save error. Restore the data directory before modifying players or closing the test session. Close the app and remove only the disposable test data after completion.

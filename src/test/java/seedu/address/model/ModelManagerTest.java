@@ -21,6 +21,30 @@ public class ModelManagerTest {
     private ModelManager modelManager = new ModelManager();
 
     @Test
+    public void updateFilteredPersonList_commandDescription_followsViewChanges() {
+        modelManager.addPerson(ALICE);
+        NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(List.of("Alice"));
+        modelManager.updateFilteredPersonList(predicate, "find Alice");
+        assertEquals("find Alice", modelManager.getCurrentListCommand().orElseThrow());
+        modelManager.deletePerson(ALICE);
+        assertEquals("find Alice", modelManager.getCurrentListCommand().orElseThrow());
+        modelManager.addPerson(BENSON);
+        assertTrue(modelManager.getCurrentListCommand().isEmpty());
+        modelManager.updateFilteredPersonList(predicate, "find Alice");
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        assertTrue(modelManager.getCurrentListCommand().isEmpty());
+    }
+
+    @Test
+    public void updateFilteredPersonList_nullCommandOrPredicate_preservesPreviousView() {
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, "find Alice");
+        assertThrows(NullPointerException.class, () -> modelManager.updateFilteredPersonList(null, "find Bob"));
+        assertThrows(NullPointerException.class, () ->
+                modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, null));
+        assertEquals("find Alice", modelManager.getCurrentListCommand().orElseThrow());
+    }
+
+    @Test
     public void constructor() {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());
