@@ -108,6 +108,58 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_punctuationAroundCompoundWord_matchesWholeCompoundWord() {
+        assertTrue(new NameContainsKeywordsPredicate(List.of("O'Neil"))
+                .test(new PersonBuilder().withName("Shaun (O'Neil)").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Wei-Ming"))
+                .test(new PersonBuilder().withName("Tan Wei-Ming, Jr.").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("s/o"))
+                .test(new PersonBuilder().withName("Muthu (s/o Ramasamy)").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("O'Neil"))
+                .test(new PersonBuilder().withName("((O'Neil))").build()));
+    }
+
+    @Test
+    public void test_punctuationAroundKeyword_isIgnored() {
+        Person nestedBrackets = new PersonBuilder().withName("Shaun ((O'Neil))").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of("(O'Neil)")).test(nestedBrackets));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("((O'Neil))")).test(nestedBrackets));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("(((O'Neil)))")).test(nestedBrackets));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("((O'Neil))"))
+                .test(new PersonBuilder().withName("Shaun O'Neil").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("Jr."))
+                .test(new PersonBuilder().withName("Lim (O'Neil (Jr.))").build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("(lee)"))
+                .test(new PersonBuilder().withName("David(lee)").build()));
+    }
+
+    @Test
+    public void test_punctuationOnlyKeyword_returnsFalse() {
+        assertFalse(new NameContainsKeywordsPredicate(List.of("()"))
+                .test(new PersonBuilder().withName("Shaun (O'Neil)").build()));
+    }
+
+    @Test
+    public void test_partialWordWithEdgePunctuation_returnsFalse() {
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Min"))
+                .test(new PersonBuilder().withName("Tan ((Wei-Ming)), Jr.").build()));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("((O'Nei))"))
+                .test(new PersonBuilder().withName("Shaun ((O'Neil))").build()));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Mary-J"))
+                .test(new PersonBuilder().withName("Cy (((Mary-Jane)))").build()));
+    }
+
+    @Test
+    public void test_partsSplitByPunctuation_areNotJoined() {
+        Person player = new PersonBuilder().withName("David(l(e(e)))").build();
+        assertTrue(new NameContainsKeywordsPredicate(List.of("l")).test(player));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("lee")).test(player));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("l(e(e))")).test(player));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("wei"))
+                .test(new PersonBuilder().withName("Tan WeiMing").build()));
+    }
+
+    @Test
     public void test_keywordOrder_doesNotAffectMatching() {
         Person player = new PersonBuilder().withName("Tan Wei Ming").build();
         assertTrue(new NameContainsKeywordsPredicate(List.of("ming", "tan")).test(player));

@@ -380,6 +380,13 @@ Format: `find KEYWORD [MORE_KEYWORDS]...`
   between the punctuation: `find Wei-Ming` and `find Ming` both match `Tan Wei-Ming`, `find Neil` matches
   `Shaun O'Neil`, `find Jr` matches `Lim Jr.`, and `find s/o` matches `Muthu s/o Ramasamy`. Each part
   must still match in full, so `find Min` does not match `Tan Wei-Ming`.
+* Punctuation at the start or end of a word is ignored, both in names and in your keywords, so brackets,
+  commas and full stops around a word do not stop it matching: `find O'Neil` and `find (O'Neil)` both match
+  `Shaun ((O'Neil))`, and `find Wei-Ming` matches `Tan Wei-Ming, Jr.`.
+* Parts are never joined together, and a keyword never matches a piece from the middle of a word. Punctuation
+  inside a word keeps its parts apart, and so does a missing space: `David(l(e(e)))` has the parts `David`, `l`,
+  `e` and `e`, so neither `find lee` nor `find l(e(e))` matches it, and `find wei` does not match `Tan WeiMing`.
+  Search for a whole word or one complete part instead, e.g. `find David` or `find WeiMing`.
 * No tagged parameters are used; `find n/Wei` searches for the literal word `n/Wei`.
 * Each search searches the whole team, including players hidden by an earlier `find`, `filter` or `squad`. It replaces that view rather than adding another condition.
 * Results follow the active rating sort, or insertion order when no sort is active, and are numbered from 1. After `find`, `delete 1`
@@ -399,6 +406,17 @@ For a team containing `Tan Wei Ming`, `Lim Wei Jie`, `Nur Aisyah`, and `Muthu s/
 | `find ming tan ming` | Tan Wei Ming, once | `1 player matches the current command: find ming tan ming` |
 | `find We` | Empty list | `0 players match the current command: find We` |
 | `find s/o` | Muthu s/o Ramasamy | `1 player matches the current command: find s/o` |
+
+For a team containing `Shaun ((O'Neil))`, `Tan Wei-Ming, Jr.`, `David(lee)` and `David(l(e(e)))`:
+
+| Command | Displayed players |
+| --- | --- |
+| `find O'Neil` or `find (O'Neil)` | Shaun ((O'Neil)) |
+| `find Wei-Ming` | Tan Wei-Ming, Jr. |
+| `find Min` | Empty list |
+| `find lee` or `find (lee)` | David(lee) |
+| `find l(e(e))` | Empty list |
+| `find david` | David(lee), David(l(e(e))) |
 
 Entering `find` without keywords, including `find` followed only by spaces, shows:
 
