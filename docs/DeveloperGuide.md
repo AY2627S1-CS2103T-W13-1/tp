@@ -529,6 +529,8 @@ Both commands preserve every unrelated field and retain the predicate and compar
 
 `AddressBookParser` dispatches `find` to `FindCommandParser`, which rejects an empty argument string and splits plain keywords on whitespace. `NameContainsKeywordsPredicate` accepts a player if any keyword matches a whole whitespace-delimited word of the original name or a complete part separated by punctuation. It uses `StringUtil.containsWordIgnoreCase` for both representations. Thus both `Wei-Ming` and `Ming` match `Tan Wei-Ming`, while `Min` does not. Letters, combining marks and numbers stay together when punctuation is replaced by spaces; slashes in keywords remain literal, so `s/o` can match the original name.
 
+A third representation removes punctuation from the start and end of each word, e.g. `Shaun ((O'Neil))` becomes `Shaun O'Neil` and `Tan Wei-Ming, Jr.` becomes `Tan Wei-Ming Jr`. The keyword is trimmed the same way and compared with this representation and with the parts, so `O'Neil`, `(O'Neil)` and `((O'Neil))` all match `Shaun ((O'Neil))`, and `(lee)` matches `David(lee)`. A keyword that is only punctuation, such as `()`, trims to nothing, so trimming adds no matches for it; it still matches a name containing that exact word, e.g. `Ali () Tan`, through the original whole-word check. These checks are added to the original two with a logical OR, so they never remove a match. The predicate never joins parts or looks inside a word: `lee` and `l(e(e))` do not match `David(l(e(e)))`, whose parts are `David`, `l`, `e` and `e`, consistent with `Min` not matching `Wei-Ming`.
+
 `FindCommand` calls `Model#updateFilteredPersonList`, using the same filtered/sorted view described above. Each new search covers the whole roster, ignores phone/tag/remark fields, shows each match once, and returns singular or plural match-count feedback. Zero matches is a successful empty view. `LogicManager` skips saving; invalid syntax leaves the previous view unchanged. Predicate-based matching keeps search independent of JavaFX cards and storage while allowing indexed commands to act on exactly the displayed results.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -1343,7 +1345,19 @@ the normal search feedback still appears. Remove the temporary file and restore 
 directory before adding or deleting players. Relaunch after preparing Muthu's record
 and confirm that `find s/o` still finds it, checking that the slash survives storage.
 
-After the table and storage checks, add disposable records `Tan Wei-Ming`, `Shaun O'Neil` and `Lim Jr.`. Verify `find Ming`, `find Neil` and `find Jr` find the appropriate records, while `find Min` does not. After all checks, close the app and remove the disposable folder.
+After the table and storage checks, add disposable records `Tan Wei-Ming`, `Shaun O'Neil` and `Lim Jr.`. Verify `find Ming`, `find Neil` and `find Jr` find the appropriate records, while `find Min` does not.
+
+Then add `Shaun ((O'Neil))`, `Tan Wei-Ming, Jr.`, `David(lee)` and `David(l(e(e)))`, and check punctuation at word edges:
+
+| Test case | Expected result |
+| --- | --- |
+| `find O'Neil`, then `find (O'Neil)`, then `find ((O'Neil))` | Each lists Shaun O'Neil and Shaun ((O'Neil)). |
+| `find Wei-Ming` | Tan Wei-Ming and Tan Wei-Ming, Jr. |
+| `find (lee)` | David(lee) only. |
+| `find lee`, then `find l(e(e))` | `lee` lists David(lee) only; `l(e(e))` lists no players, as parts are never joined. |
+| `find ()` | No players are listed, as none of these names contains the word `()`. |
+
+After all checks, close the app and remove the disposable folder.
 
 See [Name search implementation](#name-search-implementation-f3-us04) for the parsing and predicate design.
 
