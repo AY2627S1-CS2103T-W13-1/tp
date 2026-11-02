@@ -243,7 +243,9 @@ fall back to defaults and are rewritten at startup; the team file is unaffected.
   then replaces the data file with an atomic move, so an existing data file holds either the old team or the new
   team, never a partial write. The temporary file starts as a copy of the data file, keeping its permissions, and
   the save follows a symbolic link to the real data file. The temporary file is deleted whether or not the save
-  succeeds.
+  succeeds. Because the temporary file is created in the data file's folder, saving needs that folder to be writable.
+  Only the team data file is saved this way: `JsonUserPrefsStorage` still saves `preferences.json` directly through
+  `JsonUtil#saveJsonFile` and `FileUtil#writeToFile`.
 * If the save throws an `IOException` (e.g. the file or folder is read-only), `LogicManager` returns the applied
   command feedback plus `MESSAGE_SAVE_FAILURE`. A failed explicit `save` returns `SaveCommand.MESSAGE_FAILURE` instead.
   The change stays in the in-memory `Model`, but the save is unsuccessful; the UI clears the command box.
@@ -776,9 +778,10 @@ The following rules apply throughout:
 1. Coach requests to find a player by name.
 2. CouchCoach displays the matching players.
 3. Coach identifies a player from the displayed list and supplies the custom
-   labels that should replace that player's categories.
-4. CouchCoach replaces the categories, preserves the other player details,
-   saves the updated data and confirms the updated categories.
+   labels to add to that player's categories.
+4. CouchCoach adds the labels to the player's existing categories, preserves
+   the other player details, saves the updated data and confirms the complete
+   updated categories.
 
    Use case ends.
 
@@ -810,10 +813,12 @@ The following rules apply throughout:
 
     * 3c1. CouchCoach removes all categories, preserves the other player details,
       saves the updated data and confirms the removal.
+    * 3c2. If the player no longer matches an active category filter,
+      CouchCoach keeps the filter and updates the displayed matches.
 
       Use case ends.
 
-* 3d. The requested categories and their spellings are unchanged.
+* 3d. The player already has every requested label, ignoring capitalisation.
 
     * 3d1. CouchCoach reports that no details changed.
 
@@ -823,12 +828,6 @@ The following rules apply throughout:
 
     * 4a1. CouchCoach informs the Coach that the category changes were applied
       in the current session but could not be saved and may be lost after closing.
-
-      Use case ends.
-
-* 4b. The updated player no longer matches the active category filter.
-
-    * 4b1. CouchCoach keeps the filter and updates the displayed matches.
 
       Use case ends.
 
@@ -1091,7 +1090,7 @@ Use a disposable folder. Run `clear` first, then `add n/Nur'ain Binte Hassan p/9
    1. Test case: `add n/Amy p/12`, `add n/Amy p/1234567890123456`, `add n/Amy p/9123ABCD`<br>
       Expected: No player is added. The result box shows the phone number rules.
 
-   1. Test case: `add n/Amy p/91234567 j/100`, then `j/010`, `j/-1`, `j/7.5` and an empty `j/` in place of `j/100`<br>
+   1. Test case: `add n/Amy p/91234567 j/100`, then `j/0100`, `j/-1`, `j/7.5` and an empty `j/` in place of `j/100`<br>
       Expected: No player is added. The result box shows `Jersey numbers should be whole numbers from 0 to 99, e.g. 7 or 23.`
 
    1. Test case: `add n/Amy n/Bob p/91234567`<br>
@@ -1498,7 +1497,7 @@ Use a disposable roster. In the commands below, replace `<TAB>` with a real tab 
 | Action | Expected result |
 | --- | --- |
 | `add<TAB>n/Amy<TAB>p/123<TAB>t/Trial` | Amy is added with phone 123 and tag Trial. |
-| `edit 1<NBSP>p/456`, then `tag 1<TAB>t/Captain`. | Phone changes to 456; tags become Captain. |
+| `edit 1<NBSP>p/456`, then `tag 1<TAB>t/Captain`. | Phone changes to 456; Captain is added, so the tags are Captain and Trial. |
 | `filter<TAB>t/Captain`, then `filter<NBSP>i/fit`. | Amy is found in each view. |
 | `remark 1<TAB>r/Trial note`, then `injury 1<NBSP>i/injured`. | Both updates succeed and preserve other fields. |
 | `add n/Amy<TAB>n/Bob p/789` | Duplicate-name-prefix error; nothing is added. |
