@@ -3,7 +3,10 @@ package seedu.address.storage;
 import static java.util.Objects.requireNonNull;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -83,7 +86,19 @@ public class JsonAddressBookStorage {
         requireNonNull(filePath);
 
         FileUtil.createIfMissing(filePath);
-        JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), filePath);
+        Path target = filePath.toRealPath();
+        if (!Files.isWritable(target)) {
+            throw new AccessDeniedException(target.toString());
+        }
+        Path temporary = Files.createTempFile(target.getParent(), "couchcoach-", ".tmp");
+        try {
+            // Retain the existing file's permissions and follow data-file links before replacing it.
+            Files.copy(target, temporary, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+            JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), temporary);
+            Files.move(temporary, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
     }
 
 }
