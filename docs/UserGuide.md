@@ -606,9 +606,10 @@ If a change cannot be saved (e.g. the data file or its folder is read-only, the 
 or a directory occupies the data file path),
 the result box shows the applied command's feedback followed by a warning that the change
 could not be saved. The change is still shown in CouchCoach, but it is not on disk yet.
-The data file may be unchanged, empty or partially written; a failed save does not guarantee that the
-previous file remains intact. If the `data` folder is deleted while CouchCoach is open, it is recreated
-at the next save.
+A failed save leaves the data file as it was after the last successful save, so your earlier
+saved team is not lost. If CouchCoach had not saved the team before, a failed first save can leave
+an empty data file, which is treated as unreadable at the next launch until a save succeeds.
+If the `data` folder is deleted while CouchCoach is open, it is recreated at the next save.
 The command box clears because the operation has already happened. **Do not repeat the
 original command**: for example, repeating `delete 1` would delete the next player.
 

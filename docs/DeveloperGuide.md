@@ -239,13 +239,20 @@ fall back to defaults and are rewritten at startup; the team file is unaffected.
   (e.g. `keep` on a player who is already kept). This can save changes from earlier failed attempts.
 * A command that is rejected throws a `ParseException` or `CommandException` before the save step, so the file is unchanged.
 * Each save writes the whole team through `JsonAddressBookStorage#saveAddressBook`, which also recreates a missing `data`
-  folder via `FileUtil#createIfMissing`.
+  folder via `FileUtil#createIfMissing`. It writes the JSON to a temporary file in the same folder as the data file,
+  then replaces the data file with an atomic move, so an existing data file holds either the old team or the new
+  team, never a partial write. The temporary file starts as a copy of the data file, keeping its permissions, and
+  the save follows a symbolic link to the real data file. The temporary file is deleted whether or not the save
+  succeeds.
 * If the save throws an `IOException` (e.g. the file or folder is read-only), `LogicManager` returns the applied
   command feedback plus `MESSAGE_SAVE_FAILURE`. A failed explicit `save` returns `SaveCommand.MESSAGE_FAILURE` instead.
   The change stays in the in-memory `Model`, but the save is unsuccessful; the UI clears the command box.
-  `FileUtil#writeToFile` writes directly to the destination with `Files.write`, so an
-  I/O failure can leave the file unchanged, empty or partially written. A later successful save writes the whole
-  in-memory team, including all changes whose earlier saves failed. `SaveCommand#execute` only returns feedback;
+  Because the data file is replaced only after the temporary file is fully written, a failed save leaves the
+  previously saved data file unchanged. `FileUtil#createIfMissing` creates an empty data file before the first
+  save, so a first save that fails while writing leaves that empty file. A read-only data file is rejected before
+  anything is written, and a file system that cannot move the file atomically also fails the save rather than
+  writing the data file directly. A later successful save writes the whole in-memory team, including all changes
+  whose earlier saves failed. `SaveCommand#execute` only returns feedback;
   `LogicManager` performs the actual write because `SaveCommand` is not classified as read-only. It writes
   the complete roster even while a filter or sort is active. Closing the app never retries a team save.
 
@@ -1563,6 +1570,7 @@ Prepare a fresh disposable team with `clear`, `list`, `add n/Amy p/123` and `add
 | Remove the blocker file and rename `data-backup` back to `data`. Enter `save`. | `Saved the current team to disk.` Both Amy's Kept and Bob's Cut statuses are written, although only Amy is displayed. The current filter and sort remain active. |
 | Enter `save extra`. | Format error; data and view stay unchanged and no write is attempted. |
 | Enter `list`, close and relaunch from the same folder. | Amy remains Kept and Bob remains Cut; both appear in insertion order. |
+| Close the app and note the contents of `data/addressbook.json`. Make the file read-only (e.g. `chmod a-w data/addressbook.json`), relaunch and enter `pending 1`. | Amy becomes **Pending** and the save warning appears. The data file's contents are unchanged and still record Amy as Kept, and no temporary files are left in the `data` folder. Make the file writable again and enter `save`: the file now records Amy as Pending. |
 | Delete the disposable `data` folder while the app is open, then enter `pending 2`. | The folder and file are recreated, and Bob's pending status is saved normally. |
 | Close the app. Copy the JAR into a new empty folder, make that folder read-only (e.g. `chmod a-w FOLDER` on macOS/Linux), then launch from it. Enter `keep 1`. | The window opens with the sample team; the terminal notes that the log file could not be created. Alex becomes **Kept** and the feedback appends the same save warning. No file appears in the folder. Make the folder writable again before deleting it. |
 
