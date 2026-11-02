@@ -1224,6 +1224,7 @@ independent table row; commands within a row are sequential. Setup changes playe
 
 ```text
 clear
+list
 add n/Amy Zero p/123 j/7 t/Trial
 add n/Bob Ten p/456 t/Trial
 add n/Cy Tie p/789 t/Other
