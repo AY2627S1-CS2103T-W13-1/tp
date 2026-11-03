@@ -20,6 +20,13 @@ CouchCoach helps coaches of any sports team keep player details and observations
 * CouchCoach adapts the application structure, code and documentation of [SE-EDU AddressBook Level 3](https://github.com/se-edu/addressbook-level3).
 * The application uses [JavaFX](https://openjfx.io/) for its desktop interface and [Jackson](https://github.com/FasterXML/jackson) for JSON storage. Tests use [JUnit 5](https://junit.org/junit5/).
 * The documentation site uses [MarkBind](https://markbind.org/) and its [PlantUML](https://plantuml.com/) support for diagrams.
+* Notable uses of AI: the team used AI tools from OpenAI (including Codex) and Anthropic (Claude, including Claude Code) throughout the project.
+  * Implementing features and bug fixes.
+  * Writing and updating automated tests, and scripting manual tests against the released JAR.
+  * Drafting and updating the User Guide, the Developer Guide and the UML diagrams.
+  * Reviewing pull requests and checking the guides against the product.
+
+  All AI-generated code, tests and documentation were reviewed, tested and edited by team members before being merged.
 
 --------------------------------------------------------------------------------------------------------------------
 
